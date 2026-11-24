@@ -9,8 +9,8 @@ export default defineConfig({
       includeAssets: ['icon.svg', 'apple-touch-icon.png'],
       manifest: {
         id: './',
-        name: 'Punto y Magia',
-        short_name: 'Punto y Magia',
+        name: 'PlayHour',
+        short_name: 'PlayHour',
         description: 'Une puntos, colorea y aprende números en español e inglés.',
         lang: 'es-MX',
         theme_color: '#F2672E',
