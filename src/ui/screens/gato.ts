@@ -29,7 +29,7 @@ export function gatoScreen(ctx: Ctx): Screen {
 
   const wrap = h('div', { class: 'gato' });
   const el = h('div', { class: 'view' }, wrap);
-  const nameOf = (p: Player) => (mode === 'cpu' ? (p === 1 ? { es: 'Tú', en: 'You' } : { es: 'La compu', en: 'Computer' }) : NAME[p]);
+  const nameOf = (p: Player) => (mode === 'cpu' ? (p === 1 ? { es: 'Tú', en: 'You' } : { es: 'Robi', en: 'Robi' }) : NAME[p]);
 
   function chooseMode(): void {
     clearTimeout(timer);
@@ -41,7 +41,7 @@ export function gatoScreen(ctx: Ctx): Screen {
           h('b', null, 'Dos jugadores'), h('small', null, 'Two players · Se turnan en este mismo dispositivo')),
         h('button', { class: 'gmode', onClick: () => start('cpu') },
           h('span', { class: 'gpair' }, h('i', { html: STAR_SVG }), h('i', { html: ROBOT_SVG })),
-          h('b', null, 'Contra la compu'), h('small', null, `Against the computer · Nivel ${LEVEL_LABEL[level]} (según la edad)`)),
+          h('b', null, 'Contra Robi'), h('small', null, `Robi es un robot que juega solo: él decide dónde poner su ficha · Nivel ${LEVEL_LABEL[level]}`)),
       ),
     );
     ctx.sayPair('¿Con quién quieres jugar?', 'Who do you want to play with?');
@@ -60,7 +60,7 @@ export function gatoScreen(ctx: Ctx): Screen {
     turn = starter;
     render();
     const n = nameOf(turn);
-    if (mode === 'cpu') ctx.sayPair(turn === 1 ? 'Empiezas tú' : 'Empieza la compu', turn === 1 ? 'You go first' : 'The computer goes first');
+    if (mode === 'cpu') ctx.sayPair(turn === 1 ? 'Empiezas tú' : 'Empieza Robi', turn === 1 ? 'You go first' : 'Robi goes first');
     else ctx.sayPair(`Empieza ${n.es}`, `${n.en} goes first`);
     cpuTurn();
   }
@@ -82,7 +82,7 @@ export function gatoScreen(ctx: Ctx): Screen {
       over = true;
       score[w.who]++;
       pop(880, 0.35);
-      if (mode === 'cpu') ctx.sayPair(w.who === 1 ? '¡Ganaste!' : '¡Ganó la compu! Juega otra vez.', w.who === 1 ? 'You win!' : 'The computer wins! Play again.');
+      if (mode === 'cpu') ctx.sayPair(w.who === 1 ? '¡Ganaste!' : '¡Ganó Robi! Juega otra vez.', w.who === 1 ? 'You win!' : 'Robi wins! Play again.');
       else ctx.sayPair(`¡Ganó ${NAME[w.who].es}!`, `${NAME[w.who].en} wins!`);
     } else if (isFull(board)) {
       over = true;
@@ -102,7 +102,7 @@ export function gatoScreen(ctx: Ctx): Screen {
         ? `¡Ganó ${nameOf(board[line[0]] as Player).es}!`
         : '¡Empate! · Tie'
       : mode === 'cpu' && turn === 2
-        ? 'La compu está pensando…'
+        ? 'Robi está pensando…'
         : `Turno de ${nameOf(turn).es} · ${nameOf(turn).en}`;
     const cells = board.map((c, i) =>
       h('button', {

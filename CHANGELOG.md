@@ -1,5 +1,15 @@
 # Cambios
 
+## 0.8.0 — 2026-11-24
+
+- **Robots y animales nuevos**, de diseño propio, en todos los juegos de dibujos (Unir puntos, Colorear, Trazos de luz, Destapa y Pinta por números): Robi (robot con corazón) y Chispa (robot con ruedas), rana, pingüino y pez.
+- **Gato:** "Contra la compu" ahora es **Contra Robi**, un robot que juega solo; así se entiende que el otro jugador es automático.
+- **Pinta por números con fondos:** en Zonas el dibujo queda al centro de un fondo de burbujas, olas o arcos cortado en piezas, cada una con su número, como un vitral. Las piezas vecinas tienen tonos distintos.
+- **Elegir la voz:** en el área de padres se puede escoger la voz en español y en inglés entre las instaladas, probarla, y hay pasos para descargar voces de mejor calidad. La voz suena con su tono natural (antes iba un poco más aguda).
+- En el celular la app ya no se dibuja debajo de la barra de navegación de Android, que tapaba los botones de abajo (por ejemplo "¡A colorear!" en Destapa).
+- En celular horizontal los colores de Trazos de luz caben completos.
+- La voz se calla al salir de una pantalla: las instrucciones de un trazo, un dibujo o un juego ya no siguen sonando después de regresar al menú o a Inicio.
+
 ## 0.7.0 — 2026-11-24
 
 - Tres juegos nuevos en Juegos:

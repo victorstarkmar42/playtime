@@ -99,8 +99,25 @@ export function parentsScreen(ctx: Ctx): Screen {
         ? `Español: ${es?.name ?? 'sin voz instalada'} · Inglés: ${en?.name ?? 'sin voz instalada'}`
         : 'Buscando voces del dispositivo…';
   };
+  const voicePick = h('div', { class: 'voicepick' });
+  const paintPick = () => {
+    voicePick.replaceChildren(...(['es', 'en'] as const).map((l) => {
+      const key = l === 'es' ? 'voiceEs' : 'voiceEn';
+      const list = ctx.speaker.voicesFor(l);
+      const sel = h('select', { 'aria-label': l === 'es' ? 'Voz en español' : 'Voz en inglés', onChange: (e: Event) => {
+        updateSettings({ [key]: (e.target as HTMLSelectElement).value });
+        paintVoices();
+        ctx.sayOne(l === 'es' ? 'Hola, ¿jugamos a unir puntos?' : "Hi, let's connect the dots!", l);
+      } },
+        h('option', { value: '' }, 'La mejor (automática)'),
+        ...list.map((v) => h('option', { value: v.name, selected: v.name === settings[key] }, `${v.name} (${v.lang})${v.localService === false ? ' · en línea' : ''}`)));
+      return h('label', null, h('b', null, l === 'es' ? 'Español' : 'Inglés'), sel,
+        h('button', { class: 'bigbtn alt small', onClick: () => ctx.sayOne(l === 'es' ? 'Hola, ¿jugamos a unir puntos?' : "Hi, let's connect the dots!", l) }, 'Probar'));
+    }));
+  };
   paintVoices();
-  ctx.speaker.onVoicesChanged = paintVoices;
+  paintPick();
+  ctx.speaker.onVoicesChanged = () => (paintVoices(), paintPick());
 
   // --- talk prompts for the current drawing ---
   const talkKey = ctx.state.game?.key ?? ctx.state.colorKey;
@@ -142,6 +159,8 @@ export function parentsScreen(ctx: Ctx): Screen {
           h('small', null, 'Cada frase se dice primero en el idioma principal y después en el segundo.')),
         toggle('optVoice', 'Voz activada', 'voice'),
         h('div', { class: 'setting' }, h('span', null, 'Voces del dispositivo'), h('button', { class: 'bigbtn alt small', onClick: () => ctx.sayPair('Hola, vamos a jugar.', "Hi, let's play.") }, 'Probar'), voiceInfo),
+        h('div', { class: 'setting' }, h('span', null, 'Elegir voz'), h('span'), voicePick,
+          h('small', null, 'Las voces "en línea" suelen sonar más naturales pero necesitan internet. Para voces de mejor calidad: en Android, Ajustes → Texto a voz (Motor de Google) → Instalar datos de voz → Español, y descarga una voz de alta calidad; en iPhone, Ajustes → Accesibilidad → Contenido leído → Voces → Español, y descarga una voz "mejorada" o "premium". Después elígela aquí.')),
       ),
       h('section', { class: 'pcard' },
         h('h3', null, 'Juego'),

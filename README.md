@@ -21,7 +21,7 @@ npm run e2e        # con preview corriendo: prueba en Chrome a tamaño celular, 
 
 - **Unir puntos** (actividad principal). Tres niveles por edad: 3–4 cuentan estrellas, 5–6 suman y restan hasta 20, 7–9 multiplican y dividen. Se puede elegir modo secuencia (1, 2, 3…) o "Resuelve y conecta", donde la operación indica el siguiente punto. La línea que une los puntos sigue la forma real del dibujo (curvas, púas, orejas).
 - **Precisión amable.** Cada punto tiene un área de toque invisible (6–16 mm, ajustable) y la línea se pega sola al punto. Un punto equivocado solo tiembla y dice su número. Hay pistas que brillan y se repite la instrucción.
-- **Veintiún dibujos.** Personajes: Briz (erizo), Momu (alienígena), Las Resonantes (Nara, Mina y Kira) y Leo (cantante de la boy band Los Ecos). Objetos: Micrófono mágico, Lentes y Estrella. Casas: casa y granero. Carros: auto, auto de carreras, camioneta y autobús. Mandalas: flor, copo de nieve y sol. Los que aún no se descubren aparecen como siluetas.
+- **Veintiséis dibujos.** Personajes: Briz (erizo), Momu (alienígena), Las Resonantes (Nara, Mina y Kira) y Leo (cantante de la boy band Los Ecos). Objetos: Micrófono mágico, Lentes y Estrella. Casas: casa y granero. Carros: auto, auto de carreras, camioneta y autobús. Robots: Robi y Chispa. Animales: rana, pingüino y pez. Mandalas: flor, copo de nieve y sol. Los que aún no se descubren aparecen como siluetas.
   - En los dibujos de líneas rectas, los puntos siempre caen en las esquinas (`keyDots` en `src/content/extra.ts`).
 - **Las Resonantes: cantan y cazan demonios.** Mina (cabello largo lacio y espada de luz), Nara (cabello corto) y Kira (cabello largo lacio), de cuerpo completo, estilo anime, con ropa futurista y micrófonos. Se unen por puntos y se colorean.
 - **Palabras · Words.** Unas 290 palabras con dibujo en secciones por tema: números (1 al 20 y decenas hasta el 100), colores, formas, animales, comida, mi cuerpo, familia, ropa, en casa, naturaleza y clima, transporte, acciones, emociones, escuela, oficios, lugares, opuestos, días y meses, saludos y las palabras de cada dibujo descubierto. Cada palabra tiene un botón para oírla en español y otro en inglés, y cada sección un botón "Oír todas".
@@ -35,8 +35,8 @@ npm run e2e        # con preview corriendo: prueba en Chrome a tamaño celular, 
   - **Sudoku:** 4 × 4 con dibujos (3–4), 4 × 4 con números (5–6), 6 × 6 (7–9). Siempre con una sola solución.
   - **Trazos de luz:** seguir con el dedo una línea punteada (olas, montañas, círculo, corazón, estrella, espiral…, los números del 0 al 9 y el contorno de cada dibujo). La parte trazada se enciende con estrellitas de colores que se quedan fijas al soltar el dedo; hay 7 colores de luz (uno arcoíris) y botón para deshacer. Los pequeños tienen más margen para salirse de la línea.
   - **Destapa el dibujo:** tocar y frotar un papel de regalo que se rompe hasta descubrir un dibujo sorpresa; al final se puede colorear.
-  - **Pinta por números:** cada parte del dibujo tiene un número y cada número su color. Modo Zonas (las partes del dibujo) y modo Cuadritos (el dibujo en una cuadrícula). Para 3–4 años se usan figuras (corazón, círculo, rombo…) en lugar de números. Hasta 4, 6 u 8 colores según la edad; al terminar se guarda en el álbum.
-  - **Gato:** dos jugadores en el mismo dispositivo, o contra la compu (fácil, normal o difícil según la edad). No es en línea.
+  - **Pinta por números:** cada parte del dibujo tiene un número y cada número su color. Modo Zonas (las partes del dibujo, con un fondo de burbujas, olas o arcos dividido en piezas para pintar) y modo Cuadritos (el dibujo en una cuadrícula). Para 3–4 años se usan figuras (corazón, círculo, rombo…) en lugar de números. Hasta 4, 6 u 8 colores según la edad; al terminar se guarda en el álbum.
+  - **Gato:** dos jugadores en el mismo dispositivo, o contra **Robi**, un robot que juega solo (fácil, normal o difícil según la edad). No es en línea.
 - **Edad y voz en Inicio.** Se ven y se cambian desde la pantalla de inicio. Debajo se explica qué se va a oír en cada modo.
 - **Hoja para imprimir.** `public/colorear/las-resonantes.svg`, con las tres cantantes y pequeños demonios sombra, en blanco y negro y con líneas gruesas. Con la app corriendo se abre en `/colorear/las-resonantes.svg`.
   - `node scripts/singers.mjs` genera la hoja y también los tres dibujos de la app.
@@ -49,7 +49,7 @@ npm run e2e        # con preview corriendo: prueba en Chrome a tamaño celular, 
   - Números, colores, sellos y palabras del dibujo se dicen en español e inglés.
   - El adulto elige el orden: solo español, español → inglés, inglés → español o solo inglés.
   - "Dilo conmigo" practica la palabra en el segundo idioma.
-  - Se elige automáticamente la mejor voz instalada (es‑MX, en‑US) y se descartan voces de broma.
+  - Se elige automáticamente la mejor voz instalada (es‑MX, en‑US) y se descartan voces de broma. En el área de padres se puede elegir otra voz para cada idioma, probarla y ver cómo instalar voces de mejor calidad en Android y iPhone.
 - **Área de padres.** Se abre manteniendo presionado el candado.
   - Progreso por habilidad, minutos por día y palabras escuchadas.
   - Edad, modo, idioma, tolerancia, pistas, tiempo de juego y preguntas "Para platicar juntos".

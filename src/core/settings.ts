@@ -18,6 +18,9 @@ export interface Settings {
   reduced: boolean;
   /** Minutes of play before the calm "time to rest" screen; 0 = no limit. */
   timeLimitMin: number;
+  /** Voice names chosen by the adult ("" = the best one automatically). */
+  voiceEs: string;
+  voiceEn: string;
 }
 
 const KEY = 'pym-settings';
@@ -43,6 +46,8 @@ export function defaultSettings(): Settings {
     penOnly: false,
     reduced: prefersReducedMotion(),
     timeLimitMin: 15,
+    voiceEs: '',
+    voiceEn: '',
   };
 }
 
@@ -66,6 +71,7 @@ export function sanitizeSettings(raw: unknown): Settings {
   if (bool(r.penOnly)) out.penOnly = r.penOnly;
   if (bool(r.reduced)) out.reduced = r.reduced;
   if (typeof r.timeLimitMin === 'number' && TIME_LIMITS.includes(r.timeLimitMin)) out.timeLimitMin = r.timeLimitMin;
+  for (const k of ['voiceEs', 'voiceEn'] as const) if (typeof r[k] === 'string' && (r[k] as string).length < 200) out[k] = r[k] as string;
   return out;
 }
 

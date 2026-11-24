@@ -58,7 +58,7 @@ export function gamesScreen(ctx: Ctx): Screen {
         card('crossword', 'g6', ICON.crossword, 'Crucigrama', 'Crossword', `${AGE_TEXT.crossword[age]} Con dibujos, en ${inLang}.`),
         card('maze', 'g5', ICON.maze, 'Laberinto', 'Maze', AGE_TEXT.maze[age]),
         card('sudoku', 'g7', ICON.sudoku, 'Sudoku', 'Sudoku', AGE_TEXT.sudoku[age]),
-        card('gato', 'g2', ICON.gato, 'Gato', 'Tic-tac-toe', `Dos jugadores en este dispositivo, o contra la compu (nivel ${LEVEL_LABEL[levelFor(age)]}).`),
+        card('gato', 'g2', ICON.gato, 'Gato', 'Tic-tac-toe', `Dos jugadores en este dispositivo, o contra Robi, un robot que juega solo (nivel ${LEVEL_LABEL[levelFor(age)]}).`),
       ),
     ),
   );

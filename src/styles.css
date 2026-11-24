@@ -562,6 +562,12 @@ h2 small, .pick h2 small, .album h2 small { display: block; font-family: var(--f
   .traceg .ghead h2 small, .revealg .ghead h2 small, .pnplay .ghead h2 small { display: none; }
   .tbrush { width: 44px; height: 44px; }
   .tbrush i { width: 34px; height: 34px; }
+  .tbrushes { display: grid; grid-template-columns: repeat(2, auto); align-content: start; gap: 2px; padding: 6px; border-radius: 24px; }
   .pn-swatch { width: 54px; height: 46px; font-size: 1.4rem; }
   .tstatus, .revealg .gstatus, .pnplay .gstatus { display: none; }
 }
+
+/* ---- voice picker (parents) ---- */
+.voicepick { display: grid; gap: 8px; grid-column: 1 / -1; }
+.voicepick label { display: grid; grid-template-columns: 70px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.voicepick select { min-height: 44px; border-radius: 12px; border: 2px solid var(--soft); padding: 0 8px; font: inherit; min-width: 0; background: #fff; }

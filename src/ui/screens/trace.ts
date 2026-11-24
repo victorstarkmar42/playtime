@@ -82,6 +82,7 @@ export function traceScreen(ctx: Ctx): Screen {
   let stop: (() => void) | null = null;
 
   function showPicker(): void {
+    if (stop) ctx.speaker.cancel();
     stop?.();
     stop = null;
     const sections = GROUPS.map(([g, title]) =>

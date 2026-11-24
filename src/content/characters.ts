@@ -15,6 +15,7 @@ import type { Age, CharKey } from '../core/types';
 import { drawArt, type ArtData } from '../render/art';
 import { arc, circ, INK, line, note, poly, star } from '../render/primitives';
 import { EXTRA_CHARACTERS, keyDots } from './extra';
+import { FRIEND_CHARACTERS } from './friends';
 import { SINGER_ART } from './singers.gen';
 
 export interface TalkPrompt {
@@ -40,7 +41,7 @@ export interface Character {
   /** Name shown in the app. */
   label: string;
   /** Category for the gallery. */
-  group: 'Personajes' | 'Concierto' | 'Objetos' | 'Casas' | 'Vehículos' | 'Mandalas';
+  group: 'Personajes' | 'Concierto' | 'Objetos' | 'Casas' | 'Vehículos' | 'Robots' | 'Animales' | 'Mandalas';
   /** Detailed drawing with its own line art: no extra outline stroke, colours come from the art. */
   art?: boolean;
   color: string;
@@ -662,12 +663,13 @@ export const CHARACTERS: Record<CharKey, Character> = {
     },
   },
   ...EXTRA_CHARACTERS,
+  ...FRIEND_CHARACTERS,
 };
 
 function leoOutline(): Pt[] {
   return CHARACTERS.leo.outline;
 }
 
-export const CHARACTER_ORDER: CharKey[] = ['briz', 'momu', 'nara', 'mina', 'kira', 'leo', 'minaPop', 'naraPop', 'kiraPop', 'micro', 'lentes', 'estrella', 'casa', 'granero', 'auto', 'carreras', 'camioneta', 'autobus', 'mandalaFlor', 'mandalaCopo', 'mandalaSol'];
+export const CHARACTER_ORDER: CharKey[] = ['briz', 'momu', 'nara', 'mina', 'kira', 'leo', 'minaPop', 'naraPop', 'kiraPop', 'micro', 'lentes', 'estrella', 'casa', 'granero', 'auto', 'carreras', 'camioneta', 'autobus', 'robi', 'chispa', 'rana', 'pinguino', 'pez', 'mandalaFlor', 'mandalaCopo', 'mandalaSol'];
 
 export const charOf = (k: CharKey): Character => CHARACTERS[k];

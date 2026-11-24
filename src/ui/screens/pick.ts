@@ -11,6 +11,8 @@ const GROUP_LABEL: Record<string, string> = {
   Objetos: 'Objetos · Things',
   Casas: 'Casas · Houses',
   Vehículos: 'Carros · Cars',
+  Robots: 'Robots · Robots',
+  Animales: 'Animales · Animals',
   Mandalas: 'Mandalas para relajarse · Mandalas',
 };
 

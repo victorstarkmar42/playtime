@@ -39,7 +39,11 @@ export class Speaker {
   private voices: SpeechSynthesisVoice[] = [];
   onVoicesChanged: (() => void) | null = null;
 
-  constructor(private readonly isEnabled: () => boolean) {
+  constructor(
+    private readonly isEnabled: () => boolean,
+    /** Name of the voice the adult picked for a language, if any. */
+    private readonly chosen: (lang: Lang) => string = () => '',
+  ) {
     if (!this.supported) return;
     this.load();
     try {
@@ -63,7 +67,13 @@ export class Speaker {
   }
 
   voiceFor(lang: Lang): SpeechSynthesisVoice | null {
-    return pickVoice(this.voices, lang);
+    const name = this.chosen(lang);
+    return (name && this.voices.find((v) => v.name === name)) || pickVoice(this.voices, lang);
+  }
+
+  /** Every usable voice for a language, best first (for the parents' voice picker). */
+  voicesFor(lang: Lang): SpeechSynthesisVoice[] {
+    return this.voices.filter((v) => v.lang.toLowerCase().startsWith(lang) && !NOVELTY.test(v.name)).sort((a, b) => scoreVoice(b, lang) - scoreVoice(a, lang));
   }
 
   get hasVoices(): boolean {
@@ -80,8 +90,8 @@ export class Speaker {
         const v = this.voiceFor(it.lang);
         if (v) u.voice = v;
         u.lang = v?.lang ?? (it.lang === 'es' ? 'es-MX' : 'en-US');
-        u.rate = 0.9;
-        u.pitch = 1.1;
+        u.rate = 0.92;
+        u.pitch = 1; // a raised pitch makes most voices sound more artificial
         speechSynthesis.speak(u);
       }
     } catch {

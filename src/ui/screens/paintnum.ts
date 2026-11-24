@@ -4,11 +4,12 @@ import { pop } from '../../core/audio';
 import { clusterColors, insideDistance, isPaper, labelRegions, PN_GRID, PN_MAX_COLORS, usesSymbols, type RGB } from '../../core/paintnum';
 import { settings } from '../../core/settings';
 import type { CharKey } from '../../core/types';
-import { drawThumb } from '../../render/character';
+import { drawThumb, pathOf } from '../../render/character';
+import { INK } from '../../render/primitives';
 import type { Ctx, Screen } from '../context';
 import { canvas, h } from '../dom';
 import { exitBtn, shake } from './gamekit';
-import { drawZoomed } from './reveal';
+import { drawZoomed, zoomOf } from './reveal';
 
 type Mode = 'zones' | 'squares';
 const N = 640;
@@ -56,12 +57,101 @@ const symbolPaths = SYMBOL_SVG.map((s) => {
 const hex = (c: RGB) => `rgb(${c[0]},${c[1]},${c[2]})`;
 const light = (c: RGB): boolean => c[0] * 0.3 + c[1] * 0.59 + c[2] * 0.11 > 170;
 
+const hexRGB = (s: string): RGB => [parseInt(s.slice(1, 3), 16), parseInt(s.slice(3, 5), 16), parseInt(s.slice(5, 7), 16)];
+
+/**
+ * Background for "Zonas": bubbles, waves or big arcs (chosen per drawing) cut the space around the
+ * drawing into pieces, inside a frame. Draws the lines under the drawing's own and says which colours
+ * the pieces get and where the drawing is.
+ */
+function addScene(lines: HTMLCanvasElement, key: CharKey): { inside: (x: number, y: number) => boolean; tones: (y: number) => RGB[] } {
+  const ch = charOf(key);
+  const [s, ox, oy] = zoomOf(key, N, 15);
+  const few = settings.age === '3-4';
+  const many = settings.age === '7-9';
+  let seed = [...key].reduce((a, c) => a * 31 + c.charCodeAt(0), 7) % 2147483647 || 1;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const kind = seed % 3;
+  // where the drawing is: background lines stop exactly at its outline, so every piece stays closed
+  const sil = canvas(N, N);
+  const sc = sil.getContext('2d')!;
+  sc.setTransform(s, 0, 0, s, ox, oy);
+  sc.fill(pathOf(ch));
+  sc.setTransform(1, 0, 0, 1, 0, 0);
+  const own = canvas(N, N);
+  const oc = own.getContext('2d')!;
+  oc.drawImage(sil, 0, 0);
+  oc.drawImage(lines, 0, 0); // plus details that stick out (arms, fins, antennas)
+  const silPx = oc.getImageData(0, 0, N, N).data;
+
+  const bg = canvas(N, N);
+  const g = bg.getContext('2d')!;
+  const lw = Math.max(4, 0.75 * s);
+  g.lineWidth = lw;
+  g.strokeStyle = INK;
+  g.lineCap = g.lineJoin = 'round';
+  g.beginPath();
+  if (kind === 0) {
+    // bubbles
+    const n = few ? 5 : many ? 11 : 8;
+    for (let i = 0; i < n; i++) {
+      const x = rnd() * N, y = rnd() * N, r = N * (0.1 + rnd() * 0.18);
+      g.moveTo(x + r, y);
+      g.arc(x, y, r, 0, Math.PI * 2);
+    }
+  } else if (kind === 1) {
+    // waves across, and for the older ones a few gentle curves down
+    const n = few ? 3 : many ? 6 : 4;
+    for (let i = 1; i <= n; i++) {
+      const y0 = (i * N) / (n + 1), a = N * (0.025 + rnd() * 0.03), f = 2 + rnd() * 3, ph = rnd() * 6;
+      for (let x = 0; x <= N; x += 8) (x ? g.lineTo : g.moveTo).call(g, x, y0 + a * Math.sin((x / N) * f * Math.PI + ph));
+    }
+    for (let i = 0; i < (few ? 1 : many ? 4 : 2); i++) {
+      const x0 = N * (0.12 + rnd() * 0.76), a = N * 0.04, ph = rnd() * 6;
+      for (let y = 0; y <= N; y += 8) (y ? g.lineTo : g.moveTo).call(g, x0 + a * Math.sin((y / N) * 3 * Math.PI + ph), y);
+    }
+  } else {
+    // big arcs from the edges and corners
+    const spots = [[0, 0], [N, 0], [0, N], [N, N], [N / 2, -N * 0.15], [N / 2, N * 1.15], [-N * 0.15, N / 2], [N * 1.15, N / 2]];
+    const n = few ? 4 : many ? 8 : 6;
+    for (let i = 0; i < n; i++) {
+      const [x, y] = spots[i];
+      for (const r of many ? [0.34, 0.52] : [0.42]) {
+        const rr = N * (r + rnd() * 0.08);
+        g.moveTo(x + rr, y);
+        g.arc(x, y, rr, 0, Math.PI * 2);
+      }
+    }
+  }
+  g.stroke();
+  g.strokeRect(lw / 2 + 2, lw / 2 + 2, N - lw - 4, N - lw - 4);
+  g.globalCompositeOperation = 'destination-out';
+  g.drawImage(sil, 0, 0);
+  const lc = lines.getContext('2d')!;
+  lc.globalCompositeOperation = 'destination-over';
+  lc.drawImage(bg, 0, 0);
+  lc.globalCompositeOperation = 'source-over';
+
+  const T = [
+    [['#4FB3E8', '#A6DEF7', '#2F7FC4'], ['#4FB3E8', '#A6DEF7', '#2F7FC4']], // water
+    [['#9BD7FF', '#C6E9FF', '#7FC4F5'], ['#8ED67E', '#B8E8A2', '#6FC160']], // sky and grass
+    [['#FFC4DD', '#FFE38F', '#C5E6FF'], ['#FFC4DD', '#FFE38F', '#C5E6FF']], // pastel
+  ][kind].map((t) => t.slice(0, few ? (kind === 1 ? 1 : 2) : 3).map(hexRGB));
+  return {
+    inside: (x, y) => silPx[(Math.round(y) * N + Math.round(x)) * 4 + 3] > 0,
+    tones: (y) => (y < N * 0.6 ? T[0] : T[1]),
+  };
+}
+
 /** Pinta por números: each area (or square) shows a number, or a shape for the little ones; paint it with that paint. */
 export function paintnumScreen(ctx: Ctx): Screen {
   const el = h('div', { class: 'view' });
   const sym = usesSymbols(settings.age);
 
+  let playing = false;
   function showPicker(): void {
+    if (playing) ctx.speaker.cancel();
+    playing = false;
     const done = doneSet();
     const tabs = h('div', { class: 'pn-tabs', role: 'tablist' },
       ...(['zones', 'squares'] as Mode[]).map((m) => h('button', {
@@ -82,13 +172,17 @@ export function paintnumScreen(ctx: Ctx): Screen {
   }
 
   function play(key: CharKey, mode: Mode): void {
+    playing = true;
     const ch = charOf(key);
     // --- read the picture ---
+    // zones: the drawing sits smaller in the middle of a background cut into pieces
+    const margin = mode === 'zones' ? 15 : 6;
     const ref = canvas(N, N);
-    drawZoomed(ref, key, 'fill');
+    drawZoomed(ref, key, 'fill', margin);
     const refPx = ref.getContext('2d')!.getImageData(0, 0, N, N).data;
     const lines = canvas(N, N, 'pn-lines');
-    drawZoomed(lines, key, 'line', 6, false);
+    drawZoomed(lines, key, 'line', margin, false);
+    const scene = mode === 'zones' ? addScene(lines, key) : null;
     const paint = canvas(N, N, 'pn-paint');
     const marks = canvas(N, N, 'pn-marks');
     const pc = paint.getContext('2d')!;
@@ -122,6 +216,43 @@ export function paintnumScreen(ctx: Ctx): Screen {
         if (r >= 0 && dist[i] > best[r][2]) best[r] = [i % N, (i / N) | 0, dist[i]];
       }
       const avg: RGB[] = sum.map((s, r) => s.map((v) => Math.round(v / reg.area[r])) as RGB);
+      // background pieces take the scene's colours (two or three tones, like stained glass)
+      if (scene) {
+        const isBg = avg.map((c, r) => !reg.edge[r] && !scene.inside(best[r][0], best[r][1]) && isPaper(c));
+        // which pieces touch each other across a line (look a few px past each line along rows and columns)
+        const near = Array.from({ length: reg.count }, () => new Set<number>());
+        const link = (a: number, b: number) => {
+          if (a !== b && a >= 0 && b >= 0 && isBg[a] && isBg[b]) (near[a].add(b), near[b].add(a));
+        };
+        for (const [step, outer, inner] of [[1, N, N], [N, N, N]] as const) {
+          for (let o = 0; o < outer; o++) {
+            let last = -1, gap = 0;
+            for (let k = 0; k < inner; k++) {
+              const i = step === 1 ? o * N + k : k * N + o;
+              const r = reg.labels[i];
+              if (r < 0) gap++;
+              else {
+                if (gap > 0 && gap < 14) link(last, r);
+                last = r;
+                gap = 0;
+              }
+            }
+          }
+        }
+        // greedy colouring, biggest piece first: neighbours get different tones when there are enough
+        const tone = new Array<number>(reg.count).fill(-1);
+        const order = avg.map((_, r) => r).filter((r) => isBg[r]).sort((a, b) => reg.area[b] - reg.area[a]);
+        const used: number[] = [0, 0, 0];
+        for (const r of order) {
+          const tones = scene.tones(best[r][1]);
+          const clash = tones.map((_, t) => [...near[r]].filter((q) => tone[q] === t && scene.tones(best[q][1]) === tones).length);
+          let t = 0;
+          for (let k = 1; k < tones.length; k++) if (clash[k] < clash[t] || (clash[k] === clash[t] && used[k] < used[t])) t = k;
+          tone[r] = t;
+          used[t]++;
+          avg[r] = tones[t];
+        }
+      }
       const paintable = avg.map((c, r) => !reg.edge[r] && reg.area[r] > 40 && !isPaper(c));
       const idx = avg.map((_, r) => r).filter((r) => paintable[r]);
       const cl = clusterColors(idx.map((r) => avg[r]), idx.map((r) => reg.area[r]), PN_MAX_COLORS[settings.age]);

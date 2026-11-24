@@ -19,19 +19,25 @@ const PAPERS: [string, string, string][] = [
 ];
 let lastKey: CharKey | null = null;
 
+/** Scale and offset that fit a drawing (plus `margin` box units around it) in a square of `size` px. */
+export function zoomOf(key: CharKey, size: number, margin = 6): [number, number, number] {
+  const b = drawingBounds(key);
+  const side = Math.max(b.w, b.h) + 2 * margin;
+  const s = size / side;
+  return [s, -(b.x + b.w / 2 - side / 2) * s, -(b.y + b.h / 2 - side / 2) * s];
+}
+
 /** Draws a drawing zoomed to its own size on a white square. */
 export function drawZoomed(cv: HTMLCanvasElement, key: CharKey, mode: 'fill' | 'line', margin = 6, white = true): void {
   const c = cv.getContext('2d')!;
-  const b = drawingBounds(key);
-  const side = Math.max(b.w, b.h) + 2 * margin;
-  const s = cv.width / side;
+  const [s, ox, oy] = zoomOf(key, cv.width, margin);
   c.setTransform(1, 0, 0, 1, 0, 0);
   c.clearRect(0, 0, cv.width, cv.height);
   if (white) {
     c.fillStyle = '#fff';
     c.fillRect(0, 0, cv.width, cv.height);
   }
-  c.setTransform(s, 0, 0, s, -(b.x + b.w / 2 - side / 2) * s, -(b.y + b.h / 2 - side / 2) * s);
+  c.setTransform(s, 0, 0, s, ox, oy);
   drawCharacter(c, charOf(key), mode);
   c.setTransform(1, 0, 0, 1, 0, 0);
 }

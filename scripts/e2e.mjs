@@ -114,7 +114,7 @@ for (const vp of VIEWPORTS) {
   await shot('12-games');
   await clickText('.gtile-card', 'Gato');
   await shot('12-gato-modes');
-  for (const m of ['Contra la compu', 'Dos jugadores']) {
+  for (const m of ['Contra Robi', 'Dos jugadores']) {
     await clickText('.gmode', m);
     for (let k = 0; k < 12; k++) {
       const st = await page.evaluate(() => document.querySelector('.gstatus')?.textContent ?? '');

@@ -1,5 +1,5 @@
 import { pop } from '../core/audio';
-import { LANG_NAME, LANG_SHORT, speakOrder } from '../core/lang';
+import { LANG_NAME, LANG_SHORT, speakOrder, type SpeakItem } from '../core/lang';
 import { PlayTimer } from '../core/playtimer';
 import { addMinutes } from '../core/progress';
 import { settings, updateSettings } from '../core/settings';
@@ -79,7 +79,7 @@ export function createApp(root: HTMLElement): void {
   let current: { name: ScreenName; screen: Screen } | null = null;
   let toastTimer = 0;
 
-  const speaker = new Speaker(() => settings.voice);
+  const speaker = new Speaker(() => settings.voice, (l) => (l === 'es' ? settings.voiceEs : settings.voiceEn));
   const timer = new PlayTimer(
     () => settings.timeLimitMin,
     () => {
@@ -91,11 +91,19 @@ export function createApp(root: HTMLElement): void {
 
   const state: AppState = { game: restoreSession(), colorKey: 'briz', freshColor: false, pickFor: 'dots' };
 
+  let lastSay = -1e9;
+  const say = (items: SpeakItem[]) => {
+    lastSay = performance.now();
+    speaker.say(items);
+  };
+
   const ctx: Ctx = {
     state,
     speaker,
     timer,
     show(name) {
+      // leaving a screen silences what it was saying, except words said by the tap that opened the next one
+      if (performance.now() - lastSay > 400) speaker.cancel();
       current?.screen.destroy?.();
       views.replaceChildren();
       const screen = SCREENS[name](ctx);
@@ -109,9 +117,9 @@ export function createApp(root: HTMLElement): void {
       clearTimeout(toastTimer);
       toastTimer = window.setTimeout(() => (toastEl.hidden = true), 1800);
     },
-    sayPair: (es, en) => speaker.say(speakOrder(settings.lang, es, en)),
-    sayOne: (t, lang) => speaker.say([{ t, lang }]),
-    sayItems: (items) => speaker.say(items),
+    sayPair: (es, en) => say(speakOrder(settings.lang, es, en)),
+    sayOne: (t, lang) => say([{ t, lang }]),
+    sayItems: (items) => say(items),
     startGame(key) {
       state.game = newSession(key);
       saveSession(state.game);
