@@ -48,7 +48,7 @@ export function renderInstall(target: HTMLElement): void {
   target.replaceChildren(
     h('span', { class: 'inst-ico', html: '<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3" fill="#fff" stroke="#22304F" stroke-width="2"/><path d="M12 7v7m-3-3 3 3 3-3" stroke="#F2672E" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 18.5h4" stroke="#22304F" stroke-width="2" stroke-linecap="round"/></svg>' }),
     h('div', { class: 'inst-text' },
-      h('b', null, 'Instala Punto y Magia'),
+      h('b', null, 'Instala PlayHour'),
       offer === 'button'
         ? h('span', null, 'Queda como una app en tu pantalla: se abre completa, sin la barra del navegador, y funciona sin internet.')
         : offer === 'ios'
@@ -98,7 +98,7 @@ export function setupPwa(root: HTMLElement): void {
     immediate: true,
     onNeedRefresh() {
       bar.replaceChildren(
-        h('span', null, h('b', null, 'Hay una versión nueva'), ' de Punto y Magia.'),
+        h('span', null, h('b', null, 'Hay una versión nueva'), ' de PlayHour.'),
         h('button', { class: 'bigbtn small', onClick: () => {
           bar.replaceChildren(h('span', null, 'Actualizando…'));
           void updateSW(true);

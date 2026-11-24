@@ -1,6 +1,6 @@
 # Guía para agentes (Codex)
 
-Punto y Magia es una PWA para niñas y niños de 3 a 9 años, hecha con TypeScript sin frameworks, Vite, Canvas 2D y vite-plugin-pwa. Lee primero el [README](README.md).
+PlayHour es una PWA para niñas y niños de 3 a 9 años, hecha con TypeScript sin frameworks, Vite, Canvas 2D y vite-plugin-pwa. Lee primero el [README](README.md).
 
 ## Comandos
 

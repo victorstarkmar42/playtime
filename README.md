@@ -1,4 +1,4 @@
-# Punto y Magia
+# PlayHour
 
 App web instalable (PWA) para niñas y niños de 3 a 9 años: unir puntos, descubrir el dibujo, colorearlo con el dedo o con lápiz (Apple Pencil, S Pen) y aprender números, sumas, restas, multiplicaciones y divisiones, con voz en español e inglés.
 

@@ -9,7 +9,7 @@ export interface AlbumItem {
   createdAt: number;
 }
 
-const DB = 'punto-y-magia';
+const DB = 'punto-y-magia'; // storage name kept from the app's first name, so albums survive the rename
 const STORE = 'album';
 const MAX_ITEMS = 40;
 let memory: AlbumItem[] = [];

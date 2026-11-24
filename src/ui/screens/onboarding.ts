@@ -22,7 +22,7 @@ export function onboardingScreen(ctx: Ctx): Screen {
     'div',
     { class: 'view onboarding' },
     h('div', { class: 'onb' },
-      h('h1', null, 'Punto y Magia'),
+      h('h1', null, 'PlayHour'),
       h('p', { class: 'onb-lede' }, 'Para el adulto: ¿cuántos años tiene quien va a jugar?'),
       ages,
       h('p', { class: 'onb-lede' }, '¿Cómo quieres que suene la voz?'),

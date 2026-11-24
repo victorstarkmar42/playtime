@@ -1,5 +1,9 @@
 # Cambios
 
+## 0.8.1 — 2026-11-24
+
+- La app ahora se llama **PlayHour** (en la pantalla de bienvenida, al instalarla y en los avisos). Los dibujos del álbum y el progreso se conservan.
+
 ## 0.8.0 — 2026-11-24
 
 - **Robots y animales nuevos**, de diseño propio, en todos los juegos de dibujos (Unir puntos, Colorear, Trazos de luz, Destapa y Pinta por números): Robi (robot con corazón) y Chispa (robot con ruedas), rana, pingüino y pez.
