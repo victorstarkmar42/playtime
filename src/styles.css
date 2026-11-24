@@ -431,7 +431,7 @@ h2 small, .pick h2 small, .album h2 small { display: block; font-family: var(--f
   .mazebox { flex-direction: column; }
 }
 @container app (max-width: 600px) {
-  .home { grid-template-columns: 1fr 1fr; grid-template-rows: minmax(150px, 1.4fr) minmax(120px, 1fr) minmax(120px, 1fr) auto auto; padding: 12px; gap: 10px; }
+  .home { grid-template-columns: 1fr 1fr; grid-template-rows: minmax(175px, 1.4fr) minmax(130px, 1fr) minmax(130px, 1fr) auto auto; padding: 12px; gap: 10px; }
   .tile-ico { width: min(30%, 84px, 10cqh); }
   .tile.main .tile-ico { width: min(34%, 130px, 13cqh); }
   .tile.main { grid-column: 1 / -1; grid-row: auto; font-size: 1.8rem; }

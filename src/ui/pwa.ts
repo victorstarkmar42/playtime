@@ -23,11 +23,15 @@ const standalone = () =>
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const dismissedRecently = () => Date.now() - Number(localStorage.getItem(DISMISS_KEY) ?? 0) < DISMISS_DAYS * 864e5;
 
-/** What to offer right now: a real install button, the iOS steps, or nothing. */
-export function installOffer(): 'button' | 'ios' | null {
+/** The browser had time to offer install and did not (already installed, or a browser without the event). */
+let waited = false;
+
+/** What to offer right now: a real install button, the iOS steps, the menu steps, or nothing. */
+export function installOffer(): 'button' | 'ios' | 'manual' | null {
   if (standalone() || dismissedRecently() || location.search.includes('e2e')) return null;
   if (deferred) return 'button';
   if (isIOS()) return 'ios';
+  if (waited) return 'manual';
   return null;
 }
 
@@ -47,7 +51,9 @@ export function renderInstall(target: HTMLElement): void {
       h('b', null, 'Instala Punto y Magia'),
       offer === 'button'
         ? h('span', null, 'Queda como una app en tu pantalla: se abre completa, sin la barra del navegador, y funciona sin internet.')
-        : h('span', null, 'En Safari toca ', h('b', null, 'Compartir'), ' (el cuadro con la flecha) y luego ', h('b', null, 'Agregar a pantalla de inicio'), '.')),
+        : offer === 'ios'
+          ? h('span', null, 'En Safari toca ', h('b', null, 'Compartir'), ' (el cuadro con la flecha) y luego ', h('b', null, 'Agregar a pantalla de inicio'), '.')
+          : h('span', null, 'Abre el menú del navegador (', h('b', null, '⋮'), ' arriba a la derecha) y toca ', h('b', null, 'Instalar app'), ' o ', h('b', null, 'Agregar a pantalla principal'), '. Si el menú dice ', h('b', null, 'Abrir app'), ', ya está instalada: búscala en tus apps.')),
     h('div', { class: 'inst-btns' },
       offer === 'button'
         ? h('button', { class: 'bigbtn small', onClick: async () => {
@@ -76,8 +82,15 @@ export function setupPwa(root: HTMLElement): void {
   });
   window.addEventListener('appinstalled', () => {
     deferred = null;
+    waited = false;
+    localStorage.setItem(DISMISS_KEY, String(Date.now())); // installed: no need to offer it again soon
     refreshSlot();
   });
+  // no install offer after a few seconds: show the menu steps instead, so the option is never missing
+  setTimeout(() => {
+    waited = true;
+    refreshSlot();
+  }, 4000);
 
   const bar = h('div', { class: 'updbar', hidden: true, role: 'status' });
   root.append(bar);

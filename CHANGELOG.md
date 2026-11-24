@@ -1,5 +1,9 @@
 # Cambios
 
+## 0.6.2 — 2026-11-23
+
+- La tarjeta **Instala Punto y Magia** aparece siempre que la app no esté instalada: si el navegador no ofrece el botón de instalar (por ejemplo, porque ya está instalada o es otro navegador), explica los pasos del menú (⋮ → Instalar app) y cómo saber si ya está instalada.
+
 ## 0.6.1 — 2026-11-23
 
 - **¿Qué número falta?** en Cuentas (5–6 y 7–9 años): cuentas como 4 + ? = 5 o ? − 3 = 6 (y multiplicaciones para 7–9). Al acertar se completa la cuenta.
