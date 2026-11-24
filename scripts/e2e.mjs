@@ -87,6 +87,11 @@ for (const vp of VIEWPORTS) {
   await sleep(300);
   await clickText('.tile', 'Palabras');
   await sleep(300);
+  const tabs = await page.evaluate(() => document.querySelectorAll('.wtab').length);
+  if (tabs < 10) problems.push(`[${vp.name}] words has ${tabs} sections`);
+  await clickText('.wtab', 'Animales');
+  await shot('8b-words-animals');
+  await clickText('.wtab', 'De tus dibujos');
   const words = await page.evaluate(() => ({ cards: document.querySelectorAll('.wcard').length, en: [...document.querySelectorAll('.wbtn.en')].map((b) => b.textContent) }));
   if (!words.en.some((t) => t.includes('car'))) problems.push(`[${vp.name}] words screen lacks "car"`);
   console.log(vp.name, 'word cards', words.cards);

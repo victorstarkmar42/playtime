@@ -152,7 +152,7 @@ export function mazeScreen(ctx: Ctx): Screen {
   wrap.append(
     h('div', { class: 'ghead' }, h('h2', null, 'Laberinto', h('small', null, 'Maze · Arrastra el dedo por el camino')), exitBtn(ctx)),
     status,
-    h('div', { class: 'mazebox' }, cv,
+    h('div', { class: 'mazebox' }, h('div', { class: 'mazewrap', style: `--ar:${cv.width / cv.height}` }, cv),
       h('div', { class: 'marrows' }, arrow(0, 'Arriba', '▲'), arrow(3, 'Izquierda', '◀'), arrow(1, 'Derecha', '▶'), arrow(2, 'Abajo', '▼'))),
     h('div', { class: 'kbtnrow gbtns' }, nextBtn, h('button', { class: 'bigbtn alt small', onClick: () => ((trail = [0]), (won = false), draw()) }, 'Empezar de nuevo')),
   );

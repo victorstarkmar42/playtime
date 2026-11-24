@@ -153,5 +153,12 @@ export function createApp(root: HTMLElement): void {
     timer.reset();
   });
 
+  if (location.search.includes('e2e')) {
+    (window as unknown as { __pymShow?: (name: ScreenName, key?: string) => void }).__pymShow = (name, key) => {
+      if (key && name === 'dots') return ctx.startGame(key as never);
+      if (key) state.colorKey = key as never;
+      ctx.show(name);
+    };
+  }
   ctx.show(settings.onboarded ? 'home' : 'onboarding');
 }

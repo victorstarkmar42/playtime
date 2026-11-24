@@ -59,11 +59,12 @@ p { margin: 0; }
 h2 small, .pick h2 small, .album h2 small { display: block; font-family: var(--f-body); font-weight: 400; font-size: .9rem; color: var(--muted); margin-top: 2px; }
 
 /* ---------- board layout (dots + color) ---------- */
-.main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) clamp(230px, 28cqw, 340px); gap: 12px;
+.main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) clamp(220px, 26cqw, 340px); gap: 12px;
   padding: 12px max(12px, env(safe-area-inset-right)) 12px max(12px, env(safe-area-inset-left)); }
 .stagebox { container-type: size; min-width: 0; min-height: 0; display: grid; place-items: center; }
-.stage { width: min(100cqw, 133.33cqh); aspect-ratio: 4 / 3; max-width: 100%; position: relative; background: #fff; border-radius: 18px; box-shadow: 0 4px 0 var(--soft); }
-.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; display: block; border-radius: 18px; }
+.stage { width: min(100cqw, 100cqh); aspect-ratio: 1; max-width: 100%; position: relative; background: #fff; border-radius: 18px; box-shadow: 0 4px 0 var(--soft); overflow: hidden; }
+/* the board is 4:3 with the square drawing box in the middle (x 150–1050 of 1200): show just the box */
+.stage canvas { position: absolute; top: 0; left: -16.6667%; width: 133.3333%; height: 100%; touch-action: none; display: block; }
 .side, .tools { display: flex; flex-direction: column; gap: 10px; min-width: 0; min-height: 0; overflow: auto; }
 .prompt { font-size: 2.3rem; font-weight: 800; line-height: 1.05; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .prompt .stars { color: var(--sun); letter-spacing: 2px; font-size: 1.8rem; line-height: 1; }
@@ -138,6 +139,14 @@ h2 small, .pick h2 small, .album h2 small { display: block; font-family: var(--f
 .wlead.num { display: grid; place-items: center; background: #FFD9C6; font-size: 1.6rem; font-weight: 800; box-shadow: none; border: 0; }
 .wlead.pic { width: 72px; height: 54px; border-radius: 12px; border: 0; box-shadow: none; background: var(--bg); overflow: hidden; }
 .wlead.pic canvas { width: 100%; height: 100%; display: block; }
+.wtabs { display: flex; flex-wrap: wrap; gap: 8px; overflow-x: auto; padding: 4px 2px 10px; scrollbar-width: thin; scroll-snap-type: x proximity; }
+.wtab { flex: none; scroll-snap-align: start; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 92px; min-height: 84px; border: 0; border-radius: 20px; background: #fff; box-shadow: 0 4px 0 var(--soft); font-size: 1rem; font-weight: 800; cursor: pointer; padding: 8px 10px; }
+.wtab-ico { font-size: 2rem; line-height: 1; }
+.wtab[aria-selected="true"] { background: #FFD9C6; box-shadow: inset 0 0 0 3px var(--dot), 0 4px 0 var(--dot-shadow); }
+.wbody { display: grid; gap: 10px; align-content: start; }
+.whead { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.whead h3 { margin: 0; color: var(--ink); font-size: 1.4rem; }
+.wlead.emo { display: grid; place-items: center; background: var(--bg); font-size: 2.1rem; line-height: 1; border: 0; box-shadow: none; }
 .wmore { justify-self: start; border: 0; border-radius: 16px; padding: 12px 16px; background: #FFD9C6; font-weight: 800; font-size: 1rem; cursor: pointer; }
 .continue { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; background: #fff; border-radius: 22px; padding: 10px 14px; border: 0; cursor: pointer; text-align: left; box-shadow: 0 4px 0 var(--soft); }
 .continue canvas { width: 72px; height: 54px; border-radius: 12px; background: var(--bg); flex: none; }
@@ -203,7 +212,7 @@ h2 small, .pick h2 small, .album h2 small { display: block; font-family: var(--f
 .toggle:checked { background: var(--leaf); }
 .toggle:checked::after { left: 21px; }
 .seg { display: flex; flex-wrap: wrap; gap: 4px; grid-column: 1 / -1; }
-.seg button { border: 0; border-radius: 10px; padding: 7px 10px; background: var(--soft); font-family: var(--f-body); font-size: .82rem; cursor: pointer; }
+.seg button { border: 0; border-radius: 10px; min-height: 38px; padding: 7px 12px; background: var(--soft); font-family: var(--f-body); font-size: .82rem; cursor: pointer; }
 .seg button[aria-pressed="true"] { background: var(--ink); color: #fff; }
 .seg.big button { font-size: .95rem; padding: 10px 14px; }
 .talk { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
@@ -272,15 +281,16 @@ h2 small, .pick h2 small, .album h2 small { display: block; font-family: var(--f
 
 /* laberinto */
 .mazebox { flex: 1; min-height: 0; display: flex; gap: 16px; align-items: center; justify-content: center; }
-.mazecv { max-width: 100%; max-height: 100%; width: auto; height: auto; border-radius: 18px; box-shadow: 0 5px 0 var(--soft); touch-action: none; min-height: 0; }
+.mazewrap { flex: 1 1 0; align-self: stretch; min-width: 0; min-height: 0; container-type: size; display: grid; place-items: center; }
+.mazecv { width: min(100cqw, calc(100cqh * var(--ar))); height: auto; border-radius: 18px; box-shadow: 0 5px 0 var(--soft); touch-action: none; display: block; }
 .marrows { display: grid; grid-template-columns: repeat(3, 56px); grid-template-rows: repeat(3, 56px); gap: 4px; flex: none; }
 .marrow { border: 0; border-radius: 14px; background: var(--soft); font-size: 1.4rem; cursor: pointer; }
 .marrow.a0 { grid-area: 1 / 2; } .marrow.a3 { grid-area: 2 / 1; } .marrow.a1 { grid-area: 2 / 3; } .marrow.a2 { grid-area: 3 / 2; }
 
 /* sudoku */
 .sbox { flex: 1; display: flex; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap; }
-.sboard { width: min(100%, 58cqh, 520px); aspect-ratio: 1; display: grid; grid-template-columns: repeat(var(--n), 1fr); background: #fff; border: 5px solid var(--ink); border-radius: 14px; overflow: hidden; }
-.scell { border: 1px solid #B9CFE6; background: #fff; font-size: clamp(1.4rem, 5cqmin, 2.6rem); font-weight: 800; cursor: pointer; padding: 12%; display: grid; place-items: center; color: var(--violet); }
+.sboard { width: min(100%, 58cqh, 520px); aspect-ratio: 1; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); grid-template-rows: repeat(var(--n), minmax(0, 1fr)); background: #fff; border: 5px solid var(--ink); border-radius: 14px; overflow: hidden; }
+.scell { min-width: 0; min-height: 0; overflow: hidden; border: 1px solid #B9CFE6; background: #fff; font-size: clamp(1.4rem, 5cqmin, 2.6rem); font-weight: 800; cursor: pointer; padding: 12%; display: grid; place-items: center; color: var(--violet); }
 .scell svg { width: 100%; height: 100%; }
 .scell.given { color: var(--ink); background: #F3F7FC; cursor: default; }
 .scell.sel { background: #FFE1D2; box-shadow: inset 0 0 0 4px var(--dot); }
@@ -293,7 +303,7 @@ h2 small, .pick h2 small, .album h2 small { display: block; font-family: var(--f
 /* crucigrama */
 .cbox { flex: 1; display: flex; gap: 18px; align-items: flex-start; justify-content: center; flex-wrap: wrap; }
 .cleft { display: flex; flex-direction: column; gap: 14px; align-items: center; }
-.cgrid { display: grid; grid-template-columns: repeat(var(--w), clamp(34px, 6cqmin, 56px)); gap: 3px; }
+.cgrid { display: grid; grid-template-columns: repeat(var(--w), min(56px, max(6cqmin, 34px), calc((100cqw - 40px) / var(--w) - 3px))); gap: 3px; }
 .ccell { aspect-ratio: 1; border: 3px solid var(--ink); border-radius: 8px; background: #fff; font-size: clamp(1.1rem, 3.6cqmin, 1.8rem); font-weight: 800; position: relative; padding: 0; cursor: pointer; display: grid; place-items: center; }
 .ccell.empty { border: 0; background: none; cursor: default; }
 .ccell small { position: absolute; left: 3px; top: 0; font-size: .65rem; font-family: var(--f-body); }
@@ -381,11 +391,12 @@ h2 small, .pick h2 small, .album h2 small { display: block; font-family: var(--f
 @container app (orientation: portrait) {
   .main { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
   .side, .tools { max-height: 46cqh; }
+  .mazebox { flex-direction: column; }
 }
 @container app (max-width: 600px) {
   .home { grid-template-columns: 1fr 1fr; grid-template-rows: minmax(150px, 1.4fr) minmax(120px, 1fr) minmax(120px, 1fr) auto auto; padding: 12px; gap: 10px; }
-  .tile-ico { width: min(30%, 84px); }
-  .tile.main .tile-ico { width: min(34%, 130px); }
+  .tile-ico { width: min(30%, 84px, 10cqh); }
+  .tile.main .tile-ico { width: min(34%, 130px, 13cqh); }
   .tile.main { grid-column: 1 / -1; grid-row: auto; font-size: 1.8rem; }
   .tile { font-size: 1.3rem; }
   .prompt { font-size: 1.9rem; }
@@ -402,9 +413,14 @@ h2 small, .pick h2 small, .album h2 small { display: block; font-family: var(--f
   .gsplit { grid-template-columns: 1fr; }
   .gpic { max-width: 320px; justify-self: center; width: 100%; }
   .gopts.pics { grid-template-columns: 1fr 1fr; }
+  .gopts.pics > .gopt:last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: calc(50% - 8px); }
   .gslot { width: 36px; height: 46px; font-size: 1.5rem; }
   .gtile { width: 50px; height: 50px; }
   .ghead h2 { font-size: 1.5rem; }
+  .wtabs { flex-wrap: nowrap; margin: 0 -12px; padding-left: 12px; padding-right: 12px; }
+  .wtab { min-width: 82px; min-height: 76px; font-size: .9rem; }
+  .wgrid { grid-template-columns: 1fr; }
+  .inputinfo { display: none !important; }
 }
 @container app (max-width: 440px) {
   .appbar { gap: 4px; padding-left: max(8px, env(safe-area-inset-left)); padding-right: max(8px, env(safe-area-inset-right)); }
@@ -424,6 +440,16 @@ h2 small, .pick h2 small, .album h2 small { display: block; font-family: var(--f
   .home { grid-template-rows: minmax(150px, 1fr) auto auto; grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr; }
   .tile.main { grid-row: auto; }
   .gboard { width: min(100%, 62cqh); }
+  .ghead h2 small { display: none; }
+  .ghead h2 { font-size: 1.4rem; }
+  .gstatus { font-size: 1.1rem; }
+  .games, .gato, .guess, .mathg, .abacusg, .mazeg, .sudokug, .crossg { gap: 8px; padding: 10px 14px; }
+  .sboard { width: min(100%, calc(100cqh - 150px)); }
+  .spal { grid-template-columns: repeat(3, 56px); }
+  .spick { width: 56px; height: 56px; font-size: 1.6rem; padding: 9px; }
+  .swatch, .size { width: 40px; height: 40px; }
+  .tools .kcard { gap: 6px; padding: 8px 10px; }
+  .inputinfo { display: none !important; }
   .tile { font-size: 1.25rem; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

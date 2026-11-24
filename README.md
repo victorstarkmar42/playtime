@@ -24,7 +24,7 @@ npm run e2e        # con preview corriendo: prueba en Chrome a tamaño celular, 
 - **Veintiún dibujos.** Personajes: Briz (erizo), Momu (alienígena), Las Resonantes (Nara, Mina y Kira) y Leo (cantante de la boy band Los Ecos). Objetos: Micrófono mágico, Lentes y Estrella. Casas: casa y granero. Carros: auto, auto de carreras, camioneta y autobús. Mandalas: flor, copo de nieve y sol. Los que aún no se descubren aparecen como siluetas.
   - En los dibujos de líneas rectas, los puntos siempre caen en las esquinas (`keyDots` en `src/content/extra.ts`).
 - **Las Resonantes: cantan y cazan demonios.** Mina (cabello largo lacio y espada de luz), Nara (cabello corto) y Kira (cabello largo lacio), de cuerpo completo, estilo anime, con ropa futurista y micrófonos. Se unen por puntos y se colorean.
-- **Palabras · Words.** Números, colores y las palabras de cada dibujo descubierto. Cada palabra tiene un botón para oírla en español y otro para oírla en inglés.
+- **Palabras · Words.** Secciones por tema, cada una con dibujo: números, colores, formas, animales, comida, mi cuerpo, familia, ropa, en casa, naturaleza y clima, transporte, acciones, emociones, saludos y las palabras de cada dibujo descubierto. Cada palabra tiene un botón para oírla en español y otro en inglés, y cada sección un botón "Oír todas".
 - **Juegos** (botón en Inicio). Cada juego se adapta a la edad y tiene un botón "Salir" que regresa al menú de juegos; el menú tiene "Inicio".
   - **Cuentas:** contar (3–4), sumas y restas hasta 10 con dibujos (5–6), sumas y restas hasta 100, multiplicaciones y divisiones (7–9). El niño elige qué practicar.
   - **Ábaco:** una fila de 10 cuentas que cuenta en voz alta (3–4), dos filas hasta el 20 (5–6), centenas, decenas y unidades hasta 999 (7–9). También hay ábaco libre.
@@ -80,6 +80,10 @@ En `src/content/characters.ts`:
 5. Agrega la clave a `CharKey` y a `CHARACTER_ORDER`.
 
 Las pruebas verifican que el dibujo tenga puntos bien separados y dentro de la caja.
+
+## Publicación
+
+La app se publica en GitHub Pages: https://victorstarkmar42.github.io/playtime/. Cada push a la rama `main` corre las pruebas, compila y publica con [.github/workflows/deploy.yml](.github/workflows/deploy.yml). La app instalada se actualiza la siguiente vez que se abre con internet.
 
 ## Trabajar con Codex
 

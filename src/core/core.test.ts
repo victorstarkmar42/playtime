@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CHARACTER_ORDER, CHARACTERS } from '../content/characters';
 import { keyDots } from '../content/extra';
+import { WORD_SECTIONS } from '../content/wordbank';
 import { createGame, connectNext, hitTest } from './dotgame';
 import { abacusFor, abacusValue, KINDS_FOR, mathQuestion, touchBead } from './arith';
 import { floodRegion } from './flood';
@@ -366,6 +367,18 @@ describe('puzzles', () => {
         const bx = p.x - (p.across ? 1 : 0), by = p.y - (p.across ? 0 : 1);
         if (bx >= 0 && by >= 0) expect(cw.cells[by * cw.w + bx]).toBe('');
       }
+    }
+  });
+});
+
+describe('word sections', () => {
+  it('have unique ids, a picture and both words, and no repeats inside a section', () => {
+    expect(new Set(WORD_SECTIONS.map((s) => s.id)).size).toBe(WORD_SECTIONS.length);
+    for (const s of WORD_SECTIONS) {
+      expect(s.words.length).toBeGreaterThanOrEqual(6);
+      for (const w of s.words) expect(w.pic && w.es.trim() && w.en.trim()).toBeTruthy();
+      expect(new Set(s.words.map((w) => w.es)).size).toBe(s.words.length);
+      expect(new Set(s.words.map((w) => w.en)).size).toBe(s.words.length);
     }
   });
 });

@@ -1,5 +1,15 @@
 # Cambios
 
+## 0.5.0 — 2026-11-23
+
+- **Dibujos más grandes** en Unir puntos y Colorear: el lienzo ahora es cuadrado y el dibujo lo llena. En celular vertical se ve un tercio más grande y en tableta horizontal un 20 % más.
+- **Palabras por secciones:** 16 temas con dibujo (formas, animales, comida, mi cuerpo, familia, ropa, en casa, naturaleza y clima, transporte, acciones, emociones, saludos, además de números, colores y las palabras de tus dibujos) y un botón "Oír todas".
+- **Diseño responsivo revisado** en celular, celular horizontal, tableta y laptop:
+  - El laberinto ya no se sale de la pantalla en tableta vertical; las flechas quedan debajo.
+  - El sudoku 6 × 6 ya no aplasta la primera fila.
+  - El crucigrama de 7–9 años cabe completo en celular.
+  - Botones del área de padres más fáciles de tocar.
+
 ## 0.4.0 — 2026-11-23
 
 - Nuevo botón **Juegos** en Inicio, con siete juegos que se adaptan a la edad: Cuentas, Ábaco, Adivina la palabra, Crucigrama con dibujos, Laberinto, Sudoku y Gato.
