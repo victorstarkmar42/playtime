@@ -494,3 +494,74 @@ h2 small, .pick h2 small, .album h2 small { display: block; font-family: var(--f
   .tile { font-size: 1.25rem; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* ---- Trazos de luz ---- */
+.tview { background: #050A2A; }
+.tpick, .traceg { flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 16px; min-height: 0; max-width: 1200px; width: 100%; margin: 0 auto; color: #EAF0FF; }
+.tpick h2, .traceg h2 { color: #fff; }
+.tpick h2 small, .traceg h2 small { color: #AFC0EE; }
+.tpick h3 { color: #CFDAFF; margin: 10px 0 8px; }
+.tpick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+.tpick-card { background: #0E1A52; border: 3px solid #23357F; border-radius: 20px; padding: 8px; color: #EAF0FF; font: inherit; font-weight: 800; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+.tpick-card canvas { width: 100%; height: auto; aspect-ratio: 1; }
+.tpick-card:active { transform: scale(.97); }
+.traceg .ghead h2 { margin-right: auto; }
+.ticon { width: 58px; padding: 0; display: grid; place-items: center; }
+.ticon svg { width: 28px; height: 28px; }
+.tbody { flex: 1; min-height: 0; display: flex; gap: 12px; }
+.twrap { flex: 1; min-width: 0; min-height: 0; position: relative; border-radius: 22px; overflow: hidden; border: 3px solid #1B2A6E; }
+.tcanvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+.tbrushes { display: flex; flex-direction: column; gap: 8px; padding: 8px; background: #0E1A52; border-radius: 40px; border: 3px solid #23357F; overflow: auto; }
+.tbrush { width: 58px; height: 58px; flex: none; border-radius: 50%; border: 3px solid transparent; background: transparent; display: grid; place-items: center; cursor: pointer; }
+.tbrush i { width: 46px; height: 46px; background: var(--bg); clip-path: polygon(50% 0, 63% 35%, 100% 38%, 71% 61%, 81% 100%, 50% 78%, 19% 100%, 29% 61%, 0 38%, 37% 35%); }
+.tbrush[aria-checked="true"] { border-color: #FFE53D; box-shadow: 0 0 16px #FFE53D88; }
+.tstatus { text-align: center; font-weight: 800; color: #DDE6FF; margin: 0; }
+.pulse { animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(1.08); } }
+.gtile-card.g9 { background: #D9DEFF; }
+.gtile-card.g10 { background: #FFEFB0; }
+.gtile-card.g11 { background: #D8F3FF; }
+
+/* ---- Destapa el dibujo ---- */
+.revealg, .pnplay { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; min-height: 0; max-width: 1100px; width: 100%; margin: 0 auto; }
+.revealg .ghead h2, .pnplay .ghead h2 { margin-right: auto; }
+.rv-box, .pn-box { flex: 1; min-height: 0; min-width: 0; container-type: size; display: grid; place-items: center; }
+.rv-stage, .pn-stage { position: relative; width: min(100cqw, 100cqh); aspect-ratio: 1; touch-action: none; border-radius: 22px; overflow: hidden; background: #fff; box-shadow: 0 6px 20px #22304F22; }
+.rv-stage canvas, .pn-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.rv-cover { transition: opacity .7s ease, transform .7s ease; }
+.rv-cover.gone { opacity: 0; transform: scale(1.15) rotate(4deg); }
+.rv-fx { pointer-events: none; }
+.rv-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+/* ---- Pinta por números ---- */
+.pn-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.pick-card { position: relative; }
+.pn-check { position: absolute; top: 8px; right: 8px; width: 34px; height: 34px; border-radius: 50%; background: #3FA35B; color: #fff; display: grid; place-items: center; font-size: 1.2rem; }
+.pn-body { flex: 1; min-height: 0; display: flex; gap: 12px; }
+.pn-pal { display: flex; flex-direction: column; gap: 8px; padding: 8px; background: #FFF6D8; border: 3px solid #F2D27A; border-radius: 24px; overflow: auto; }
+.pn-swatch { width: 66px; height: 62px; flex: none; border-radius: 16px; border: 3px solid #22304F33; background: var(--c); color: var(--t); font: 800 1.8rem/1 "Baloo 2", "Trebuchet MS", sans-serif; cursor: pointer; display: grid; place-items: center; position: relative; }
+.pn-swatch[aria-pressed="true"] { border-color: #22304F; box-shadow: 0 0 0 4px #fff, 0 0 0 7px #22304F; }
+.pn-swatch.done { opacity: .45; }
+.pn-swatch.done::after { content: '✓'; position: absolute; right: -4px; bottom: -6px; font-size: 1.1rem; background: #3FA35B; color: #fff; border-radius: 50%; width: 24px; height: 24px; display: grid; place-items: center; }
+.pn-sym svg { width: 38px; height: 38px; fill: var(--t); }
+.pn-stage.win { animation: pulse 1s ease-in-out 2; }
+
+@container app (orientation: portrait) {
+  .tbody, .pn-body { flex-direction: column; }
+  .tbrushes, .pn-pal { flex-direction: row; justify-content: center; border-radius: 24px; }
+  .tbrushes { gap: 2px; padding: 6px; }
+  .tbrush { width: 46px; height: 46px; }
+  .tbrush i { width: 38px; height: 38px; }
+  .pn-swatch { width: 56px; height: 52px; }
+}
+@container app (max-width: 600px) {
+  .tpick-grid { grid-template-columns: repeat(3, 1fr); }
+  .tpick, .traceg, .revealg, .pnplay { padding: 10px; gap: 8px; }
+}
+@container app (max-height: 480px) {
+  .traceg .ghead h2 small, .revealg .ghead h2 small, .pnplay .ghead h2 small { display: none; }
+  .tbrush { width: 44px; height: 44px; }
+  .tbrush i { width: 34px; height: 34px; }
+  .pn-swatch { width: 54px; height: 46px; font-size: 1.4rem; }
+  .tstatus, .revealg .gstatus, .pnplay .gstatus { display: none; }
+}

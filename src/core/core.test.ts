@@ -15,6 +15,8 @@ import { sanitizeSettings } from './settings';
 import { AGES } from './types';
 import { pickVoice } from './voice';
 import { aiMove, emptyBoard, isFull, other, winner, type Cell, type Player } from './tictactoe';
+import { advance, resample, TRACE_NUMBERS, TRACE_SHAPES, TRACE_STEP } from './trace';
+import { clusterColors, insideDistance, labelRegions } from './paintnum';
 
 /** Deterministic pseudo-random generator so failures are reproducible. */
 function seeded(seed: number) {
@@ -455,5 +457,62 @@ describe('missing-number questions', () => {
         expect(missingWords(q, 'es')).toContain('¿qué número?');
       }
     }
+  });
+});
+
+describe('light trails', () => {
+  it('resamples every stroke evenly and keeps its ends', () => {
+    for (const f of [...TRACE_SHAPES, ...TRACE_NUMBERS]) {
+      for (const s of f.strokes) {
+        const r = resample(s);
+        expect(r[0]).toEqual(s[0]);
+        expect(dist(r[r.length - 1], s[s.length - 1])).toBeLessThan(TRACE_STEP);
+        for (let i = 1; i < r.length; i++) expect(dist(r[i - 1], r[i])).toBeLessThan(TRACE_STEP * 1.01);
+        for (const p of r) {
+          expect(p[0]).toBeGreaterThan(0);
+          expect(p[0]).toBeLessThan(100);
+          expect(p[1]).toBeGreaterThan(0);
+          expect(p[1]).toBeLessThan(100);
+        }
+      }
+    }
+    expect(TRACE_NUMBERS).toHaveLength(10);
+  });
+  it('a finger moving along the line lights all of it; one far away lights nothing', () => {
+    const pts = resample(TRACE_SHAPES.find((f) => f.id === 'cuadrado')!.strokes[0]);
+    let pos = 0;
+    for (const p of pts) pos = advance(pts, pos, [p[0] + 2, p[1] + 2], 6, 13);
+    expect(pos).toBe(pts.length - 1);
+    expect(advance(pts, 0, [50, 50], 6, 13)).toBe(0);
+    // cannot jump ahead to a far part of the line
+    expect(advance(pts, 0, pts[Math.floor(pts.length / 2)], 6, 13)).toBe(0);
+  });
+});
+
+describe('paint by numbers', () => {
+  it('finds the areas between lines', () => {
+    const w = 20, h = 10;
+    const wall = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) wall[y * w + 10] = 1; // a line down the middle
+    for (let x = 3; x < 8; x++) for (const y of [2, 7]) wall[y * w + x] = 1;
+    for (let y = 2; y < 8; y++) for (const x of [3, 7]) wall[y * w + x] = 1; // a closed box on the left
+    const r = labelRegions(wall, w, h);
+    expect(r.count).toBe(3);
+    const inBox = r.labels[4 * w + 5];
+    expect(r.edge[inBox]).toBe(false);
+    expect(r.area[inBox]).toBe(3 * 4);
+    const d = insideDistance(r.labels, w, h);
+    expect(d[4 * w + 5]).toBeGreaterThanOrEqual(1);
+    expect(d[2 * w + 3]).toBe(0);
+  });
+  it('groups close colours and never uses more paints than allowed', () => {
+    const cols: [number, number, number][] = [[250, 0, 0], [240, 10, 10], [0, 0, 250], [0, 200, 0], [255, 255, 0], [120, 60, 20], [200, 100, 255]];
+    const one = clusterColors(cols, cols.map(() => 1), 10);
+    expect(one.of[0]).toBe(one.of[1]);
+    expect(one.palette).toHaveLength(6);
+    const few = clusterColors(cols, [9, 1, 5, 4, 3, 2, 1], 4);
+    expect(few.palette).toHaveLength(4);
+    expect(Math.max(...few.of)).toBe(3);
+    expect(few.palette[0]).toEqual([250, 0, 0]); // the biggest area keeps its colour
   });
 });

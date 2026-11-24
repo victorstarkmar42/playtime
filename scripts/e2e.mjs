@@ -297,6 +297,47 @@ for (const vp of VIEWPORTS) {
     if (abc < 26) problems.push(`[${vp.name}] alphabet has ${abc} letters`);
     await shot(`14-abc-${tag}`);
     console.log(vp.name, tag, 'letters', lt.slice(0, 14), 'abc', abc);
+    // Trazos de luz: follow the heart with the pointer
+    await openGame('Trazos de luz');
+    await clickSel('.tpick-card[data-id="corazon"]');
+    await sleep(300);
+    for (const s of await page.evaluate(() => window.__pymTrace())) {
+      await page.mouse.move(s[0][0], s[0][1]);
+      await page.mouse.down();
+      for (const p of s) await page.mouse.move(p[0] + 2, p[1] + 2, { steps: 2 });
+      await page.mouse.up();
+    }
+    await sleep(300);
+    const tr = await page.evaluate(() => document.querySelector('.tstatus')?.textContent ?? '');
+    if (!tr.includes('Lo lograste')) problems.push(`[${vp.name}] trace ${tag}: ${tr}`);
+    await shot(`14-trace-${tag}`);
+    // Destapa el dibujo: rub the paper until the drawing shows
+    await openGame('Destapa');
+    const rv = await page.evaluate(() => { const x = window.__pymReveal(); return [x.left, x.top, x.width, x.height]; });
+    for (let y = 0.05; y < 1; y += 0.1) {
+      await page.mouse.move(rv[0] + 4, rv[1] + rv[3] * y);
+      await page.mouse.down();
+      await page.mouse.move(rv[0] + rv[2] - 4, rv[1] + rv[3] * y, { steps: 10 });
+      await page.mouse.up();
+    }
+    await sleep(800);
+    if (await page.evaluate(() => document.querySelector('.rv-actions').hidden)) problems.push(`[${vp.name}] reveal ${tag} did not finish`);
+    await shot(`14-reveal-${tag}`);
+    // Pinta por números: paint every area with its own paint
+    await openGame('Pinta por números');
+    await clickSel('.pick-card[data-key="momu"]');
+    await sleep(400);
+    for (let guard = 0; guard < 300; guard++) {
+      const st = await page.evaluate(() => window.__pymPaint());
+      if (!st.todo.length) break;
+      await page.evaluate((c) => document.querySelectorAll('.pn-swatch')[c].click(), st.todo[0][0]);
+      await page.mouse.click(st.todo[0][1], st.todo[0][2]);
+    }
+    await sleep(300);
+    const pn = await page.evaluate(() => document.querySelector('.pnplay .gstatus')?.textContent ?? '');
+    if (!pn.includes('Terminaste')) problems.push(`[${vp.name}] paintnum ${tag}: ${pn}`);
+    await shot(`14-paintnum-${tag}`);
+    console.log(vp.name, tag, 'trace', tr.slice(0, 12), '| reveal ok | paintnum', pn.slice(0, 12));
     console.log(vp.name, tag, 'math', mathEnd.slice(0, 12), '| abacus', abEnd.slice(0, 12), '| maze', mz.slice(0, 12), '| sudoku', sd, '| cross', cr.slice(0, 22));
   }
   // the new Resonantes drawings must be solvable too (tablet only, to keep the run short)

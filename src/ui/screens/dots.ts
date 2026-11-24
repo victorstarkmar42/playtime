@@ -2,20 +2,47 @@ import { charOf } from '../../content/characters';
 import { addToAlbum } from '../../core/album';
 import { pop } from '../../core/audio';
 import { connectNext, hitTest } from '../../core/dotgame';
-import { outwardNormals, type Pt } from '../../core/geometry';
+import { dist, outwardNormals, type Pt } from '../../core/geometry';
 import { pickText, practiceLang, primaryLang, speakOrder, type SpeakItem } from '../../core/lang';
 import { opText, opWords, skillOf } from '../../core/math';
 import { recordDrawing, recordStep, recordWord } from '../../core/progress';
 import { settings } from '../../core/settings';
 import type { Age } from '../../core/types';
 import { saveSession } from '../../game/session';
-import { drawCharacter, drawThumb, H, useBoardTransform, W } from '../../render/character';
+import { drawCharacter, drawThumb, H, toBoard, useBoardTransform, W } from '../../render/character';
 import { fitBoard } from '../../render/fit';
 import { circ, INK } from '../../render/primitives';
 import type { Ctx, Screen } from '../context';
 import { canvas, h, ICONS } from '../dom';
 
 const DOT = '#F2672E';
+
+/**
+ * For each pair of neighbouring dots, the outline points between them, so the joined line takes the
+ * drawing's real shape. null where the outline does not run through both dots (then a straight line).
+ */
+function outlineCurves(dots: Pt[], outline: Pt[]): (Pt[] | null)[] {
+  const n = outline.length;
+  const near = dots.map((d) => {
+    let best = 0;
+    for (let i = 1; i < n; i++) if (dist(outline[i], d) < dist(outline[best], d)) best = i;
+    return dist(outline[best], d) < 14 ? best : -1;
+  });
+  return dots.map((d, i) => {
+    const j = (i + 1) % dots.length;
+    const a = near[i], b = near[j];
+    if (a < 0 || b < 0 || a === b) return null;
+    const pts: Pt[] = [];
+    let len = 0;
+    for (let k = a; k !== b; ) {
+      const nk = (k + 1) % n;
+      len += dist(outline[k], outline[nk]);
+      pts.push(outline[nk]);
+      k = nk;
+    }
+    return len < 2.4 * dist(d, dots[j]) + 60 ? pts : null;
+  });
+}
 const PX_PER_MM = 5; // CSS px per mm on typical phones/tablets
 const BASE_R: Record<Age, number> = { '3-4': 17, '5-6': 14, '7-9': 12 };
 const BASE_FONT: Record<Age, number> = { '3-4': 40, '5-6': 34, '7-9': 29 };
@@ -31,6 +58,7 @@ export function dotsScreen(ctx: Ctx): Screen {
   const ch = charOf(sess.key);
   const N = g.dots.length;
   const normals = outwardNormals(g.dots);
+  const curves = outlineCurves(g.dots, ch.outline.map(toBoard));
   const reduced = () => settings.reduced;
 
   const board = canvas(W, H);
@@ -261,7 +289,12 @@ export function dotsScreen(ctx: Ctx): Screen {
     if (g.connected > 1) {
       c.beginPath();
       c.moveTo(...g.dots[0]);
-      for (let i = 1; i < g.connected; i++) c.lineTo(...g.dots[i]);
+      // the line follows the drawing's own shape between dots (curves, ears, spikes)
+      const upto = g.done ? N : g.connected - 1;
+      for (let i = 0; i < upto; i++) {
+        for (const p of curves[i] ?? []) c.lineTo(...p);
+        c.lineTo(...g.dots[(i + 1) % N]);
+      }
       if (g.done) c.closePath();
       c.lineWidth = R * 0.6;
       c.strokeStyle = INK;

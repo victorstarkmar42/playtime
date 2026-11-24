@@ -20,6 +20,9 @@ import { mazeScreen } from './screens/maze';
 import { parentQuizScreen } from './screens/parentquiz';
 import { sudokuScreen } from './screens/sudoku';
 import { lettersScreen } from './screens/letters';
+import { paintnumScreen } from './screens/paintnum';
+import { revealScreen } from './screens/reveal';
+import { traceScreen } from './screens/trace';
 import { dotsScreen } from './screens/dots';
 import { homeScreen } from './screens/home';
 import { onboardingScreen } from './screens/onboarding';
@@ -44,6 +47,9 @@ const SCREENS: Record<ScreenName, (ctx: Ctx) => Screen> = {
   sudoku: sudokuScreen,
   crossword: crosswordScreen,
   letters: lettersScreen,
+  trace: traceScreen,
+  reveal: revealScreen,
+  paintnum: paintnumScreen,
   parentquiz: parentQuizScreen,
   parents: parentsScreen,
 };
@@ -166,7 +172,7 @@ export function createApp(root: HTMLElement): void {
   };
   const backTarget = (name: ScreenName | undefined): ScreenName | null => {
     if (!name || name === 'home' || name === 'onboarding') return null;
-    if (['gato', 'guess', 'math', 'abacus', 'maze', 'sudoku', 'crossword', 'letters'].includes(name)) return 'games';
+    if (['gato', 'guess', 'math', 'abacus', 'maze', 'sudoku', 'crossword', 'letters', 'trace', 'reveal', 'paintnum'].includes(name)) return 'games';
     if (name === 'parentquiz') return 'parents';
     if (name === 'dots') return 'pick';
     if (name === 'color') return (state.pickFor = 'color'), 'pick';

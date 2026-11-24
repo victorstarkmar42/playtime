@@ -1,5 +1,13 @@
 # Cambios
 
+## 0.7.0 — 2026-11-24
+
+- Tres juegos nuevos en Juegos:
+  - **Trazos de luz:** sigue con el dedo la línea punteada sobre un cielo de noche. Lo que trazas se enciende con estrellitas de colores y chispas, y queda fijo al soltar el dedo. Incluye figuras (olas, montañas, círculo, cuadrado, triángulo, rombo, corazón, estrella, luna, espiral), los números del 0 al 9 y el contorno de todos los dibujos. Tiene 7 colores de luz, incluido arcoíris, y botón para deshacer.
+  - **Destapa el dibujo:** toca y frota el papel de regalo para romperlo y descubrir un dibujo sorpresa. Al terminar, "¡A colorear!" lo abre para pintarlo.
+  - **Pinta por números:** cada parte tiene su número y cada número su color; las partes pendientes del color elegido se marcan con rayas. Se juega en Zonas o en Cuadritos. Para 3–4 años se usan figuras en lugar de números. El dibujo terminado se guarda en el álbum.
+- **Unir puntos:** la línea entre dos puntos ahora sigue la forma del dibujo (las púas de Briz, las curvas de las orejas) en lugar de ser recta.
+
 ## 0.6.2 — 2026-11-23
 
 - La tarjeta **Instala Punto y Magia** aparece siempre que la app no esté instalada: si el navegador no ofrece el botón de instalar (por ejemplo, porque ya está instalada o es otro navegador), explica los pasos del menú (⋮ → Instalar app) y cómo saber si ya está instalada.
