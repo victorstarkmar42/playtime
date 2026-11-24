@@ -36,6 +36,7 @@ npm run e2e        # con preview corriendo: prueba en Chrome a tamaño celular, 
   - **Trazos de luz:** seguir con el dedo una línea punteada (olas, montañas, círculo, corazón, estrella, espiral…, los números del 0 al 9 y el contorno de cada dibujo). La parte trazada se enciende con estrellitas de colores que se quedan fijas al soltar el dedo; hay 7 colores de luz (uno arcoíris) y botón para deshacer. Los pequeños tienen más margen para salirse de la línea.
   - **Destapa el dibujo:** tocar y frotar un papel de regalo que se rompe hasta descubrir un dibujo sorpresa; al final se puede colorear.
   - **Pinta por números:** cada parte del dibujo tiene un número y cada número su color. Modo Zonas (las partes del dibujo, con un fondo de burbujas, olas o arcos dividido en piezas para pintar) y modo Cuadritos (el dibujo en una cuadrícula). Para 3–4 años se usan figuras (corazón, círculo, rombo…) en lugar de números. Hasta 4, 6 u 8 colores según la edad; al terminar se guarda en el álbum.
+  - **Basta (rueda de letras):** una tarjeta con categoría y una rueda de letras; en tu turno dices una palabra y tocas su primera letra antes de que se acabe el reloj. Entre dos o contra Robi (que dice su palabra). Botón Ideas con palabras con dibujo. 12 letras y 20 s (3–4), 18 y 15 s (5–6), 22 y 10 s (7–9).
   - **Gato:** dos jugadores en el mismo dispositivo, o contra **Robi**, un robot que juega solo (fácil, normal o difícil según la edad). No es en línea.
 - **Edad y voz en Inicio.** Se ven y se cambian desde la pantalla de inicio. Debajo se explica qué se va a oír en cada modo.
 - **Hoja para imprimir.** `public/colorear/las-resonantes.svg`, con las tres cantantes y pequeños demonios sombra, en blanco y negro y con líneas gruesas. Con la app corriendo se abre en `/colorear/las-resonantes.svg`.
@@ -52,6 +53,7 @@ npm run e2e        # con preview corriendo: prueba en Chrome a tamaño celular, 
   - Se elige automáticamente la mejor voz instalada (es‑MX, en‑US) y se descartan voces de broma. En el área de padres se puede elegir otra voz para cada idioma, probarla y ver cómo instalar voces de mejor calidad en Android y iPhone.
 - **Área de padres.** Se abre manteniendo presionado el candado.
   - Progreso por habilidad, minutos por día y palabras escuchadas.
+  - **Plan de repaso:** qué temas repasar y cómo (repaso espaciado, práctica intercalada o concreto → dibujo → número) según los aciertos, y lo que ya domina. Es una guía, no una certificación.
   - Edad, modo, idioma, tolerancia, pistas, tiempo de juego y preguntas "Para platicar juntos".
   - **Evaluación para padres:** 8 preguntas según la edad del niño (sueño, pantallas, idiomas, hitos, aprendizaje y emociones), con explicación y fuente (OMS, AAP, CDC, AASM), y recomendaciones según lo que el niño ha jugado. Es orientativa; no sustituye al pediatra.
   - Borrar el álbum o el progreso.

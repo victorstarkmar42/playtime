@@ -1,5 +1,12 @@
 # Cambios
 
+## 0.9.0 — 2026-11-24
+
+- Nuevo juego **Basta** (rueda de letras) en Juegos: sale una tarjeta con una categoría ("Un animal", "Algo de comer"…); en tu turno dices una palabra y tocas su primera letra en la rueda, antes de que se acabe el reloj del centro. Cada letra se usa una vez y pierde la ronda quien se queda sin tiempo. Se juega entre dos en el mismo celular o **contra Robi**, que dice su palabra en voz alta. El botón **Ideas** muestra palabras con dibujo. Por edad: 12 letras y 20 segundos (3–4, con ideas visibles), 18 letras y 15 s (5–6), 22 letras y 10 s (7–9).
+- **Plan de repaso** en el área de padres: según los aciertos de cada tema, sugiere qué repasar y cómo (repaso espaciado, práctica intercalada, o concreto → dibujo → número) y muestra lo que ya domina. Es una guía basada en técnicas con evidencia, no una certificación.
+- **Crucigrama (3–4 años):** a veces una palabra salía ya completa por la letra que comparte con la otra y el teclado no escribía nada. Ahora siempre falta al menos una letra y se empieza por una palabra incompleta.
+- **Gato:** al elegir con quién jugar, la voz explica las dos opciones y quién es Robi: "un robot que juega solo y decide dónde poner su ficha". El botón de ayuda también lo recuerda mientras juegas contra él.
+
 ## 0.8.1 — 2026-11-24
 
 - La app ahora se llama **PlayHour** (en la pantalla de bienvenida, al instalarla y en los avisos). Los dibujos del álbum y el progreso se conservan.

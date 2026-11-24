@@ -4,7 +4,7 @@ import type { CharKey, Lang } from '../core/types';
 import type { Speaker } from '../core/voice';
 import type { GameSession } from '../game/session';
 
-export type ScreenName = 'onboarding' | 'home' | 'pick' | 'dots' | 'color' | 'album' | 'words' | 'games' | 'gato' | 'guess' | 'math' | 'abacus' | 'maze' | 'sudoku' | 'crossword' | 'letters' | 'trace' | 'reveal' | 'paintnum' | 'parents' | 'parentquiz';
+export type ScreenName = 'onboarding' | 'home' | 'pick' | 'dots' | 'color' | 'album' | 'words' | 'games' | 'gato' | 'guess' | 'math' | 'abacus' | 'maze' | 'sudoku' | 'crossword' | 'letters' | 'trace' | 'reveal' | 'paintnum' | 'basta' | 'parents' | 'parentquiz';
 
 export interface Screen {
   el: HTMLElement;

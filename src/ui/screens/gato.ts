@@ -25,6 +25,7 @@ export function gatoScreen(ctx: Ctx): Screen {
   let over = false;
   let busy = false;
   let timer = 0;
+  let choosing = true;
   const score = { 1: 0, 2: 0, tie: 0 };
 
   const wrap = h('div', { class: 'gato' });
@@ -44,10 +45,19 @@ export function gatoScreen(ctx: Ctx): Screen {
           h('b', null, 'Contra Robi'), h('small', null, `Robi es un robot que juega solo: él decide dónde poner su ficha · Nivel ${LEVEL_LABEL[level]}`)),
       ),
     );
-    ctx.sayPair('¿Con quién quieres jugar?', 'Who do you want to play with?');
+    choosing = true;
+    sayChoices();
+  }
+
+  function sayChoices(): void {
+    ctx.sayPair(
+      '¿Con quién quieres jugar? Puedes jugar con otra persona en este mismo celular, o contra Robi. Robi es un robot que juega solo: él decide dónde poner su ficha.',
+      'Who do you want to play with? Play with someone on this device, or against Robi. Robi is a robot that plays by itself and picks where to put his piece.',
+    );
   }
 
   function start(m: 'two' | 'cpu'): void {
+    choosing = false;
     mode = m;
     score[1] = score[2] = score.tie = 0;
     starter = 1;
@@ -129,5 +139,5 @@ export function gatoScreen(ctx: Ctx): Screen {
   }
 
   chooseMode();
-  return { el, destroy: () => clearTimeout(timer), onHelp: () => ctx.sayPair('Toca una casilla. Gana quien pone tres iguales en línea.', 'Touch a square. Three in a row wins.') };
+  return { el, destroy: () => clearTimeout(timer), onHelp: () => (choosing ? sayChoices() : mode === 'cpu' ? ctx.sayPair('Toca una casilla. Gana quien pone tres iguales en línea. Robi es un robot: cuando es su turno, él solo pone su ficha.', 'Touch a square. Three in a row wins. Robi is a robot: on his turn he plays by himself.') : ctx.sayPair('Toca una casilla. Gana quien pone tres iguales en línea.', 'Touch a square. Three in a row wins.')) };
 }

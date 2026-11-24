@@ -17,6 +17,8 @@ import { pickVoice } from './voice';
 import { aiMove, emptyBoard, isFull, other, winner, type Cell, type Player } from './tictactoe';
 import { advance, resample, TRACE_NUMBERS, TRACE_SHAPES, TRACE_STEP } from './trace';
 import { clusterColors, insideDistance, labelRegions } from './paintnum';
+import { BASTA_CATEGORIES, bastaFirstLetter, bastaHints, bastaLetters, robiAnswer } from './basta';
+import { reviewPlan } from './review';
 
 /** Deterministic pseudo-random generator so failures are reproducible. */
 function seeded(seed: number) {
@@ -514,5 +516,45 @@ describe('paint by numbers', () => {
     expect(few.palette).toHaveLength(4);
     expect(Math.max(...few.of)).toBe(3);
     expect(few.palette[0]).toEqual([250, 0, 0]); // the biggest area keeps its colour
+  });
+});
+
+describe('basta letter wheel', () => {
+  it('every category has words for Robi in both languages, and Robi only uses free letters', () => {
+    for (const age of AGES) {
+      const letters = bastaLetters(age);
+      expect(new Set(letters).size).toBe(letters.length);
+      for (const cat of BASTA_CATEGORIES) {
+        for (const lang of ['es', 'en'] as const) {
+          const hints = bastaHints(cat, lang, letters, []);
+          expect(hints.length, cat.es + ' ' + lang + ' ' + age).toBeGreaterThan(0);
+          const used: string[] = [];
+          for (let k = 0; k < 40; k++) {
+            const a = robiAnswer(cat, lang, letters, used);
+            if (!a) break;
+            expect(letters).toContain(a.letter);
+            expect(used).not.toContain(a.letter);
+            expect(bastaFirstLetter(a.word[lang])).toBe(a.letter);
+            used.push(a.letter);
+          }
+        }
+      }
+    }
+  });
+  it('reads accents and ñ correctly', () => {
+    expect(bastaFirstLetter('árbol')).toBe('A');
+    expect(bastaFirstLetter('ñu')).toBe('Ñ');
+  });
+});
+
+describe('review plan', () => {
+  it('suggests a technique for weak skills and lists mastered ones', () => {
+    const s = (right: number, tries: number) => ({ right, tries });
+    const plan = reviewPlan({ seq: s(9, 10), count: s(0, 2), sum: s(6, 10), sub: s(4, 10), mul: s(0, 0), div: s(0, 0) });
+    expect(plan.review.map((r) => r.skill)).toEqual(['sub', 'sum']);
+    expect(plan.review[0].technique).toBe('cpa');
+    expect(plan.review[1].technique).toBe('interleaved');
+    expect(plan.mastered).toEqual(['seq']);
+    expect(reviewPlan({ seq: s(1, 2), count: s(0, 0), sum: s(0, 0), sub: s(0, 0), mul: s(0, 0), div: s(0, 0) }).review).toEqual([]);
   });
 });

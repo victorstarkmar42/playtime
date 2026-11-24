@@ -53,7 +53,14 @@ export function crosswordScreen(ctx: Ctx): Screen {
       const show = Math.min(idx.length - 1, Math.round(idx.length * cfg.reveal));
       for (const i of [...idx].sort(() => Math.random() - 0.5).slice(0, show)) fill[i] = cw.cells[i];
     }
-    cur = cw.words[0];
+    // a crossing word may have filled the last gap of another: open one of its own letters again
+    for (const p of cw.words) {
+      if (!done(p)) continue;
+      const idx = cellsOf(p);
+      const own = idx.filter((i) => cw.words.every((q) => q === p || !cellsOf(q).includes(i)));
+      fill[(own.length ? own : idx)[Math.floor(Math.random() * (own.length || idx.length))]] = '';
+    }
+    cur = cw.words.find((p) => !done(p)) ?? cw.words[0];
     sel = cellsOf(cur).find((i) => !fill[i]) ?? -1;
     status.textContent = lang === 'en' ? 'Escribe en inglés lo que ves · Write it in English' : 'Escribe lo que ves en cada dibujo';
     render();

@@ -10,6 +10,7 @@ const inner = (svg: string) => svg.replace(/<\/?svg[^>]*>/g, '');
 const T = (x: number, y: number, t: string, color: string) =>
   `<text x="${x}" y="${y}" font-size="16" font-weight="800" text-anchor="middle" fill="${color}" font-family="sans-serif">${t}</text>`;
 const ICON = {
+  basta: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#F2672E" stroke="#22304F" stroke-width="4"/><circle cx="50" cy="50" r="26" fill="#8FD3F5"/><g fill="#fff" stroke="#22304F" stroke-width="3"><rect x="42" y="2" width="16" height="16" rx="4"/><rect x="82" y="42" width="16" height="16" rx="4"/><rect x="42" y="82" width="16" height="16" rx="4"/><rect x="2" y="42" width="16" height="16" rx="4"/></g><circle cx="50" cy="50" r="15" fill="#FFD54A" stroke="#22304F" stroke-width="4"/><path d="M50 42v9l6 4" fill="none" stroke="#22304F" stroke-width="4" stroke-linecap="round"/></svg>',
   trace: '<svg viewBox="0 0 100 100"><rect x="6" y="6" width="88" height="88" rx="18" fill="#0B1440"/><path d="M50 22l9 20 22 2-17 14 6 21-20-12-20 12 6-21-17-14 22-2z" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="6 5" stroke-linejoin="round"/><circle cx="50" cy="22" r="4" fill="#FFE53D"/><circle cx="59" cy="42" r="4" fill="#FF3EA5"/><circle cx="81" cy="44" r="4" fill="#45F27A"/><circle cx="64" cy="58" r="4" fill="#3D8BFF"/></svg>',
   reveal: '<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" rx="10" fill="#F7D35E" stroke="#22304F" stroke-width="4"/><path d="M30 24l6 12 13 1-10 8 4 13-13-8-11 8 3-13-10-8 13-1z" fill="#D9AE2E"/><path d="M50 40c10-12 30-6 32 8 3 16-8 30-24 30-14 0-22-12-18-22 2-7 6-12 10-16z" fill="#fff" stroke="#FFF1B8" stroke-width="5"/><circle cx="58" cy="56" r="4" fill="#22304F"/><circle cx="72" cy="56" r="4" fill="#22304F"/><path d="M60 66q5 5 10 0" stroke="#22304F" stroke-width="3" fill="none" stroke-linecap="round"/></svg>',
   paintnum: `<svg viewBox="0 0 100 100"><rect x="8" y="8" width="84" height="84" rx="14" fill="#fff" stroke="#22304F" stroke-width="5"/><path d="M12 12h36v36H12z" fill="#7FD0F2"/><path d="M52 52h36v36H52z" fill="#FF6FB5"/><path d="M8 50h84M50 8v84" stroke="#22304F" stroke-width="4"/>${T(30, 38, '1', '#22304F').replace('font-size="16"', 'font-size="22"')}${T(70, 38, '2', '#7E8BA8').replace('font-size="16"', 'font-size="22"')}${T(30, 78, '3', '#7E8BA8').replace('font-size="16"', 'font-size="22"')}${T(70, 78, '2', '#fff').replace('font-size="16"', 'font-size="22"')}</svg>`,
@@ -24,6 +25,7 @@ const ICON = {
 };
 
 const AGE_TEXT = {
+  basta: { '3-4': 'Rueda de letras con dibujos de ayuda: di una palabra y toca su letra (20 segundos).', '5-6': 'Di una palabra de la tarjeta y toca su primera letra antes de 15 segundos.', '7-9': 'Rueda de 22 letras y 10 segundos por turno. Contra Robi o entre dos.' },
   trace: { '3-4': 'Sigue la línea con el dedo: figuras, números y dibujos que se encienden.', '5-6': 'Traza figuras, números y dibujos; la línea se llena de estrellas de luz.', '7-9': 'Traza números, figuras y el contorno de cada dibujo con más precisión.' },
   paintnum: { '3-4': 'Cada figura (corazón, círculo, rombo…) tiene su color: pinta las partes iguales.', '5-6': 'Pinta cada parte con el color de su número (hasta 6 colores).', '7-9': 'Pinta por números con hasta 8 colores, en zonas o en cuadritos.' },
   letters: { '3-4': 'Oye la palabra y toca la letra con la que empieza.', '5-6': 'Completa la palabra con la letra que falta.', '7-9': 'Letras que se parecen (b, d, p…) y busca todas las letras.' },
@@ -51,6 +53,7 @@ export function gamesScreen(ctx: Ctx): Screen {
         card('trace', 'g9', ICON.trace, 'Trazos de luz', 'Light trails', AGE_TEXT.trace[age]),
         card('reveal', 'g10', ICON.reveal, 'Destapa el dibujo', 'Unwrap it', 'Rompe el papel de regalo para descubrir un dibujo y luego coloréalo.'),
         card('paintnum', 'g11', ICON.paintnum, 'Pinta por números', 'Paint by numbers', AGE_TEXT.paintnum[age]),
+        card('basta', 'g12', ICON.basta, 'Basta', 'Letter wheel', AGE_TEXT.basta[age]),
         card('math', 'g3', ICON.math, 'Cuentas', 'Math', AGE_TEXT.math[age]),
         card('abacus', 'g4', ICON.abacus, 'Ábaco', 'Abacus', AGE_TEXT.abacus[age]),
         card('letters', 'g8', ICON.letters, 'Letras', 'Letters', AGE_TEXT.letters[age]),

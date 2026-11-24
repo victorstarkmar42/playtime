@@ -338,6 +338,18 @@ for (const vp of VIEWPORTS) {
     if (!pn.includes('Terminaste')) problems.push(`[${vp.name}] paintnum ${tag}: ${pn}`);
     await shot(`14-paintnum-${tag}`);
     console.log(vp.name, tag, 'trace', tr.slice(0, 12), '| reveal ok | paintnum', pn.slice(0, 12));
+    // Basta: two players on this device (Robi is random on purpose), each tap passes the turn
+    await openGame('Basta');
+    await clickText('.gmode', 'Dos jugadores');
+    await clickSel('.btimer');
+    for (let k = 0; k < 3; k++) {
+      await page.evaluate(() => [...document.querySelectorAll('.blet')].find((x) => !x.disabled)?.click());
+      await sleep(200);
+    }
+    const ba = await page.evaluate(() => window.__pymBasta());
+    if (ba.used.length < 3) problems.push(`[${vp.name}] basta ${tag}: only ${ba.used.join('')} used`);
+    await shot(`14-basta-${tag}`);
+    console.log(vp.name, tag, 'basta letters', ba.used.join(''));
     console.log(vp.name, tag, 'math', mathEnd.slice(0, 12), '| abacus', abEnd.slice(0, 12), '| maze', mz.slice(0, 12), '| sudoku', sd, '| cross', cr.slice(0, 22));
   }
   // the new Resonantes drawings must be solvable too (tablet only, to keep the run short)

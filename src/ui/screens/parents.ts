@@ -4,6 +4,7 @@ import { clearAlbum } from '../../core/album';
 import { LANG_NAME } from '../../core/lang';
 import type { Skill } from '../../core/math';
 import { accuracy, dayKey, progress, resetProgress } from '../../core/progress';
+import { MIN_TRIES, reviewPlan, type Technique } from '../../core/review';
 import { settings, updateSettings, type Settings } from '../../core/settings';
 import { AGES, LANG_MODES, TIME_LIMITS, type Age, type Mode } from '../../core/types';
 import type { Ctx, Screen } from '../context';
@@ -17,6 +18,12 @@ const SKILL_LABEL: Record<Skill, string> = {
   mul: 'Multiplicaciones',
   div: 'Divisiones',
 };
+const TECHNIQUE: Record<Technique, { name: string; how: (skill: string) => string }> = {
+  spaced: { name: 'Repaso espaciado', how: (s) => `Repasen ${s.toLowerCase()} mañana, en 3 días y en una semana: poco rato, varias veces.` },
+  interleaved: { name: 'Práctica intercalada', how: () => 'Mezclen sumas y restas en la misma ronda (Cuentas → Mezcla), para que elija qué operación usar.' },
+  cpa: { name: 'Concreto → dibujo → número', how: (s) => `Practiquen ${s.toLowerCase()} con objetos de verdad o con los dibujos de Cuentas antes de pasar a solo números.` },
+};
+
 const AGE_LABEL: Record<Age, string> = { '3-4': '3–4', '5-6': '5–6', '7-9': '7–9' };
 const MODE_LABEL: Record<Mode, string> = { seq: 'Secuencia 1, 2, 3…', math: 'Resuelve y conecta' };
 
@@ -74,6 +81,17 @@ export function parentsScreen(ctx: Ctx): Screen {
     skills.append(h('div', { class: 'skill' }, h('span', null, SKILL_LABEL[k]), h('b', null, `${acc}%`), h('span', { class: 'bar' }, h('i', { style: `width:${acc}%` })), h('small', null, `${s.right} de ${s.tries} al primer intento`)));
   }
   if (!skills.children.length) skills.append(h('p', { class: 'muted' }, 'Todavía no hay datos. Aparecen cuando el niño une puntos.'));
+
+  const plan = reviewPlan(progress.skills);
+  const planBox = h('div', { class: 'plan' },
+    ...plan.review.map((r) => h('div', { class: 'planrow' },
+      h('span', { class: `tech t-${r.technique}` }, TECHNIQUE[r.technique].name),
+      h('span', null, h('b', null, `${SKILL_LABEL[r.skill]} (${r.accuracy}%)`), ' ', TECHNIQUE[r.technique].how(SKILL_LABEL[r.skill])))),
+    plan.mastered.length ? h('p', null, h('b', null, 'Ya lo domina: '), plan.mastered.map((k) => SKILL_LABEL[k]).join(', '), '.') : null,
+    !plan.review.length && !plan.mastered.length ? h('p', { class: 'muted' }, `Aparece cuando haya al menos ${MIN_TRIES} respuestas de un tema.`) : null,
+    !plan.review.length && plan.mastered.length ? h('p', null, 'Nada pendiente por repasar: sigan jugando a su ritmo.') : null,
+    h('small', { class: 'muted' }, 'Basado en técnicas de estudio con evidencia (repaso espaciado, práctica intercalada y concreto → dibujo → número). Es una guía, no una certificación ni un diagnóstico.'),
+  );
 
   const days = h('div', { class: 'days' });
   const today = new Date();
@@ -140,6 +158,7 @@ export function parentsScreen(ctx: Ctx): Screen {
           h('div', null, h('b', null, String(progress.words.length)), h('span', null, 'palabras en inglés')),
         ),
         skills,
+        h('h4', null, 'Plan de repaso'), planBox,
         h('h4', null, 'Minutos por día'), days,
         h('h4', null, 'Palabras escuchadas'), words,
         h('p', { class: 'muted' }, found.length ? `Ha descubierto: ${found.join(', ')}.` : 'Aún no descubre ningún dibujo.'),
