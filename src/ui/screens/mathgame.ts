@@ -1,6 +1,6 @@
-import { KINDS_FOR, mathQuestion, type MathKind, type MathQuestion } from '../../core/arith';
+import { KINDS_FOR, mathQuestion, missingWords, questionText, type MathKind, type MathQuestion } from '../../core/arith';
 import { pop } from '../../core/audio';
-import { opText, opWords, skillOf } from '../../core/math';
+import { evaluate, opWords, skillOf } from '../../core/math';
 import { recordStep } from '../../core/progress';
 import { settings } from '../../core/settings';
 import type { Ctx, Screen } from '../context';
@@ -12,6 +12,7 @@ const KIND_LABEL: Record<MathKind, { es: string; en: string; sym: string }> = {
   count: { es: 'Contar', en: 'Count', sym: '★' },
   sum: { es: 'Sumas', en: 'Addition', sym: '+' },
   sub: { es: 'Restas', en: 'Subtraction', sym: '−' },
+  missing: { es: '¿Qué número falta?', en: 'Missing number', sym: '□' },
   mul: { es: 'Multiplicaciones', en: 'Multiplication', sym: '×' },
   div: { es: 'Divisiones', en: 'Division', sym: '÷' },
   mix: { es: 'De todo', en: 'Mixed', sym: '?' },
@@ -50,6 +51,7 @@ export function mathScreen(ctx: Ctx): Screen {
   /** Something to count or look at: stars for counting, two coloured groups for small sums and subtractions, an array for ×. */
   function visual(): HTMLElement | null {
     const op = q.op;
+    if (q.hide) return null; // the dots would give the answer away
     const dots = (n: number, cls: string) => Array.from({ length: n }, () => h('span', { class: cls }));
     if (op.kind === 'count') return h('div', { class: 'mvis stars' }, ...dots(op.n, 'mstar'));
     if (op.kind !== 'calc') return null;
@@ -65,7 +67,7 @@ export function mathScreen(ctx: Ctx): Screen {
   function next(): void {
     firstTry = true;
     q = mathQuestion(kind, settings.age);
-    const text = q.op.kind === 'count' ? '¿Cuántas estrellas hay?' : `${opText(q.op)} = ?`;
+    const text = q.op.kind === 'count' ? '¿Cuántas estrellas hay?' : questionText(q);
     wrap.replaceChildren(
       h('div', { class: 'ghead' },
         h('h2', null, KIND_LABEL[kind].es, h('small', null, KIND_LABEL[kind].en)),
@@ -78,7 +80,12 @@ export function mathScreen(ctx: Ctx): Screen {
         return b;
       })),
     );
-    ctx.sayPair(opWords(q.op, 'es'), opWords(q.op, 'en'));
+    say();
+  }
+
+  function say(): void {
+    if (q.hide) ctx.sayPair(missingWords(q, 'es'), missingWords(q, 'en'));
+    else ctx.sayPair(opWords(q.op, 'es'), opWords(q.op, 'en'));
   }
 
   function answer(n: number, b: HTMLButtonElement): void {
@@ -96,6 +103,10 @@ export function mathScreen(ctx: Ctx): Screen {
     b.classList.add('ok');
     wrap.classList.add('right');
     pop(880, 0.3);
+    if (q.hide && q.op.kind === 'calc') {
+      const t = wrap.querySelector('.mtext');
+      if (t) t.textContent = `${q.op.a} ${q.op.sym} ${q.op.b} = ${evaluate(q.op)}`;
+    }
     ctx.sayPair(`¡Sí! ${q.answer}`, `Yes! ${q.answer}`);
     timer = window.setTimeout(() => {
       wrap.classList.remove('right');
@@ -120,5 +131,5 @@ export function mathScreen(ctx: Ctx): Screen {
   }
 
   menu();
-  return { el, destroy: () => clearTimeout(timer), onHelp: () => q && ctx.sayPair(opWords(q.op, 'es'), opWords(q.op, 'en')) };
+  return { el, destroy: () => clearTimeout(timer), onHelp: () => q && say() };
 }

@@ -9,6 +9,8 @@ import { h } from '../dom';
 import { exitBtn, progressDots, shake } from './gamekit';
 
 const ROUNDS = 5;
+/** Last word shown for each letter in the alphabet (kept while the app is open). */
+const lastWord = new Map<string, number>();
 
 const T = {
   es: {
@@ -17,7 +19,7 @@ const T = {
     find: (l: string, w: string) => `Toca todas las ${l} de ${w}.`,
     yes: (l: string, w: string) => `¡Sí! La ${l}. ${w}.`,
     no: (l: string) => `Esa es la ${l}. Intenta otra vez.`,
-    abc: (x: AbcEntry) => (x.word.startsWith(x.letter) ? `${x.name}, de ${x.word}` : `${x.name}, como en ${x.word}`),
+    abc: (name: string, word: string, first: boolean) => (first ? `${name}, de ${word}` : `${name}, como en ${word}`),
   },
   en: {
     first: (w: string) => `What letter does ${w} start with?`,
@@ -25,11 +27,11 @@ const T = {
     find: (l: string, w: string) => `Tap every ${l} in ${w}.`,
     yes: (l: string, w: string) => `Yes! ${l}. ${w}.`,
     no: (l: string) => `That is ${l}. Try again.`,
-    abc: (x: AbcEntry) => (x.word.startsWith(x.letter) ? `${x.name} is for ${x.word}` : `${x.name}, as in ${x.word}`),
+    abc: (name: string, word: string, first: boolean) => (first ? `${name} is for ${word}` : `${name}, as in ${word}`),
   },
 };
 
-const PICTURE_SECTIONS = ['animales', 'comida', 'cuerpo', 'ropa', 'casa', 'naturaleza', 'transporte', 'formas'];
+const PICTURE_SECTIONS = ['animales', 'comida', 'cuerpo', 'ropa', 'casa', 'naturaleza', 'transporte', 'formas', 'escuela', 'lugares'];
 
 /** A letter as it appears in the words (lowercase). */
 const letterFace = (l: string) => h('span', { class: 'lface' }, l);
@@ -45,7 +47,7 @@ export function lettersScreen(ctx: Ctx): Screen {
   const t = T[lang];
   const say = (text: string) => ctx.sayOne(text, lang);
   const wordsPool = [
-    ...ABC[lang].map((x) => ({ word: x.word, pic: x.pic })),
+    ...ABC[lang].flatMap((x) => x.words),
     // only things a picture shows without doubt (no actions, feelings or greetings)
     ...WORD_SECTIONS.filter((s) => PICTURE_SECTIONS.includes(s.id)).flatMap((s) => s.words.map((w) => ({ word: lang === 'en' ? w.en : w.es, pic: w.pic }))),
   ];
@@ -172,15 +174,23 @@ export function lettersScreen(ctx: Ctx): Screen {
     clearTimeout(timer);
     prompt = lang === 'en' ? 'Tap a letter.' : 'Toca una letra.';
     const card = (x: AbcEntry) => {
-      const word = h('span', { class: 'aword' }, ...[...x.word].map((ch) => (plain(ch) === x.letter ? h('b', null, ch) : ch)));
+      // a different picture word than last time, so each visit brings new words
+      const key = `${lang}:${x.letter}`;
+      const last = lastWord.get(key) ?? -1;
+      let pick = Math.floor(Math.random() * x.words.length);
+      if (x.words.length > 1 && pick === last) pick = (pick + 1 + Math.floor(Math.random() * (x.words.length - 1))) % x.words.length;
+      lastWord.set(key, pick);
+      const w = x.words[pick];
+      const word = h('span', { class: 'aword' }, ...[...w.word].map((ch) => (plain(ch) === x.letter ? h('b', null, ch) : ch)));
       return h('button', { class: 'acard', 'aria-label': x.name, onClick: (ev: Event) => {
         pop(560, 0.08);
-        say(t.abc(x));
+        say(t.abc(x.name, w.word, plain(w.word[0]) === x.letter));
         (ev.currentTarget as HTMLElement).classList.add('seen');
-      } }, letterPair(x.letter), h('span', { class: 'apic', 'aria-hidden': 'true' }, x.pic), word);
+      } }, letterPair(x.letter), h('span', { class: 'apic', 'aria-hidden': 'true' }, w.pic), word);
     };
     wrap.replaceChildren(
       head('Abecedario', lang === 'en' ? 'Alphabet · Toca una letra' : 'Alphabet · Toca una letra para oírla',
+        h('button', { class: 'bigbtn alt small', onClick: () => (say(lang === 'en' ? 'New words' : 'Palabras nuevas'), alphabet()) }, 'Otras palabras'),
         h('button', { class: 'bigbtn alt small', onClick: menu }, 'Jugar')),
       h('div', { class: 'agrid2' }, ...ABC[lang].map(card)),
     );

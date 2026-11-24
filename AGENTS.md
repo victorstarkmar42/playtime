@@ -22,6 +22,7 @@ Antes de dar un cambio por terminado: `npm run typecheck`, `npm test` y `npm run
 - `src/content/`: dibujos (`characters.ts`, `extra.ts`), vocabulario ES/EN, secciones de palabras con dibujo (`wordbank.ts`) y preguntas para padres (`parentquiz.ts`).
 - `src/render/`: canvas de 1200×900; el dibujo vive en una caja de 0–100.
 - `src/ui/screens/`: una pantalla por archivo. Se registran en `src/ui/app.ts` y en `ScreenName` (`src/ui/context.ts`).
+- `src/ui/pwa.ts`: tarjeta para instalar la app (Inicio) y barra "Hay una versión nueva" (el service worker usa `registerType: 'prompt'`).
 - `src/ui/screens/gamekit.ts`: `exitBtn` (cada juego debe tener botón Salir), `progressDots`, `shake`.
 - `src/styles.css`: todos los estilos. Se adaptan con consultas de contenedor (`@container app`): vertical, ancho máximo de 600 px y 440 px, y alto máximo de 480 px.
 
@@ -35,4 +36,5 @@ Antes de dar un cambio por terminado: `npm run typecheck`, `npm test` y `npm run
 - Usa el constructor DOM `h()` de `src/ui/dom.ts`, no innerHTML con datos.
 - Un dibujo nuevo necesita: contorno, cantidad de puntos por edad, `details`, vocabulario y su clave en `CharKey` y `CHARACTER_ORDER`. Las pruebas revisan la separación de los puntos.
 - Anota los cambios visibles en `CHANGELOG.md` y actualiza el `README.md` si cambia lo que incluye la app.
-- El código está en GitHub (rama `main`). Cada push a `main` publica la app en GitHub Pages con `.github/workflows/deploy.yml`. No hagas commits ni push sin preguntar.
+- El código está en GitHub (rama `main`). Cada push a `main` publica la app en GitHub Pages con `.github/workflows/deploy.yml`.
+- **Al terminar cada petición, pregunta siempre al usuario si desea subir los cambios** (commit y push a `main`, que los publica en la página). No hagas commits ni push sin que el usuario lo confirme en esa petición.

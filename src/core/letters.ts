@@ -1,34 +1,81 @@
 import type { Age, Lang } from './types';
 
-/** One letter of the alphabet with a picture word that has it (at the start whenever possible). */
+/** One letter of the alphabet with several picture words that have it (at the start whenever possible). */
 export interface AbcEntry {
   letter: string;
   /** How the letter is said aloud. */
   name: string;
-  word: string;
-  pic: string;
+  /** Picture words for this letter; the alphabet shows a different one each visit. */
+  words: { word: string; pic: string }[];
 }
 
-const e = (letter: string, name: string, word: string, pic: string): AbcEntry => ({ letter, name, word, pic });
+/** `e('a', 'a', 'abeja 🐝, avión ✈️')`: words and their pictures, separated by commas. */
+const e = (letter: string, name: string, list: string): AbcEntry => ({
+  letter,
+  name,
+  words: list.split(',').map((s) => {
+    const [word, pic] = s.trim().split(' ');
+    return { word, pic };
+  }),
+});
 
 export const ABC: Record<Lang, AbcEntry[]> = {
   es: [
-    e('a', 'a', 'abeja', '🐝'), e('b', 'be', 'ballena', '🐋'), e('c', 'ce', 'casa', '🏠'), e('d', 'de', 'dado', '🎲'),
-    e('e', 'e', 'elefante', '🐘'), e('f', 'efe', 'flor', '🌸'), e('g', 'ge', 'gato', '🐱'), e('h', 'hache', 'helado', '🍦'),
-    e('i', 'i', 'isla', '🏝️'), e('j', 'jota', 'jirafa', '🦒'), e('k', 'ka', 'koala', '🐨'), e('l', 'ele', 'luna', '🌙'),
-    e('m', 'eme', 'manzana', '🍎'), e('n', 'ene', 'nube', '☁️'), e('ñ', 'eñe', 'piña', '🍍'), e('o', 'o', 'oso', '🐻'),
-    e('p', 'pe', 'perro', '🐶'), e('q', 'cu', 'queso', '🧀'), e('r', 'erre', 'ratón', '🐭'), e('s', 'ese', 'sol', '☀️'),
-    e('t', 'te', 'tortuga', '🐢'), e('u', 'u', 'uvas', '🍇'), e('v', 'uve', 'vaca', '🐮'), e('w', 'doble uve', 'wafle', '🧇'),
-    e('x', 'equis', 'saxofón', '🎷'), e('y', 'ye', 'yoyo', '🪀'), e('z', 'zeta', 'zapato', '👞'),
+    e('a', 'a', 'abeja 🐝, avión ✈️, árbol 🌳, araña 🕷️, anillo 💍, ardilla 🐿️'),
+    e('b', 'be', 'ballena 🐋, barco ⛵, bebé 👶, bicicleta 🚲, búho 🦉, bota 👢'),
+    e('c', 'ce', 'casa 🏠, caballo 🐴, cohete 🚀, conejo 🐰, camión 🚚, corazón ❤️'),
+    e('d', 'de', 'dado 🎲, delfín 🐬, dinosaurio 🦕, diente 🦷, durazno 🍑, dona 🍩'),
+    e('e', 'e', 'elefante 🐘, estrella ⭐, escoba 🧹, erizo 🦔, elote 🌽, escalera 🪜'),
+    e('f', 'efe', 'flor 🌸, fresa 🍓, foca 🦭, foco 💡, fuego 🔥, flamenco 🦩'),
+    e('g', 'ge', 'gato 🐱, globo 🎈, gallina 🐔, guitarra 🎸, gusano 🪱, gorila 🦍'),
+    e('h', 'hache', 'helado 🍦, hoja 🍃, hormiga 🐜, huevo 🥚, hamburguesa 🍔, hongo 🍄'),
+    e('i', 'i', 'isla 🏝️, iguana 🦎, imán 🧲, insecto 🐞'),
+    e('j', 'jota', 'jirafa 🦒, jugo 🧃, jabón 🧼, jaguar 🐆, jardín 🌷'),
+    e('k', 'ka', 'koala 🐨, kiwi 🥝, karate 🥋, kayak 🛶'),
+    e('l', 'ele', 'luna 🌙, león 🦁, libro 📚, lápiz ✏️, limón 🍋, llave 🔑'),
+    e('m', 'eme', 'manzana 🍎, mono 🐵, mariposa 🦋, mano ✋, melón 🍈, moto 🏍️'),
+    e('n', 'ene', 'nube ☁️, nariz 👃, naranja 🍊, nido 🪺, nieve ❄️, niño 👦'),
+    e('ñ', 'eñe', 'piña 🍍, araña 🕷️, niña 👧, uña 💅, sueño 😴'),
+    e('o', 'o', 'oso 🐻, oveja 🐑, ojo 👁️, olla 🍲, oreja 👂, ola 🌊'),
+    e('p', 'pe', 'perro 🐶, pez 🐟, pato 🦆, pelota ⚽, pastel 🎂, pan 🍞'),
+    e('q', 'cu', 'queso 🧀, mosquito 🦟, raqueta 🏸, esquí ⛷️'),
+    e('r', 'erre', 'ratón 🐭, rana 🐸, rosa 🌹, reloj ⌚, regalo 🎁, robot 🤖'),
+    e('s', 'ese', 'sol ☀️, serpiente 🐍, silla 🪑, sandía 🍉, sombrero 👒, sirena 🧜‍♀️'),
+    e('t', 'te', 'tortuga 🐢, tigre 🐯, tren 🚂, tomate 🍅, tambor 🥁, taza ☕'),
+    e('u', 'u', 'uvas 🍇, unicornio 🦄, uno 1️⃣, uña 💅'),
+    e('v', 'uve', 'vaca 🐮, vela 🕯️, ventana 🪟, violín 🎻, volcán 🌋, vaso 🥛'),
+    e('w', 'doble uve', 'wafle 🧇, kiwi 🥝, sándwich 🥪'),
+    e('x', 'equis', 'saxofón 🎷, taxi 🚕, boxeo 🥊, México 🇲🇽'),
+    e('y', 'ye', 'yoyo 🪀, yate 🛥️, payaso 🤡, yogur 🥣'),
+    e('z', 'zeta', 'zapato 👞, zorro 🦊, zanahoria 🥕, pizza 🍕, lápiz ✏️'),
   ],
   en: [
-    e('a', 'A', 'apple', '🍎'), e('b', 'B', 'ball', '⚽'), e('c', 'C', 'cat', '🐱'), e('d', 'D', 'dog', '🐶'),
-    e('e', 'E', 'egg', '🥚'), e('f', 'F', 'fish', '🐟'), e('g', 'G', 'grapes', '🍇'), e('h', 'H', 'hat', '🎩'),
-    e('i', 'I', 'igloo', '🛖'), e('j', 'J', 'juice', '🧃'), e('k', 'K', 'kite', '🪁'), e('l', 'L', 'lion', '🦁'),
-    e('m', 'M', 'moon', '🌙'), e('n', 'N', 'nose', '👃'), e('o', 'O', 'orange', '🍊'), e('p', 'P', 'pig', '🐷'),
-    e('q', 'Q', 'queen', '👸'), e('r', 'R', 'rabbit', '🐰'), e('s', 'S', 'sun', '☀️'), e('t', 'T', 'tree', '🌳'),
-    e('u', 'U', 'umbrella', '☂️'), e('v', 'V', 'van', '🚐'), e('w', 'W', 'whale', '🐋'), e('x', 'X', 'box', '📦'),
-    e('y', 'Y', 'yo-yo', '🪀'), e('z', 'Z', 'zebra', '🦓'),
+    e('a', 'A', 'apple 🍎, ant 🐜, airplane ✈️, alligator 🐊'),
+    e('b', 'B', 'ball ⚽, bear 🐻, banana 🍌, bus 🚌'),
+    e('c', 'C', 'cat 🐱, car 🚗, cake 🎂, cow 🐮'),
+    e('d', 'D', 'dog 🐶, duck 🦆, door 🚪, drum 🥁'),
+    e('e', 'E', 'egg 🥚, elephant 🐘, ear 👂, eye 👁️'),
+    e('f', 'F', 'fish 🐟, frog 🐸, flower 🌸, fox 🦊'),
+    e('g', 'G', 'grapes 🍇, goat 🐐, gift 🎁, guitar 🎸'),
+    e('h', 'H', 'hat 🎩, horse 🐴, house 🏠, heart ❤️'),
+    e('i', 'I', 'insect 🐞, iguana 🦎, island 🏝️, igloo 🛖'),
+    e('j', 'J', 'juice 🧃, jellyfish 🪼, jacket 🧥, jaguar 🐆'),
+    e('k', 'K', 'kite 🪁, key 🔑, kangaroo 🦘, koala 🐨'),
+    e('l', 'L', 'lion 🦁, leaf 🍃, lemon 🍋, lamp 💡'),
+    e('m', 'M', 'moon 🌙, monkey 🐵, milk 🥛, mouse 🐭'),
+    e('n', 'N', 'nose 👃, nest 🪺, nut 🥜, nine 9️⃣'),
+    e('o', 'O', 'orange 🍊, owl 🦉, octopus 🐙, onion 🧅'),
+    e('p', 'P', 'pig 🐷, pizza 🍕, penguin 🐧, pear 🍐'),
+    e('q', 'Q', 'queen 👸, question ❓, quiet 🤫'),
+    e('r', 'R', 'rabbit 🐰, rain 🌧️, robot 🤖, rocket 🚀'),
+    e('s', 'S', 'sun ☀️, snake 🐍, star ⭐, sock 🧦'),
+    e('t', 'T', 'tree 🌳, tiger 🐯, train 🚂, turtle 🐢'),
+    e('u', 'U', 'umbrella ☂️, unicorn 🦄, up ⬆️'),
+    e('v', 'V', 'van 🚐, violin 🎻, volcano 🌋, vest 🦺'),
+    e('w', 'W', 'whale 🐋, watch ⌚, water 💧, worm 🪱'),
+    e('x', 'X', 'box 📦, fox 🦊, taxi 🚕'),
+    e('y', 'Y', 'yarn 🧶, yogurt 🥣, yacht 🛥️'),
+    e('z', 'Z', 'zebra 🦓, zero 0️⃣, pizza 🍕'),
   ],
 };
 

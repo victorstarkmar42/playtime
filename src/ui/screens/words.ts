@@ -1,6 +1,6 @@
 import { CHARACTER_ORDER, charOf } from '../../content/characters';
 import { WORD_SECTIONS } from '../../content/wordbank';
-import { COLORS, NUMBERS, type Word } from '../../content/words';
+import { COLORS, MORE_NUMBERS, NUMBERS, type Word } from '../../content/words';
 import { LANG_NAME, speakOrder } from '../../core/lang';
 import { progress, recordWord } from '../../core/progress';
 import { settings } from '../../core/settings';
@@ -42,7 +42,10 @@ export function wordsScreen(ctx: Ctx): Screen {
   const bothLangs = settings.lang === 'en' ? 'en-es' : settings.lang === 'es' ? 'es-en' : settings.lang;
   const found = CHARACTER_ORDER.filter((k) => progress.found.includes(k));
   const sections: Section[] = [
-    { id: 'numeros', es: 'Números', en: 'Numbers', icon: '🔢', entries: () => NUMBERS.map((word, i) => ({ word, lead: () => h('span', { class: 'wlead num' }, String(i + 1)) })) },
+    { id: 'numeros', es: 'Números', en: 'Numbers', icon: '🔢', entries: () => [
+      ...NUMBERS.map((word, i) => ({ word, lead: () => h('span', { class: 'wlead num' }, String(i + 1)) })),
+      ...MORE_NUMBERS.map((word) => ({ word, lead: () => h('span', { class: 'wlead num' }, String(word.n)) })),
+    ] },
     { id: 'colores', es: 'Colores', en: 'Colors', icon: '🎨', entries: () => COLORS.map((word) => ({ word, lead: () => h('span', { class: 'wlead', style: `background:${word.hex}` }) })) },
     ...WORD_SECTIONS.map((s) => ({ ...s, entries: () => s.words.map((word) => ({ word, lead: () => h('span', { class: 'wlead emo', 'aria-hidden': 'true' }, word.pic) })) })),
     {

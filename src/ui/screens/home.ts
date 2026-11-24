@@ -6,6 +6,7 @@ import { saveSession } from '../../game/session';
 import { drawThumb } from '../../render/character';
 import type { Ctx, Screen } from '../context';
 import { canvas, h } from '../dom';
+import { renderInstall } from '../pwa';
 
 const DOTS_ICON = '<svg viewBox="0 0 100 100"><g fill="#F2672E"><circle cx="50" cy="12" r="6"/><circle cx="61" cy="38" r="6"/><circle cx="90" cy="40" r="6"/><circle cx="67" cy="60" r="6"/><circle cx="76" cy="88" r="6"/><circle cx="50" cy="72" r="6"/><circle cx="24" cy="88" r="6"/><circle cx="33" cy="60" r="6"/></g><path d="M50 12L61 38 90 40 67 60 76 88 50 72" fill="none" stroke="#22304F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const COLOR_ICON = '<svg viewBox="0 0 100 100"><path d="M22 78c10-4 18-14 28-30s22-24 30-22" fill="none" stroke="#3FA35B" stroke-width="12" stroke-linecap="round"/><path d="M64 14l22 22-38 38-26 4 4-26z" fill="#FFD54A" stroke="#22304F" stroke-width="4" stroke-linejoin="round"/></svg>';
@@ -63,6 +64,9 @@ export function homeScreen(ctx: Ctx): Screen {
     agePicker,
   );
 
+  const install = h('div', { class: 'install', hidden: true });
+  renderInstall(install);
+
   const el = h(
     'div',
     { class: 'view' },
@@ -73,6 +77,7 @@ export function homeScreen(ctx: Ctx): Screen {
       tile('c4', WORDS_ICON, 'Palabras', 'Words', () => ctx.show('words')),
       tile('c5', GAMES_ICON, 'Juegos', 'Games', () => ctx.show('games')),
       cont,
+      install,
       prefs,
     ),
   );

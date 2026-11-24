@@ -4,7 +4,7 @@ import { keyDots } from '../content/extra';
 import { WORD_SECTIONS } from '../content/wordbank';
 import { ABC, makeRounds as letterRounds, plain, usableWords } from './letters';
 import { createGame, connectNext, hitTest } from './dotgame';
-import { abacusFor, abacusValue, KINDS_FOR, mathQuestion, touchBead } from './arith';
+import { abacusFor, abacusValue, KINDS_FOR, mathQuestion, missingWords, questionText, touchBead } from './arith';
 import { floodRegion } from './flood';
 import { canStep, countSolutions, makeCrossword, makeMaze, makeSudoku, mazeSize, solveMaze, sudokuAllows, sudokuFor } from './puzzles';
 import { GUESS_POOL, makeRounds, spellable, spellTiles, wordOf, type GuessKind } from './guess';
@@ -315,7 +315,7 @@ describe('cuentas y ábaco', () => {
   it('every question has its answer among distinct, non-negative options', () => {
     for (const age of AGES) for (const kind of KINDS_FOR[age]) for (let seed = 1; seed <= 100; seed++) {
       const q = mathQuestion(kind, age, seeded(seed));
-      expect(evaluate(q.op)).toBe(q.answer);
+      if (!q.hide) expect(evaluate(q.op)).toBe(q.answer);
       expect(q.options).toContain(q.answer);
       expect(new Set(q.options).size).toBe(q.options.length);
       expect(q.options.length).toBe(age === '3-4' ? 3 : 4);
@@ -386,13 +386,21 @@ describe('word sections', () => {
 
 describe('letters game', () => {
   const pool = (lang: 'es' | 'en') => [
-    ...ABC[lang].map((x) => ({ word: x.word, pic: x.pic })),
+    ...ABC[lang].flatMap((x) => x.words),
     ...WORD_SECTIONS.flatMap((s) => s.words.map((w) => ({ word: lang === 'en' ? w.en : w.es, pic: w.pic }))),
   ];
   it('has every letter once, each in its example word', () => {
     expect(ABC.es.map((x) => x.letter).join('')).toBe('abcdefghijklmnñopqrstuvwxyz');
     expect(ABC.en.map((x) => x.letter).join('')).toBe('abcdefghijklmnopqrstuvwxyz');
-    for (const lang of ['es', 'en'] as const) for (const x of ABC[lang]) expect([...x.word].map(plain)).toContain(x.letter);
+    for (const lang of ['es', 'en'] as const) {
+      for (const x of ABC[lang]) {
+        expect(x.words.length).toBeGreaterThanOrEqual(3);
+        for (const w of x.words) {
+          expect(w.pic).toBeTruthy();
+          expect([...w.word].map(plain)).toContain(x.letter);
+        }
+      }
+    }
   });
   it('builds 5 consistent rounds for every age and language', () => {
     for (const lang of ['es', 'en'] as const) {
@@ -422,5 +430,30 @@ describe('letters game', () => {
   it('keeps only words made of letters and of a fitting length', () => {
     const ws = usableWords([{ word: 'T-shirt', pic: '' }, { word: 'buenos días', pic: '' }, { word: 'sol', pic: '' }, { word: 'sol', pic: '' }], '5-6');
     expect(ws.map((w) => w.word)).toEqual(['sol']);
+  });
+});
+
+describe('missing-number questions', () => {
+  it('hide one side; the answer completes the equation', () => {
+    for (const age of ['5-6', '7-9'] as const) {
+      expect(KINDS_FOR[age]).toContain('missing');
+      for (let i = 0; i < 300; i++) {
+        const q = mathQuestion('missing', age);
+        expect(q.hide).toBeDefined();
+        const op = q.op;
+        if (op.kind !== 'calc') throw new Error('calc expected');
+        const a = q.hide === 'a' ? q.answer : op.a;
+        const b = q.hide === 'b' ? q.answer : op.b;
+        expect(evaluate({ ...op, a, b })).toBe(evaluate(op));
+        expect(q.answer).toBeGreaterThan(0);
+        expect(q.options).toContain(q.answer);
+        expect(new Set(q.options).size).toBe(4);
+        const text = questionText(q);
+        expect(text.split('?').length).toBe(2); // exactly one gap
+        expect(text.endsWith(`= ${evaluate(op)}`)).toBe(true);
+        if (age === '5-6') expect(evaluate(op) <= 10 || op.sym === '−').toBe(true);
+        expect(missingWords(q, 'es')).toContain('¿qué número?');
+      }
+    }
   });
 });

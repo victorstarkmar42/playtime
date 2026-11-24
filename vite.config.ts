@@ -5,7 +5,7 @@ export default defineConfig({
   base: './',
   plugins: [
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt', // new versions wait for the adult's "Actualizar" (see src/ui/pwa.ts)
       includeAssets: ['icon.svg', 'apple-touch-icon.png'],
       manifest: {
         id: './',

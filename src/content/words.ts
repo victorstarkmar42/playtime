@@ -21,3 +21,13 @@ export const NUMBERS: Word[] = [
   ['uno', 'one'], ['dos', 'two'], ['tres', 'three'], ['cuatro', 'four'], ['cinco', 'five'],
   ['seis', 'six'], ['siete', 'seven'], ['ocho', 'eight'], ['nueve', 'nine'], ['diez', 'ten'],
 ].map(([es, en]) => ({ es, en }));
+
+/** More numbers for "Palabras": 11 to 20 and the tens up to 100. */
+export const MORE_NUMBERS: (Word & { n: number })[] = (
+  [
+    [11, 'once', 'eleven'], [12, 'doce', 'twelve'], [13, 'trece', 'thirteen'], [14, 'catorce', 'fourteen'], [15, 'quince', 'fifteen'],
+    [16, 'dieciséis', 'sixteen'], [17, 'diecisiete', 'seventeen'], [18, 'dieciocho', 'eighteen'], [19, 'diecinueve', 'nineteen'], [20, 'veinte', 'twenty'],
+    [30, 'treinta', 'thirty'], [40, 'cuarenta', 'forty'], [50, 'cincuenta', 'fifty'], [60, 'sesenta', 'sixty'], [70, 'setenta', 'seventy'],
+    [80, 'ochenta', 'eighty'], [90, 'noventa', 'ninety'], [100, 'cien', 'one hundred'],
+  ] as [number, string, string][]
+).map(([n, es, en]) => ({ n, es, en }));

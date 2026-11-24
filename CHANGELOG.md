@@ -1,5 +1,13 @@
 # Cambios
 
+## 0.6.1 — 2026-11-23
+
+- **¿Qué número falta?** en Cuentas (5–6 y 7–9 años): cuentas como 4 + ? = 5 o ? − 3 = 6 (y multiplicaciones para 7–9). Al acertar se completa la cuenta.
+- **Abecedario con palabras nuevas en cada visita:** cada letra tiene de 3 a 6 palabras con dibujo (a: abeja, avión, árbol, araña…) y cada vez que se entra, o con el botón "Otras palabras", aparece otra. El juego Letras también usa todas esas palabras.
+- **Más palabras y números en Palabras:** 290 palabras con dibujo en 17 temas (nuevos: Escuela, Oficios, Lugares, Opuestos y Días y meses; los demás temas crecieron) y los números del 1 al 20 y de diez en diez hasta el 100.
+- **Instalar desde la página:** Inicio muestra una tarjeta "Instala Punto y Magia" con el botón **Instalar app** (Android, computadora). En iPhone y iPad explica los pasos en Safari. No aparece si la app ya está instalada, y "Ahora no" la oculta por 7 días.
+- **Aviso de versión nueva:** cuando se publican cambios aparece abajo "Hay una versión nueva · Actualizar". La app lo revisa al abrirse, al volver a ella y cada 30 minutos. No se actualiza sola para no interrumpir un dibujo a medias.
+
 ## 0.6.0 — 2026-11-23
 
 - Nuevo juego **Letras** en Juegos, para reconocer el abecedario dentro de palabras: la letra con la que empieza (3–4), la letra que falta (5–6), letras que se parecen y buscar todas las letras de una palabra (7–9). Incluye un **abecedario** con la ñ, para tocar cada letra y oír su nombre con un ejemplo.

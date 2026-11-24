@@ -3,13 +3,13 @@ import type { Age } from './types';
 
 /* ---------------- Cuentas: practice by operation ---------------- */
 
-export type MathKind = 'count' | 'sum' | 'sub' | 'mul' | 'div' | 'mix';
+export type MathKind = 'count' | 'sum' | 'sub' | 'missing' | 'mul' | 'div' | 'mix';
 
 /** What each age can choose (the youngest only count). */
 export const KINDS_FOR: Record<Age, MathKind[]> = {
   '3-4': ['count'],
-  '5-6': ['count', 'sum', 'sub', 'mix'],
-  '7-9': ['sum', 'sub', 'mul', 'div', 'mix'],
+  '5-6': ['count', 'sum', 'sub', 'missing', 'mix'],
+  '7-9': ['sum', 'sub', 'missing', 'mul', 'div', 'mix'],
 };
 
 export interface MathQuestion {
@@ -17,11 +17,13 @@ export interface MathQuestion {
   answer: number;
   /** Shuffled choices including the answer. */
   options: number[];
+  /** "What number is missing?": which side of the operation is hidden (4 + ? = 5). */
+  hide?: 'a' | 'b';
 }
 
 const int = (rng: Rng, a: number, b: number) => a + Math.floor(rng() * (b - a + 1));
 
-function opFor(kind: Exclude<MathKind, 'mix'>, age: Age, rng: Rng): Op {
+function opFor(kind: Exclude<MathKind, 'mix' | 'missing'>, age: Age, rng: Rng): Op {
   const small = age !== '7-9';
   switch (kind) {
     case 'count':
@@ -49,8 +51,19 @@ function opFor(kind: Exclude<MathKind, 'mix'>, age: Age, rng: Rng): Op {
 export function mathQuestion(kind: MathKind, age: Age, rng: Rng = Math.random): MathQuestion {
   const pool = KINDS_FOR[age].filter((k) => k !== 'mix') as Exclude<MathKind, 'mix'>[];
   const k = kind === 'mix' ? pool[int(rng, 0, pool.length - 1)] : (kind as Exclude<MathKind, 'mix'>);
-  const op = opFor(k, age, rng);
-  const answer = evaluate(op);
+  let op: Op;
+  let answer: number;
+  let hide: 'a' | 'b' | undefined;
+  if (k === 'missing') {
+    // 4 + ? = 5, ? − 3 = 6 …: sums and subtractions (and, for 7–9, some multiplications)
+    const base = age === '7-9' && rng() < 0.25 ? 'mul' : rng() < 0.5 ? 'sum' : 'sub';
+    op = opFor(base, age, rng);
+    hide = rng() < 0.5 ? 'a' : 'b';
+    answer = op.kind === 'calc' ? op[hide] : 0;
+  } else {
+    op = opFor(k, age, rng);
+    answer = evaluate(op);
+  }
   const n = age === '3-4' ? 3 : 4;
   const set = new Set([answer]);
   for (let guard = 0; set.size < n && guard < 100; guard++) {
@@ -63,7 +76,27 @@ export function mathQuestion(kind: MathKind, age: Age, rng: Rng = Math.random): 
     const j = Math.floor(rng() * (i + 1));
     [options[i], options[j]] = [options[j], options[i]];
   }
-  return { op, answer, options };
+  return hide ? { op, answer, options, hide } : { op, answer, options };
+}
+
+const SAY: Record<string, { es: string; en: string }> = { '+': { es: 'más', en: 'plus' }, '−': { es: 'menos', en: 'minus' }, '×': { es: 'por', en: 'times' }, '÷': { es: 'entre', en: 'divided by' } };
+
+/** "4 + ? = 5" for missing-number questions, "4 + 1 = ?" otherwise. */
+export function questionText(q: MathQuestion): string {
+  const op = q.op;
+  if (op.kind !== 'calc') return '';
+  if (!q.hide) return `${op.a} ${op.sym} ${op.b} = ?`;
+  return `${q.hide === 'a' ? '?' : op.a} ${op.sym} ${q.hide === 'b' ? '?' : op.b} = ${evaluate(op)}`;
+}
+
+/** How a missing-number question is said aloud: "4 más ¿qué número? es igual a 5". */
+export function missingWords(q: MathQuestion, lang: 'es' | 'en'): string {
+  const op = q.op;
+  if (op.kind !== 'calc') return '';
+  const what = lang === 'es' ? '¿qué número?' : 'what number';
+  const a = q.hide === 'a' ? what : String(op.a);
+  const b = q.hide === 'b' ? what : String(op.b);
+  return lang === 'es' ? `${a} ${SAY[op.sym].es} ${b} es igual a ${evaluate(op)}` : `${a} ${SAY[op.sym].en} ${b} equals ${evaluate(op)}`;
 }
 
 /* ---------------- Ábaco ---------------- */
