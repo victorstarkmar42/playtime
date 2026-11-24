@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { CHARACTER_ORDER, CHARACTERS } from '../content/characters';
 import { keyDots } from '../content/extra';
 import { WORD_SECTIONS } from '../content/wordbank';
+import { ABC, makeRounds as letterRounds, plain, usableWords } from './letters';
 import { createGame, connectNext, hitTest } from './dotgame';
 import { abacusFor, abacusValue, KINDS_FOR, mathQuestion, touchBead } from './arith';
 import { floodRegion } from './flood';
@@ -380,5 +381,46 @@ describe('word sections', () => {
       expect(new Set(s.words.map((w) => w.es)).size).toBe(s.words.length);
       expect(new Set(s.words.map((w) => w.en)).size).toBe(s.words.length);
     }
+  });
+});
+
+describe('letters game', () => {
+  const pool = (lang: 'es' | 'en') => [
+    ...ABC[lang].map((x) => ({ word: x.word, pic: x.pic })),
+    ...WORD_SECTIONS.flatMap((s) => s.words.map((w) => ({ word: lang === 'en' ? w.en : w.es, pic: w.pic }))),
+  ];
+  it('has every letter once, each in its example word', () => {
+    expect(ABC.es.map((x) => x.letter).join('')).toBe('abcdefghijklmnñopqrstuvwxyz');
+    expect(ABC.en.map((x) => x.letter).join('')).toBe('abcdefghijklmnopqrstuvwxyz');
+    for (const lang of ['es', 'en'] as const) for (const x of ABC[lang]) expect([...x.word].map(plain)).toContain(x.letter);
+  });
+  it('builds 5 consistent rounds for every age and language', () => {
+    for (const lang of ['es', 'en'] as const) {
+      for (const age of AGES) {
+        for (let seed = 0; seed < 30; seed++) {
+          const rounds = letterRounds(age, lang, pool(lang));
+          expect(rounds).toHaveLength(5);
+          expect(new Set(rounds.map((r) => r.word)).size).toBe(5);
+          for (const r of rounds) {
+            expect(r.slots.length).toBeGreaterThan(0);
+            for (const i of r.slots) expect(plain(r.word[i])).toBe(r.letter);
+            if (r.kind === 'find') {
+              // every matching letter must be a target
+              [...r.word].forEach((ch, i) => { if (plain(ch) === r.letter) expect(r.slots).toContain(i); });
+            } else {
+              expect(r.options).toContain(r.letter);
+              expect(new Set(r.options).size).toBe(r.options.length);
+              expect(r.options.length).toBe(age === '3-4' ? 3 : 4);
+              expect(r.word[r.slots[0]]).toBe(r.letter); // never a hidden accented letter
+            }
+            if (age === '3-4') expect(r.kind).toBe('first');
+          }
+        }
+      }
+    }
+  });
+  it('keeps only words made of letters and of a fitting length', () => {
+    const ws = usableWords([{ word: 'T-shirt', pic: '' }, { word: 'buenos días', pic: '' }, { word: 'sol', pic: '' }, { word: 'sol', pic: '' }], '5-6');
+    expect(ws.map((w) => w.word)).toEqual(['sol']);
   });
 });

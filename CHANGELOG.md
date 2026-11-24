@@ -1,5 +1,12 @@
 # Cambios
 
+## 0.6.0 — 2026-11-23
+
+- Nuevo juego **Letras** en Juegos, para reconocer el abecedario dentro de palabras: la letra con la que empieza (3–4), la letra que falta (5–6), letras que se parecen y buscar todas las letras de una palabra (7–9). Incluye un **abecedario** con la ñ, para tocar cada letra y oír su nombre con un ejemplo.
+- **Dibujos aún más grandes** en Unir puntos y Colorear: el lienzo se acerca solo a cada dibujo, según su tamaño real, en lugar de mostrar los márgenes de su caja. En celular el dibujo ocupa casi todo el recuadro.
+- **Íconos PNG** para instalar la app: Android ofrece "Instalar app" (con ícono adaptable) y el iPhone muestra el ícono en la pantalla de inicio.
+- La **tecla de retroceso** del celular ya no cierra la app: regresa dentro de ella (juego → menú de juegos → Inicio; colorear → galería) y en Inicio se queda. Para salir hay que cerrar la app desde el celular.
+
 ## 0.5.0 — 2026-11-23
 
 - **Dibujos más grandes** en Unir puntos y Colorear: el lienzo ahora es cuadrado y el dibujo lo llena. En celular vertical se ve un tercio más grande y en tableta horizontal un 20 % más.

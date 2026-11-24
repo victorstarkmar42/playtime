@@ -19,6 +19,7 @@ import { mathScreen } from './screens/mathgame';
 import { mazeScreen } from './screens/maze';
 import { parentQuizScreen } from './screens/parentquiz';
 import { sudokuScreen } from './screens/sudoku';
+import { lettersScreen } from './screens/letters';
 import { dotsScreen } from './screens/dots';
 import { homeScreen } from './screens/home';
 import { onboardingScreen } from './screens/onboarding';
@@ -42,6 +43,7 @@ const SCREENS: Record<ScreenName, (ctx: Ctx) => Screen> = {
   maze: mazeScreen,
   sudoku: sudokuScreen,
   crossword: crosswordScreen,
+  letters: lettersScreen,
   parentquiz: parentQuizScreen,
   parents: parentsScreen,
 };
@@ -152,6 +154,44 @@ export function createApp(root: HTMLElement): void {
     night.hidden = true;
     timer.reset();
   });
+
+  // --- phone back button: move back inside the app and never leave it ---
+  // A spare history entry catches the back press; we put it back each time. Chrome skips entries
+  // added before the first touch, so the entry is (re)added on touch as well.
+  let armed = false;
+  const arm = () => {
+    if (armed) return;
+    history.pushState({ pym: 'trap' }, '');
+    armed = true;
+  };
+  const backTarget = (name: ScreenName | undefined): ScreenName | null => {
+    if (!name || name === 'home' || name === 'onboarding') return null;
+    if (['gato', 'guess', 'math', 'abacus', 'maze', 'sudoku', 'crossword', 'letters'].includes(name)) return 'games';
+    if (name === 'parentquiz') return 'parents';
+    if (name === 'dots') return 'pick';
+    if (name === 'color') return (state.pickFor = 'color'), 'pick';
+    return 'home';
+  };
+  window.addEventListener('popstate', () => {
+    armed = false;
+    arm();
+    if (!night.hidden) return; // rest screen: only an adult's long press continues
+    const to = backTarget(current?.name);
+    if (to) ctx.show(to);
+    else if (current?.name === 'home') ctx.toast('Para salir, cierra la app desde el celular');
+  });
+  let touched = false;
+  const onUser = () => {
+    if (!touched) {
+      touched = true;
+      armed = false; // the entry added at load may be skippable: add one with the touch
+    }
+    arm();
+  };
+  for (const ev of ['pointerdown', 'keydown'] as const) window.addEventListener(ev, onUser, { capture: true });
+  if (history.state?.pym !== 'trap') history.replaceState({ pym: 'base' }, '');
+  else armed = true;
+  arm();
 
   if (location.search.includes('e2e')) {
     (window as unknown as { __pymShow?: (name: ScreenName, key?: string) => void }).__pymShow = (name, key) => {

@@ -18,7 +18,7 @@ Antes de dar un cambio por terminado: `npm run typecheck`, `npm test` y `npm run
 
 ## Dónde está cada cosa
 
-- `src/core/`: lógica sin interfaz (operaciones, gato, adivinanzas, ábaco, laberinto, sudoku, crucigrama, idiomas, voz, ajustes, progreso). Aquí van las pruebas.
+- `src/core/`: lógica sin interfaz (operaciones, gato, adivinanzas, letras, ábaco, laberinto, sudoku, crucigrama, idiomas, voz, ajustes, progreso). Aquí van las pruebas.
 - `src/content/`: dibujos (`characters.ts`, `extra.ts`), vocabulario ES/EN, secciones de palabras con dibujo (`wordbank.ts`) y preguntas para padres (`parentquiz.ts`).
 - `src/render/`: canvas de 1200×900; el dibujo vive en una caja de 0–100.
 - `src/ui/screens/`: una pantalla por archivo. Se registran en `src/ui/app.ts` y en `ScreenName` (`src/ui/context.ts`).

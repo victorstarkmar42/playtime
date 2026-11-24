@@ -10,6 +10,7 @@ const inner = (svg: string) => svg.replace(/<\/?svg[^>]*>/g, '');
 const T = (x: number, y: number, t: string, color: string) =>
   `<text x="${x}" y="${y}" font-size="16" font-weight="800" text-anchor="middle" fill="${color}" font-family="sans-serif">${t}</text>`;
 const ICON = {
+  letters: `<svg viewBox="0 0 100 100"><rect x="8" y="14" width="38" height="38" rx="10" fill="#fff" stroke="#22304F" stroke-width="5"/><rect x="54" y="14" width="38" height="38" rx="10" fill="#fff" stroke="#22304F" stroke-width="5"/><rect x="31" y="56" width="38" height="38" rx="10" fill="#FFD54A" stroke="#22304F" stroke-width="5"/>${T(27, 40, 'A', '#F2672E').replace('font-size="16"', 'font-size="24"')}${T(73, 40, 'b', '#3FA35B').replace('font-size="16"', 'font-size="24"')}${T(50, 82, 'c', '#7B61D9').replace('font-size="16"', 'font-size="24"')}</svg>`,
   guess: '<svg viewBox="0 0 100 100"><rect x="10" y="12" width="80" height="60" rx="14" fill="#fff" stroke="#22304F" stroke-width="5"/><path d="M22 62l18-20 12 12 10-8 18 16" fill="#9FD8A8" stroke="#22304F" stroke-width="4" stroke-linejoin="round"/><circle cx="68" cy="30" r="7" fill="#F2B91C"/><circle cx="72" cy="78" r="16" fill="#7B61D9" stroke="#22304F" stroke-width="4"/><text x="72" y="85" font-size="22" font-weight="800" text-anchor="middle" fill="#fff" font-family="sans-serif">?</text></svg>',
   gato: `<svg viewBox="0 0 100 100"><path d="M36 10v80M64 10v80M10 36h80M10 64h80" stroke="#22304F" stroke-width="5" stroke-linecap="round"/><g transform="translate(12 12) scale(.2)">${inner(STAR_SVG)}</g><g transform="translate(68 40) scale(.2)">${inner(HEART_SVG)}</g><g transform="translate(40 68) scale(.2)">${inner(STAR_SVG)}</g></svg>`,
   math: '<svg viewBox="0 0 100 100"><rect x="12" y="12" width="76" height="76" rx="16" fill="#fff" stroke="#22304F" stroke-width="5"/><path d="M32 30v20M22 40h20M58 40h20M24 66l16 16M40 66L24 82M58 70h20M58 78h20" stroke="#F2672E" stroke-width="6" stroke-linecap="round"/></svg>',
@@ -20,6 +21,7 @@ const ICON = {
 };
 
 const AGE_TEXT = {
+  letters: { '3-4': 'Oye la palabra y toca la letra con la que empieza.', '5-6': 'Completa la palabra con la letra que falta.', '7-9': 'Letras que se parecen (b, d, p…) y busca todas las letras.' },
   guess: { 'pick-image': 'Escucha la palabra y toca su dibujo.', 'pick-word': 'Mira el dibujo y toca su palabra.' },
   math: { '3-4': 'Cuenta estrellas.', '5-6': 'Contar, sumas y restas hasta 10, con dibujos.', '7-9': 'Sumas y restas hasta 100, multiplicaciones y divisiones.' },
   abacus: { '3-4': 'Una fila de 10 cuentas: cuenta en voz alta.', '5-6': 'Dos filas: números hasta el 20.', '7-9': 'Centenas, decenas y unidades: hasta 999.' },
@@ -43,6 +45,7 @@ export function gamesScreen(ctx: Ctx): Screen {
       h('div', { class: 'games-grid' },
         card('math', 'g3', ICON.math, 'Cuentas', 'Math', AGE_TEXT.math[age]),
         card('abacus', 'g4', ICON.abacus, 'Ábaco', 'Abacus', AGE_TEXT.abacus[age]),
+        card('letters', 'g8', ICON.letters, 'Letras', 'Letters', AGE_TEXT.letters[age]),
         card('guess', 'g1', ICON.guess, 'Adivina la palabra', 'Guess the word', guessHelp),
         card('crossword', 'g6', ICON.crossword, 'Crucigrama', 'Crossword', `${AGE_TEXT.crossword[age]} Con dibujos, en ${inLang}.`),
         card('maze', 'g5', ICON.maze, 'Laberinto', 'Maze', AGE_TEXT.maze[age]),

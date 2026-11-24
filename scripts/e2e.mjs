@@ -276,6 +276,27 @@ for (const vp of VIEWPORTS) {
     const cr = await page.evaluate(() => document.querySelector('.crossg .gstatus').textContent);
     if (!cr.includes('completo')) problems.push(`[${vp.name}] crossword ${tag}: ${cr}`);
     await shot(`14-cross-${tag}-done`);
+    // Letras: play 5 rounds by trying every choice, then open the alphabet
+    await openGame('Letras');
+    await clickText('.gmode', 'Jugar');
+    for (let r = 0; r < 5; r++) {
+      await sleep(300);
+      if (r === 1) await shot(`14-letters-${tag}`);
+      await page.evaluate(() => {
+        for (const o of document.querySelectorAll('.lopt, .ltile.tap')) {
+          if (document.querySelector('.lettersg.right')) break;
+          o.click();
+        }
+      });
+      await sleep(2300);
+    }
+    const lt = await page.evaluate(() => document.querySelector('.gend')?.textContent ?? '');
+    if (!lt.includes('de 5')) problems.push(`[${vp.name}] letters ${tag}: ${lt.slice(0, 40)}`);
+    await clickText('.gend button', 'Abecedario');
+    const abc = await page.evaluate(() => document.querySelectorAll('.acard').length);
+    if (abc < 26) problems.push(`[${vp.name}] alphabet has ${abc} letters`);
+    await shot(`14-abc-${tag}`);
+    console.log(vp.name, tag, 'letters', lt.slice(0, 14), 'abc', abc);
     console.log(vp.name, tag, 'math', mathEnd.slice(0, 12), '| abacus', abEnd.slice(0, 12), '| maze', mz.slice(0, 12), '| sudoku', sd, '| cross', cr.slice(0, 22));
   }
   // the new Resonantes drawings must be solvable too (tablet only, to keep the run short)
@@ -324,6 +345,20 @@ for (const vp of VIEWPORTS) {
   if (!quiz.includes('de 8')) problems.push(`[${vp.name}] parent quiz: ${quiz}`);
   await shot('15-parentquiz-result');
   await clickText('.pquiz button', 'Volver a Padres');
+  // phone back button: game → games menu → home → stays in the app
+  await page.evaluate(() => document.querySelector('.appbar .ibtn').click());
+  await clickText('.tile', 'Juegos');
+  await clickText('.gtile-card', 'Laberinto');
+  const where = () => page.evaluate(() => (document.querySelector('.mazeg') ? 'maze' : document.querySelector('.games') ? 'games' : document.querySelector('.home') ? 'home' : 'other') + ' ' + location.href);
+  const trail = [await where()];
+  for (let i = 0; i < 4; i++) {
+    await page.goBack({ timeout: 3000 }).catch(() => {});
+    await sleep(300);
+    trail.push(await where());
+  }
+  console.log(vp.name, 'back:', trail.map((t) => t.split(' ')[0]).join(' → '));
+  const kinds = trail.map((t) => t.split(' ')[0]);
+  if (kinds.join() !== 'maze,games,home,home,home' || trail.some((t) => !t.includes('localhost'))) problems.push(`[${vp.name}] back button: ${trail.join(' | ')}`);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   if (overflow) problems.push(`[${vp.name}] horizontal overflow`);
   await page.close();

@@ -10,6 +10,7 @@ import { settings } from '../../core/settings';
 import type { Age } from '../../core/types';
 import { saveSession } from '../../game/session';
 import { drawCharacter, drawThumb, H, useBoardTransform, W } from '../../render/character';
+import { fitBoard } from '../../render/fit';
 import { circ, INK } from '../../render/primitives';
 import type { Ctx, Screen } from '../context';
 import { canvas, h, ICONS } from '../dom';
@@ -34,6 +35,7 @@ export function dotsScreen(ctx: Ctx): Screen {
 
   const board = canvas(W, H);
   board.setAttribute('aria-label', 'Tablero de unir puntos');
+  fitBoard(board, sess.key, 9); // room for the dot numbers
   const bctx = board.getContext('2d')!;
   const promptEl = h('div', { class: 'prompt', 'aria-live': 'polite' });
   const prompt2 = h('div', { class: 'prompt2' });

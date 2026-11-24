@@ -28,6 +28,7 @@ npm run e2e        # con preview corriendo: prueba en Chrome a tamaño celular, 
 - **Juegos** (botón en Inicio). Cada juego se adapta a la edad y tiene un botón "Salir" que regresa al menú de juegos; el menú tiene "Inicio".
   - **Cuentas:** contar (3–4), sumas y restas hasta 10 con dibujos (5–6), sumas y restas hasta 100, multiplicaciones y divisiones (7–9). El niño elige qué practicar.
   - **Ábaco:** una fila de 10 cuentas que cuenta en voz alta (3–4), dos filas hasta el 20 (5–6), centenas, decenas y unidades hasta 999 (7–9). También hay ábaco libre.
+  - **Letras:** reconocer las letras del abecedario dentro de palabras con dibujo. 3–4: oír la palabra y tocar la letra con la que empieza; 5–6: completar la letra que falta; 7–9: letras que se parecen (b, d, p, q…) y tocar todas las veces que aparece una letra. Incluye un abecedario para tocar cada letra y oír su nombre con un ejemplo ("be, de ballena"). Se juega en español, o en inglés si la voz está en inglés.
   - **Adivina la palabra:** oír y tocar el dibujo (3–4), ver el dibujo y tocar la palabra (5–6), deletrear con letras (7–9, en el idioma que se practica).
   - **Crucigrama con dibujos:** las pistas son dibujos, colores y números; de 2 palabras casi resueltas (3–4) a 5 palabras desde cero (7–9).
   - **Laberinto:** se arrastra el dedo o se usan flechas; 4 × 3, 7 × 5 u 11 × 8 según la edad.
@@ -84,6 +85,8 @@ Las pruebas verifican que el dibujo tenga puntos bien separados y dentro de la c
 ## Publicación
 
 La app se publica en GitHub Pages: https://victorstarkmar42.github.io/playtime/. Cada push a la rama `main` corre las pruebas, compila y publica con [.github/workflows/deploy.yml](.github/workflows/deploy.yml). La app instalada se actualiza la siguiente vez que se abre con internet.
+
+Para instalarla: en Android, Chrome → menú ⋮ → **Instalar app**; en iPhone o iPad, Safari → Compartir → **Agregar a pantalla de inicio**. Se abre a pantalla completa, sin la barra del navegador, y funciona sin internet.
 
 ## Trabajar con Codex
 

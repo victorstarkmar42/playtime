@@ -6,6 +6,7 @@ import { pickText } from '../../core/lang';
 import { recordWord } from '../../core/progress';
 import { settings } from '../../core/settings';
 import { drawCharacter, H, pathOf, useBoardTransform, W } from '../../render/character';
+import { fitBoard } from '../../render/fit';
 import { INK } from '../../render/primitives';
 import { COLORS } from '../../content/words';
 import { floodRegion } from '../../core/flood';
@@ -43,6 +44,7 @@ export function colorScreen(ctx: Ctx): Screen {
   let stampIdx = 0;
 
   const view = canvas(W, H);
+  fitBoard(view, key, 4);
   view.setAttribute('aria-label', `Colorear ${ch.label}`);
   const vctx = view.getContext('2d')!;
   const info = h('span', null, 'Toca un color: se dice en español y en inglés.');
