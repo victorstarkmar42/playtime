@@ -2,12 +2,14 @@ import { pop } from '../core/audio';
 import { LANG_NAME, LANG_SHORT, speakOrder, type SpeakItem } from '../core/lang';
 import { PlayTimer } from '../core/playtimer';
 import { addMinutes } from '../core/progress';
-import { settings, updateSettings } from '../core/settings';
+import { activePlan, settings, updateSettings } from '../core/settings';
 import { LANG_MODES } from '../core/types';
 import { Speaker } from '../core/voice';
 import { newSession, restoreSession, saveSession } from '../game/session';
 import type { AppState, Ctx, Screen, ScreenName } from './context';
 import { h, holdToActivate, ICONS } from './dom';
+import { setupFullscreen } from './fullscreen';
+import { createRestBreak } from './restbreak';
 import { albumScreen } from './screens/album';
 import { colorScreen } from './screens/color';
 import { gamesScreen } from './screens/games';
@@ -76,19 +78,30 @@ export function createApp(root: HTMLElement): void {
     h('div', { class: 'sky' }),
     h('div', null, h('div', { class: 'moon' }), h('h2', null, 'Es hora de descansar'), h('p', null, 'Time to rest · Tu dibujo está guardado'), nightBtn),
   );
-  root.append(bar, views, night, toastEl);
+  const restBreak = createRestBreak((es, en) => ctx.sayPair(es, en), () => settings.reduced);
+  root.append(bar, views, restBreak.el, night, toastEl);
 
   let current: { name: ScreenName; screen: Screen } | null = null;
   let toastTimer = 0;
 
   const speaker = new Speaker(() => settings.voice, (l) => (l === 'es' ? settings.voiceEs : settings.voiceEn));
   const timer = new PlayTimer(
-    () => settings.timeLimitMin,
+    () => activePlan(),
     () => {
+      if (!night.hidden) return;
+      timer.pause(); // (a break already showing restarts: only possible from "Probar")
+      restBreak.start(activePlan().breakSec, settings.supervised, () => {
+        timer.clock.breakDone();
+        timer.resume();
+      });
+    },
+    () => {
+      timer.pause();
       night.hidden = false;
       ctx.sayPair('Es hora de descansar. Tu dibujo está guardado.', 'Time to rest. Your drawing is saved.');
     },
     () => addMinutes(1),
+    () => !current?.screen.busy?.(),
   );
 
   const state: AppState = { game: restoreSession(), colorKey: 'briz', freshColor: false, pickFor: 'dots' };
@@ -191,7 +204,7 @@ export function createApp(root: HTMLElement): void {
   window.addEventListener('popstate', () => {
     armed = false;
     arm();
-    if (!night.hidden) return; // rest screen: only an adult's long press continues
+    if (!night.hidden || restBreak.active()) return; // rest screens: back does nothing
     const to = backTarget(current?.name);
     if (to) ctx.show(to);
     else if (current?.name === 'home') ctx.toast('Para salir, cierra la app desde el celular');
@@ -208,6 +221,8 @@ export function createApp(root: HTMLElement): void {
   if (history.state?.pym !== 'trap') history.replaceState({ pym: 'base' }, '');
   else armed = true;
   arm();
+
+  if (!location.search.includes('e2e')) setupFullscreen(() => settings.fullscreen);
 
   if (location.search.includes('e2e')) {
     (window as unknown as { __pymShow?: (name: ScreenName, key?: string) => void }).__pymShow = (name, key) => {

@@ -3,6 +3,7 @@ import { addToAlbum } from '../../core/album';
 import { pop } from '../../core/audio';
 import { clusterColors, insideDistance, isPaper, labelRegions, PN_GRID, PN_MAX_COLORS, usesSymbols, type RGB } from '../../core/paintnum';
 import { settings } from '../../core/settings';
+import { DATA_KEYS, readJSON, writeJSON } from '../../core/storage';
 import type { CharKey } from '../../core/types';
 import { drawThumb, pathOf } from '../../render/character';
 import { INK } from '../../render/primitives';
@@ -13,17 +14,13 @@ import { drawZoomed, zoomOf } from './reveal';
 
 type Mode = 'zones' | 'squares';
 const N = 640;
-const DONE_KEY = 'pym-pn-done';
 let lastMode: Mode = 'zones';
 
 const doneSet = (): Set<string> => {
-  try {
-    return new Set(JSON.parse(localStorage.getItem(DONE_KEY) ?? '[]') as string[]);
-  } catch {
-    return new Set();
-  }
+  const v = readJSON<unknown>(DATA_KEYS.paintDone, []);
+  return new Set(Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
 };
-const markDone = (id: string) => localStorage.setItem(DONE_KEY, JSON.stringify([...doneSet().add(id)]));
+const markDone = (id: string) => writeJSON(DATA_KEYS.paintDone, [...doneSet().add(id)]);
 
 const SYMBOL_NAME = ['corazón', 'círculo', 'rombo', 'estrella', 'triángulo', 'cuadrado', 'flor', 'luna'];
 const SYMBOL_SVG = [

@@ -15,7 +15,9 @@ export default defineConfig({
         lang: 'es-MX',
         theme_color: '#F2672E',
         background_color: '#F3F9FF',
-        display: 'standalone',
+        // fullscreen hides Android's status and navigation bars; browsers without it fall back to standalone
+        display: 'fullscreen',
+        display_override: ['fullscreen', 'standalone'],
         orientation: 'any',
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },

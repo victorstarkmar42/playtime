@@ -6,7 +6,10 @@ import type { Skill } from '../../core/math';
 import { accuracy, dayKey, progress, resetProgress } from '../../core/progress';
 import { MIN_TRIES, reviewPlan, type Technique } from '../../core/review';
 import { settings, updateSettings, type Settings } from '../../core/settings';
-import { AGES, LANG_MODES, TIME_LIMITS, type Age, type Mode } from '../../core/types';
+import { BREAK_EVERY, BREAK_SEC, LIMIT_MIN, REST_PRESETS, type RestPlan } from '../../core/rest';
+import { checkBackup, exportData, getProfile, importData } from '../../core/storage';
+import { AGES, LANG_MODES, type Age, type Mode } from '../../core/types';
+import { enterFullscreen, fullscreenSupported } from '../fullscreen';
 import type { Ctx, Screen } from '../context';
 import { h } from '../dom';
 
@@ -53,6 +56,28 @@ function range(id: string, label: string, min: number, max: number, key: 'tolMm'
   return h('label', { class: 'setting', for: id }, h('span', null, label), out, input, h('small', null, help));
 }
 
+/** Breaks and limit for one of the two plans. */
+function planEditor(which: 'solo' | 'together'): HTMLElement {
+  const set = (patch: Partial<RestPlan>) => updateSettings({ [which]: { ...settings[which], ...patch } });
+  return h('div', { class: 'planbox' },
+    h('div', { class: 'setting' }, h('span', null, 'Descanso para los ojos cada'), h('span'),
+      seg(BREAK_EVERY, (m) => (m ? `${m} min` : 'Nunca'), () => settings[which].breakEvery, (m) => set({ breakEvery: m }))),
+    h('div', { class: 'setting' }, h('span', null, 'Duración del descanso'), h('span'),
+      seg(BREAK_SEC, (s) => (s < 60 ? `${s} s` : `${s / 60} min`), () => settings[which].breakSec, (s) => set({ breakSec: s }))),
+    h('div', { class: 'setting' }, h('span', null, 'Terminar de jugar después de'), h('span'),
+      seg(LIMIT_MIN, (m) => (m ? `${m} min` : 'Sin límite'), () => settings[which].limitMin, (m) => set({ limitMin: m }))),
+  );
+}
+
+function downloadBackup(): void {
+  const blob = new Blob([JSON.stringify(exportData(), null, 2)], { type: 'application/json' });
+  const a = h('a', { href: URL.createObjectURL(blob), download: `playhour-copia-${dayKey()}.json` });
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
 /** Two taps to confirm, since dialogs are not friendly on kids' devices. */
 function confirmButton(label: string, confirmLabel: string, action: () => void): HTMLElement {
   let armed = 0;
@@ -72,6 +97,32 @@ function confirmButton(label: string, confirmLabel: string, action: () => void):
 }
 
 export function parentsScreen(ctx: Ctx): Screen {
+  // --- breaks: the plan in use is highlighted ---
+  const soloBox = planEditor('solo');
+  const togetherBox = planEditor('together');
+  const paintPlans = () => {
+    soloBox.classList.toggle('on', !settings.supervised);
+    togetherBox.classList.toggle('on', settings.supervised);
+  };
+  const fileIn = h('input', {
+    type: 'file', accept: 'application/json,.json', hidden: true,
+    onChange: async (e: Event) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      let raw: unknown = null;
+      try {
+        raw = JSON.parse(await file.text());
+      } catch {
+        /* not JSON: reported below */
+      }
+      const res = checkBackup(raw);
+      if (!res.ok) return ctx.toast(res.error);
+      importData(res.backup);
+      ctx.toast('Copia restaurada');
+      setTimeout(() => location.reload(), 700);
+    },
+  }) as HTMLInputElement;
+
   // --- progress ---
   const skills = h('div');
   for (const k of Object.keys(SKILL_LABEL) as Skill[]) {
@@ -190,18 +241,43 @@ export function parentsScreen(ctx: Ctx): Screen {
         toggle('optInside', 'Colorear dentro del dibujo', 'inside'),
         toggle('optPen', 'Sólo lápiz (ignora dedos y palma)', 'penOnly'),
         toggle('optReduced', 'Movimiento reducido', 'reduced'),
+        toggle('optFull', 'Pantalla completa (oculta las barras del celular)', 'fullscreen'),
+        h('div', { class: 'setting' }, h('span', null, 'Entrar a pantalla completa ahora'),
+          h('button', { class: 'bigbtn alt small', disabled: !fullscreenSupported(), onClick: () => enterFullscreen() }, 'Entrar'),
+          h('small', null, fullscreenSupported()
+            ? 'En celular y tableta, si salen las barras al deslizar, el siguiente toque las vuelve a ocultar. La app instalada en Android se abre ya a pantalla completa.'
+            : 'Este navegador no permite ocultar sus barras (por ejemplo, iPhone). Instala la app desde Safari → Compartir → Agregar a pantalla de inicio para jugar sin la barra del navegador.')),
       ),
-      h('section', { class: 'pcard' },
-        h('h3', null, 'Tiempo de juego'),
-        h('div', { class: 'setting' }, h('span', null, 'Descanso después de'), h('span'),
-          seg(TIME_LIMITS, (m) => (m ? `${m} min` : 'Sin límite'), () => settings.timeLimitMin, (m) => updateSettings({ timeLimitMin: m })),
-          h('small', null, 'Sin cuenta regresiva: al llegar el tiempo anochece en la app y se despide.')),
-        h('div', { class: 'setting' }, h('span', null, 'Ver cómo se ve el cierre'), h('button', { class: 'bigbtn alt small', onClick: () => ctx.timer.trigger() }, 'Probar')),
+      h('section', { class: 'pcard restcard' },
+        h('h3', null, 'Tiempo de juego y descansos'),
+        h('div', { class: 'setting' }, h('span', null, '¿Cómo juega ahora?'), h('span'),
+          seg(['solo', 'together'] as const, (v) => (v === 'together' ? 'Con supervisión (estoy cerca)' : 'Sin supervisión (juega solo)'), () => (settings.supervised ? 'together' : 'solo'), (v) => (updateSettings({ supervised: v === 'together' }), paintPlans())),
+          h('small', null, 'Sin supervisión, los descansos no se pueden saltar. Con supervisión, un adulto puede saltar un descanso manteniendo presionado el botón.')),
+        h('h4', { class: 'planhead solo' }, 'Sin supervisión'), soloBox,
+        h('h4', { class: 'planhead together' }, 'Con supervisión'), togetherBox,
+        h('div', { class: 'setting' }, h('span', null, `Lo recomendado para ${AGE_LABEL[settings.age]} años`),
+          h('button', { class: 'bigbtn alt small', onClick: () => {
+            updateSettings({ solo: { ...REST_PRESETS[settings.age].solo }, together: { ...REST_PRESETS[settings.age].together } });
+            ctx.show('parents');
+            document.querySelector('.restcard')?.scrollIntoView();
+          } }, 'Usar'),
+          h('small', null, 'Basado en la regla 20‑20‑20 (cada 20 minutos, mirar algo lejano unos segundos) y en las guías de pantallas para niños: pausas más seguidas para los más pequeños. Es una guía; ajústenla a su familia.')),
+        h('div', { class: 'setting' }, h('span', null, 'Ver cómo se ven'),
+          h('div', { class: 'kbtnrow' },
+            h('button', { class: 'bigbtn alt small', onClick: () => ctx.timer.trigger('break') }, 'Descanso'),
+            h('button', { class: 'bigbtn alt small', onClick: () => ctx.timer.trigger('limit') }, 'Cierre')),
+          h('small', null, 'Durante el descanso la app dice qué hacer: mirar lejos, parpadear, cerrar los ojos o estirarse. Al terminar el tiempo de juego anochece en la app; un adulto mantiene presionado para seguir.')),
       ),
       h('section', { class: 'pcard' }, h('h3', null, 'Para platicar juntos'), h('p', { class: 'muted' }, `Sobre ${charOf(talkKey).label}:`), talk),
       h('section', { class: 'pcard' },
         h('h3', null, 'Datos'),
         h('p', { class: 'muted' }, 'Todo se guarda sólo en este dispositivo: sin cuentas, anuncios ni envío de datos.'),
+        h('div', { class: 'setting' }, h('span', null, 'Copia de seguridad'), h('span'),
+          h('div', { class: 'kbtnrow' },
+            h('button', { class: 'bigbtn alt small', onClick: downloadBackup }, 'Guardar copia'),
+            h('button', { class: 'bigbtn alt small', onClick: () => fileIn.click() }, 'Restaurar copia')),
+          h('small', null, `Un archivo con ajustes y progreso para pasarlo a otro celular o tableta (el álbum se queda en este). Perfil local: ${getProfile().id.slice(0, 8)}.`)),
+        fileIn,
         h('div', { class: 'kbtnrow' },
           confirmButton('Borrar álbum', 'Toca otra vez para borrar', () => void clearAlbum()),
           confirmButton('Borrar progreso', 'Toca otra vez para borrar', () => (resetProgress(), resetGame())),
@@ -209,6 +285,7 @@ export function parentsScreen(ctx: Ctx): Screen {
       ),
     ),
   );
+  paintPlans();
   return {
     el,
     destroy() {

@@ -1,5 +1,5 @@
 import type { Skill } from './math';
-import { readJSON, writeJSON } from './storage';
+import { DATA_KEYS, readJSON, writeJSON } from './storage';
 import type { CharKey } from './types';
 
 export interface SkillStat {
@@ -19,7 +19,7 @@ export interface Progress {
   minutes: Record<string, number>;
 }
 
-const KEY = 'pym-progress';
+const KEY = DATA_KEYS.progress;
 const SKILLS: Skill[] = ['seq', 'count', 'sum', 'sub', 'mul', 'div'];
 
 export function emptyProgress(): Progress {

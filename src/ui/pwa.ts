@@ -1,4 +1,5 @@
 import { registerSW } from 'virtual:pwa-register';
+import { LOCAL_KEYS } from '../core/storage';
 import { h } from './dom';
 
 /**
@@ -13,7 +14,7 @@ interface InstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-const DISMISS_KEY = 'pym-install-dismissed';
+const DISMISS_KEY = LOCAL_KEYS.installDismissed;
 const DISMISS_DAYS = 7;
 let deferred: InstallPromptEvent | null = null;
 let slot: HTMLElement | null = null;

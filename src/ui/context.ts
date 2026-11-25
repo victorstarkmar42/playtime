@@ -11,6 +11,8 @@ export interface Screen {
   destroy?(): void;
   /** The hand button in the top bar. */
   onHelp?(): void;
+  /** True while an eye break must wait (e.g. a timed round is running). */
+  busy?(): boolean;
 }
 
 export interface AppState {

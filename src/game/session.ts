@@ -2,7 +2,7 @@ import { CHARACTERS, charOf } from '../content/characters';
 import { createGame, type DotGame } from '../core/dotgame';
 import { makeOps, type Op } from '../core/math';
 import { settings } from '../core/settings';
-import { readJSON, removeKey, writeJSON } from '../core/storage';
+import { DATA_KEYS, readJSON, removeKey, writeJSON } from '../core/storage';
 import type { Age, CharKey, Mode } from '../core/types';
 import { toBoard } from '../render/character';
 
@@ -17,7 +17,7 @@ export interface GameSession {
   saved: boolean;
 }
 
-const KEY = 'pym-game';
+const KEY = DATA_KEYS.game;
 
 export function newSession(key: CharKey): GameSession {
   const ch = charOf(key);

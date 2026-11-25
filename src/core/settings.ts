@@ -1,5 +1,6 @@
-import { readJSON, writeJSON } from './storage';
-import { TIME_LIMITS, type Age, type LangMode, type Mode } from './types';
+import { DATA_KEYS, readJSON, writeJSON } from './storage';
+import { LIMIT_MIN, REST_PRESETS, sanitizePlan, type RestPlan } from './rest';
+import type { Age, LangMode, Mode } from './types';
 
 export interface Settings {
   onboarded: boolean;
@@ -16,14 +17,20 @@ export interface Settings {
   /** Ignore fingers entirely while colouring (palm rejection). */
   penOnly: boolean;
   reduced: boolean;
-  /** Minutes of play before the calm "time to rest" screen; 0 = no limit. */
-  timeLimitMin: number;
+  /** An adult is nearby: use the "con supervisión" plan (breaks can be skipped by an adult). */
+  supervised: boolean;
+  /** Breaks and play limit when the child plays alone. */
+  solo: RestPlan;
+  /** Breaks and play limit when an adult is watching. */
+  together: RestPlan;
+  /** Hide the phone's status and navigation bars while playing. */
+  fullscreen: boolean;
   /** Voice names chosen by the adult ("" = the best one automatically). */
   voiceEs: string;
   voiceEn: string;
 }
 
-const KEY = 'pym-settings';
+const KEY = DATA_KEYS.settings;
 
 function prefersReducedMotion(): boolean {
   try {
@@ -45,7 +52,10 @@ export function defaultSettings(): Settings {
     inside: true,
     penOnly: false,
     reduced: prefersReducedMotion(),
-    timeLimitMin: 15,
+    supervised: false,
+    solo: { ...REST_PRESETS['5-6'].solo },
+    together: { ...REST_PRESETS['5-6'].together },
+    fullscreen: true,
     voiceEs: '',
     voiceEn: '',
   };
@@ -70,7 +80,12 @@ export function sanitizeSettings(raw: unknown): Settings {
   if (bool(r.inside)) out.inside = r.inside;
   if (bool(r.penOnly)) out.penOnly = r.penOnly;
   if (bool(r.reduced)) out.reduced = r.reduced;
-  if (typeof r.timeLimitMin === 'number' && TIME_LIMITS.includes(r.timeLimitMin)) out.timeLimitMin = r.timeLimitMin;
+  if (bool(r.supervised)) out.supervised = r.supervised;
+  if (bool(r.fullscreen)) out.fullscreen = r.fullscreen;
+  out.solo = sanitizePlan(r.solo, REST_PRESETS[out.age].solo);
+  out.together = sanitizePlan(r.together, REST_PRESETS[out.age].together);
+  // before 0.10 there was a single limit: keep what the adult chose for the child playing alone
+  if (r.solo === undefined && typeof r.timeLimitMin === 'number' && LIMIT_MIN.includes(r.timeLimitMin)) out.solo.limitMin = r.timeLimitMin;
   for (const k of ['voiceEs', 'voiceEn'] as const) if (typeof r[k] === 'string' && (r[k] as string).length < 200) out[k] = r[k] as string;
   return out;
 }
@@ -90,3 +105,6 @@ export function onSettings(l: Listener): () => void {
   listeners.add(l);
   return () => listeners.delete(l);
 }
+
+/** The breaks and limit that apply right now. */
+export const activePlan = (s: Settings = settings): RestPlan => (s.supervised ? s.together : s.solo);

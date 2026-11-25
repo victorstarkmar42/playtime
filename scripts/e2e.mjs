@@ -386,6 +386,25 @@ for (const vp of VIEWPORTS) {
   await shot('9-parents');
   const hasParents = await page.evaluate(() => !!document.querySelector('.parents'));
   if (!hasParents) problems.push(`[${vp.name}] parents did not open`);
+  // eye break: playing alone it cannot be skipped; with an adult nearby a long press skips it
+  const breakState = () => page.evaluate(() => ({ on: !document.querySelector('.restbreak').hidden, skip: !document.querySelector('.rb-skip').hidden, step: document.querySelector('.rb-step').textContent }));
+  await clickText('.parents .seg button', 'Sin supervisión');
+  await clickText('.parents button', 'Descanso');
+  await sleep(300);
+  await shot('16-eyebreak');
+  let rb = await breakState();
+  if (!rb.on || rb.skip || !rb.step) problems.push(`[${vp.name}] eye break alone: ${JSON.stringify(rb)}`);
+  await clickText('.parents .seg button', 'Con supervisión');
+  await clickText('.parents button', 'Descanso');
+  rb = await breakState();
+  if (!rb.on || !rb.skip) problems.push(`[${vp.name}] eye break supervised: ${JSON.stringify(rb)}`);
+  await page.focus('.rb-skip');
+  await page.keyboard.down('Enter');
+  await sleep(1700);
+  await page.keyboard.up('Enter');
+  await sleep(200);
+  if ((await breakState()).on) problems.push(`[${vp.name}] adult could not skip the eye break`);
+  await clickText('.parents .seg button', 'Sin supervisión');
   await clickText('.parents button', 'evaluación');
   for (let q = 0; q < 8; q++) {
     await page.evaluate(() => document.querySelector('.popt')?.click());

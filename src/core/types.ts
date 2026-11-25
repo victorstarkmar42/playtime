@@ -6,4 +6,3 @@ export type CharKey = 'briz' | 'momu' | 'nara' | 'mina' | 'kira' | 'leo' | 'mina
 
 export const AGES: readonly Age[] = ['3-4', '5-6', '7-9'];
 export const LANG_MODES: readonly LangMode[] = ['es-en', 'en-es', 'es', 'en'];
-export const TIME_LIMITS: readonly number[] = [0, 10, 15, 20, 30];

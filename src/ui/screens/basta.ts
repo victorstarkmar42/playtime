@@ -261,6 +261,7 @@ export function bastaScreen(ctx: Ctx): Screen {
   }
   return {
     el,
+    busy: () => running,
     destroy: stopTimers,
     onHelp: () => (choosing
       ? sayChoices()

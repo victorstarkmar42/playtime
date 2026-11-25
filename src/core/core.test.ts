@@ -11,7 +11,7 @@ import { GUESS_POOL, makeRounds, spellable, spellTiles, wordOf, type GuessKind }
 import { dist, outwardNormals, perimeter, sampleByLength, type Pt } from './geometry';
 import { pickText, practiceLang, speakOrder } from './lang';
 import { evaluate, makeOp, makeOps, opWords, skillOf, type Op } from './math';
-import { sanitizeSettings } from './settings';
+import { activePlan, sanitizeSettings } from './settings';
 import { AGES } from './types';
 import { pickVoice } from './voice';
 import { aiMove, emptyBoard, isFull, other, winner, type Cell, type Player } from './tictactoe';
@@ -19,6 +19,8 @@ import { advance, resample, TRACE_NUMBERS, TRACE_SHAPES, TRACE_STEP } from './tr
 import { clusterColors, insideDistance, labelRegions } from './paintnum';
 import { BASTA_CATEGORIES, bastaFirstLetter, bastaHints, bastaLetters, robiAnswer } from './basta';
 import { reviewPlan } from './review';
+import { breakSteps, RestClock, REST_PRESETS } from './rest';
+import { checkBackup, DATA_KEYS, exportData, importData } from './storage';
 
 /** Deterministic pseudo-random generator so failures are reproducible. */
 function seeded(seed: number) {
@@ -194,7 +196,7 @@ describe('settings', () => {
     expect(s.age).toBe('5-6');
     expect(s.lang).toBe('en');
     expect(s.tolMm).toBe(12);
-    expect(s.timeLimitMin).toBe(20);
+    expect(s.solo.limitMin).toBe(20); // the old single limit moves to the plan for playing alone
     expect(s.voice).toBe(true);
     expect(sanitizeSettings(null).onboarded).toBe(false);
   });
@@ -556,5 +558,87 @@ describe('review plan', () => {
     expect(plan.review[1].technique).toBe('interleaved');
     expect(plan.mastered).toEqual(['seq']);
     expect(reviewPlan({ seq: s(1, 2), count: s(0, 0), sum: s(0, 0), sub: s(0, 0), mul: s(0, 0), div: s(0, 0) }).review).toEqual([]);
+  });
+});
+
+describe('rest breaks', () => {
+  const min = 60000;
+  it('asks for a break every interval and ends play at the limit', () => {
+    const c = new RestClock();
+    const plan = { breakEvery: 10, breakSec: 60, limitMin: 25 };
+    const events: string[] = [];
+    for (let t = 0; t < 30 * 12; t++) {
+      const e = c.advance(5000, plan);
+      if (e) events.push(`${e}@${(t + 1) * 5 / 60}`);
+    }
+    expect(events).toEqual(['break@10', 'break@20', 'limit@25']);
+  });
+
+  it('waits while the screen is busy and does not count paused time', () => {
+    const c = new RestClock();
+    const plan = { breakEvery: 10, breakSec: 40, limitMin: 0 };
+    expect(c.advance(10 * min, plan, false)).toBeNull();
+    expect(c.pendingBreak).toBe(true);
+    expect(c.advance(1000, plan, true)).toBe('break');
+    expect(c.advance(9 * min, plan)).toBeNull();
+    c.breakDone();
+    expect(c.advance(9 * min, plan)).toBeNull();
+    expect(c.advance(1 * min, plan)).toBe('break');
+  });
+
+  it('an adult continuing after the limit starts a fresh period', () => {
+    const c = new RestClock();
+    const plan = { breakEvery: 0, breakSec: 40, limitMin: 15 };
+    expect(c.advance(15 * min, plan)).toBe('limit');
+    expect(c.advance(30 * min, plan)).toBeNull();
+    c.resetLimit();
+    expect(c.advance(15 * min, plan)).toBe('limit');
+  });
+
+  it('two plans: alone is stricter than with an adult, and the setting picks one', () => {
+    for (const a of AGES) {
+      const p = REST_PRESETS[a];
+      expect(p.solo.breakEvery).toBeLessThanOrEqual(p.together.breakEvery);
+      expect(p.solo.limitMin).toBeLessThanOrEqual(p.together.limitMin);
+    }
+    const s = sanitizeSettings({ age: '3-4', supervised: true, solo: { breakEvery: 15, breakSec: 999, limitMin: 20 } });
+    expect(s.solo).toEqual({ breakEvery: 15, breakSec: 60, limitMin: 20 });
+    expect(activePlan(s)).toEqual(REST_PRESETS['3-4'].together);
+    expect(activePlan({ ...s, supervised: false })).toBe(s.solo);
+  });
+
+  it('break steps fit the length', () => {
+    expect(breakSteps(20)).toHaveLength(2);
+    expect(breakSteps(60)).toHaveLength(5);
+    expect(new Set(breakSteps(60).map((x) => x.icon)).size).toBe(5);
+  });
+});
+
+describe('backup', () => {
+  it('exports the child data and restores it on another device', () => {
+    const mem = new Map<string, string>();
+    const g = globalThis as { localStorage?: unknown };
+    const prev = g.localStorage;
+    g.localStorage = { getItem: (k: string) => mem.get(k) ?? null, setItem: (k: string, v: string) => void mem.set(k, v), removeItem: (k: string) => void mem.delete(k) };
+    try {
+      mem.set(DATA_KEYS.settings, JSON.stringify({ age: '7-9' }));
+      mem.set(DATA_KEYS.paintDone, JSON.stringify(['zones:briz']));
+      mem.set('pym-install-dismissed', '123');
+      const b = exportData();
+      expect(b.data.settings).toEqual({ age: '7-9' });
+      expect(typeof (b.data.profile as { id: string }).id).toBe('string');
+      expect('installDismissed' in b.data).toBe(false);
+      const roundTrip = checkBackup(JSON.parse(JSON.stringify(b)));
+      expect(roundTrip.ok).toBe(true);
+      mem.clear();
+      mem.set(DATA_KEYS.game, '{"key":"momu"}');
+      if (roundTrip.ok) importData(roundTrip.backup);
+      expect(JSON.parse(mem.get(DATA_KEYS.paintDone)!)).toEqual(['zones:briz']);
+      expect(mem.has(DATA_KEYS.game)).toBe(false);
+    } finally {
+      g.localStorage = prev;
+    }
+    expect(checkBackup({ app: 'otra', data: {} }).ok).toBe(false);
+    expect(checkBackup({ app: 'playhour', schema: 99, data: {} }).ok).toBe(false);
   });
 });

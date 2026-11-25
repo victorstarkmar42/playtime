@@ -56,8 +56,12 @@ npm run e2e        # con preview corriendo: prueba en Chrome a tamaño celular, 
   - **Plan de repaso:** qué temas repasar y cómo (repaso espaciado, práctica intercalada o concreto → dibujo → número) según los aciertos, y lo que ya domina. Es una guía, no una certificación.
   - Edad, modo, idioma, tolerancia, pistas, tiempo de juego y preguntas "Para platicar juntos".
   - **Evaluación para padres:** 8 preguntas según la edad del niño (sueño, pantallas, idiomas, hitos, aprendizaje y emociones), con explicación y fuente (OMS, AAP, CDC, AASM), y recomendaciones según lo que el niño ha jugado. Es orientativa; no sustituye al pediatra.
-  - Borrar el álbum o el progreso.
-- **Tiempo de juego.** Al llegar al límite no hay cuenta regresiva: aparece una pantalla de noche y un adulto mantiene presionado para seguir.
+  - Guardar o restaurar una copia de seguridad; borrar el álbum o el progreso.
+- **Tiempo de juego y descansos.** Dos planes que configura el adulto: **sin supervisión** (el niño juega solo) y **con supervisión** (hay un adulto cerca). Cada uno tiene su frecuencia de descanso para los ojos, su duración y su límite de juego, con valores recomendados por edad.
+  - En el descanso, la app pide con dibujo y voz mirar lejos, parpadear, cerrar los ojos, estirarse o tomar agua. Sin supervisión no se puede saltar; con supervisión, un adulto lo salta manteniendo presionado. No interrumpe una ronda de Basta.
+  - Al llegar al límite no hay cuenta regresiva: aparece una pantalla de noche y un adulto mantiene presionado para seguir.
+- **Pantalla completa.** La app instalada en Android se abre sin la barra de estado ni los botones del celular. En el navegador, el primer toque oculta las barras y vuelve a ocultarlas si salen al deslizar. Se puede desactivar en el área de padres. iPhone no lo permite desde una página.
+- **Copia de seguridad.** En el área de padres se guarda un archivo con los ajustes y el progreso, para restaurarlo en otro dispositivo. El álbum no se incluye.
 - **Álbum** guardado en IndexedDB (máximo 40 dibujos).
 
 ## Estructura
@@ -86,6 +90,18 @@ En `src/content/characters.ts`:
 5. Agrega la clave a `CharKey` y a `CHARACTER_ORDER`.
 
 Las pruebas verifican que el dibujo tenga puntos bien separados y dentro de la caja.
+
+### Preparado para las cuentas (Firebase)
+
+Todo lo que se guarda pasa por `src/core/storage.ts`:
+
+- `DATA_KEYS` lista los datos del niño (ajustes, progreso, partida, pinta por números, evaluación, perfil). `LOCAL_KEYS` lista lo que es sólo del dispositivo.
+- `SCHEMA_VERSION` indica la versión del formato.
+- `onWrite` avisa de cada cambio; ahí se conectará la sincronización.
+- `getProfile()` da un id local anónimo que después se vinculará a la familia.
+- `exportData`, `checkBackup` e `importData` usan el mismo formato que la copia de seguridad.
+
+Hoy no se envía nada: no hay cuentas ni red.
 
 ## Publicación
 

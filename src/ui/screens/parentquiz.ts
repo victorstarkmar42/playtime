@@ -1,11 +1,11 @@
 import { PARENT_QUIZ, QUIZ_NOTE } from '../../content/parentquiz';
 import { accuracy, progress } from '../../core/progress';
 import { settings } from '../../core/settings';
-import { readJSON, writeJSON } from '../../core/storage';
+import { DATA_KEYS, readJSON, writeJSON } from '../../core/storage';
 import type { Ctx, Screen } from '../context';
 import { h } from '../dom';
 
-const KEY = 'pym-parentquiz';
+const KEY = DATA_KEYS.parentQuiz;
 export interface QuizResult {
   age: string;
   score: number;

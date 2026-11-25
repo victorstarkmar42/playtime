@@ -1,5 +1,13 @@
 # Cambios
 
+## 0.10.0 — 2026-11-24
+
+- **Descansos para los ojos.** Cada cierto tiempo la app hace una pausa: con dibujo y voz pide mirar algo lejos, parpadear, cerrar los ojos, estirarse o tomar agua, con un reloj en forma de anillo. Al terminar aparece "Seguir jugando". Si toca durante una ronda de Basta, espera a que termine la ronda.
+- **Con supervisión y sin supervisión.** En el área de padres hay dos planes, cada uno con su frecuencia de descanso, duración y límite de juego. Sin supervisión, los descansos no se pueden saltar. Con supervisión, un adulto puede saltarlos manteniendo presionado. Se elige cuál está en uso, y el botón "Usar" carga lo recomendado para la edad. El límite de juego que ya estaba configurado pasa al plan "sin supervisión".
+- **Pantalla completa.** La app instalada en Android se abre sin la barra de estado ni los botones del celular. En el navegador, el primer toque oculta las barras, y si salen al deslizar, el siguiente toque las vuelve a ocultar. Se puede desactivar en el área de padres. En iPhone no se puede desde una página; instalada desde Safari se abre sin la barra del navegador.
+- **Copia de seguridad.** En el área de padres → Datos: "Guardar copia" descarga un archivo con los ajustes y el progreso, y "Restaurar copia" lo carga en otro celular o tableta. El álbum se queda en el dispositivo.
+- Preparación para las cuentas: todo lo que se guarda pasa por un solo módulo (`src/core/storage.ts`) con lista de datos, versión de formato, aviso de cada cambio y un perfil local anónimo. La sincronización con Firebase podrá conectarse ahí sin cambiar las pantallas.
+
 ## 0.9.0 — 2026-11-24
 
 - Nuevo juego **Basta** (rueda de letras) en Juegos: sale una tarjeta con una categoría ("Un animal", "Algo de comer"…); en tu turno dices una palabra y tocas su primera letra en la rueda, antes de que se acabe el reloj del centro. Cada letra se usa una vez y pierde la ronda quien se queda sin tiempo. Se juega entre dos en el mismo celular o **contra Robi**, que dice su palabra en voz alta. El botón **Ideas** muestra palabras con dibujo. Por edad: 12 letras y 20 segundos (3–4, con ideas visibles), 18 letras y 15 s (5–6), 22 letras y 10 s (7–9).
