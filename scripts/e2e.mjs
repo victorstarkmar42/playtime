@@ -350,6 +350,44 @@ for (const vp of VIEWPORTS) {
     if (ba.used.length < 3) problems.push(`[${vp.name}] basta ${tag}: only ${ba.used.join('')} used`);
     await shot(`14-basta-${tag}`);
     console.log(vp.name, tag, 'basta letters', ba.used.join(''));
+    // Construye con figuras: build the house by choosing each piece and touching its place, then finish
+    await openGame('Construye');
+    await clickSel('.bd-card');
+    for (let guard = 0; guard < 20; guard++) {
+      const pos = await page.evaluate(() => {
+        const btn = [...document.querySelectorAll('.bd-piece')].find((x) => !x.hidden);
+        if (!btn) return null;
+        btn.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 7, bubbles: true }));
+        btn.dispatchEvent(new PointerEvent('pointerup', { pointerId: 7, bubbles: true }));
+        // the empty place with the same outline as the chosen piece
+        const want = btn.querySelector('path').getAttribute('d');
+        const slot = [...document.querySelectorAll('.bd-slot')].find((s) => s.getAttribute('d') === want && !s.dataset.used);
+        if (!slot) return null;
+        slot.dataset.used = '1';
+        const r = slot.getBoundingClientRect();
+        return [r.left + r.width / 2, r.top + r.height * 0.6];
+      });
+      if (!pos) break;
+      await page.mouse.click(pos[0], pos[1]);
+      await sleep(80);
+    }
+    const bdText = await page.evaluate(() => document.querySelector('.buildg .gstatus')?.textContent ?? '');
+    if (!bdText.includes('Construiste')) problems.push(`[${vp.name}] build ${tag}: ${bdText}`);
+    await shot(`17-build-${tag}`);
+    await clickText('.buildg button', 'Terminé');
+    if (!(await page.evaluate(() => !!document.querySelector('.bd-done')))) problems.push(`[${vp.name}] build ${tag}: no congratulations`);
+    // Países: choose a continent and start the "¿Dónde está?" game
+    await openGame('Países');
+    await sleep(300);
+    const gl = await page.evaluate(() => window.__pymGlobe('sudamerica'));
+    await sleep(900);
+    const chips = await page.evaluate(() => document.querySelectorAll('.gl-chip').length);
+    if (!gl.includes('América del Sur') || chips < 4) problems.push(`[${vp.name}] globe ${tag}: ${gl} ${chips}`);
+    await clickText('.globeg button', '¿Dónde está?');
+    const q = await page.evaluate(() => document.querySelector('.gl-status')?.textContent ?? '');
+    if (!q.startsWith('¿Dónde está')) problems.push(`[${vp.name}] globe quiz ${tag}: ${q}`);
+    await shot(`18-globe-${tag}`);
+    console.log(vp.name, tag, 'build', bdText.slice(0, 24), '| globe', gl, chips, '|', q);
     console.log(vp.name, tag, 'math', mathEnd.slice(0, 12), '| abacus', abEnd.slice(0, 12), '| maze', mz.slice(0, 12), '| sudoku', sd, '| cross', cr.slice(0, 22));
   }
   // the new Resonantes drawings must be solvable too (tablet only, to keep the run short)
@@ -376,6 +414,11 @@ for (const vp of VIEWPORTS) {
     await at(600, 290); // face/hair area
     await sleep(300);
     await shot('11-singer-bucket');
+    await clickText('.tools button', 'Terminé');
+    const cd = await page.evaluate(() => ({ on: !document.querySelector('.cdone').hidden, next: [...document.querySelectorAll('.cdone button')].map((b) => b.textContent)[0] }));
+    if (!cd.on || !cd.next?.startsWith('Siguiente')) problems.push(`[${vp.name}] colour finish: ${JSON.stringify(cd)}`);
+    await shot('11-colour-done');
+    await clickText('.cdone button', 'Siguiente');
   }
   // parents: keyboard hold on the lock (Enter down 1.6 s)
   await page.focus('.appbar .gate');

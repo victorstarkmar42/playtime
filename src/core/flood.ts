@@ -43,3 +43,37 @@ export function floodRegion(wall: Uint8Array, w: number, h: number, x: number, y
   }
   return out;
 }
+
+/** Line pixels of a drawing (dark and mostly opaque), from canvas RGBA data. */
+export function inkWalls(rgba: Uint8ClampedArray, n: number): Uint8Array {
+  const walls = new Uint8Array(n);
+  for (let i = 0; i < n; i++) {
+    const o = i * 4;
+    walls[i] = rgba[o + 3] > 100 && rgba[o] + rgba[o + 1] + rgba[o + 2] < 480 ? 1 : 0;
+  }
+  return walls;
+}
+
+/**
+ * Where colour may go when colouring "inside the drawing": every pixel that cannot be reached
+ * from the border of the board without crossing a line (closed areas and the lines themselves).
+ */
+export function colorableMask(wall: Uint8Array, w: number, h: number): Uint8Array {
+  const n = w * h;
+  const outside = new Uint8Array(n);
+  const stack: number[] = [];
+  for (let x = 0; x < w; x++) stack.push(x, (h - 1) * w + x);
+  for (let y = 0; y < h; y++) stack.push(y * w, y * w + w - 1);
+  while (stack.length) {
+    const i = stack.pop()!;
+    if (outside[i] || wall[i]) continue;
+    outside[i] = 1;
+    const x = i % w;
+    if (x > 0) stack.push(i - 1);
+    if (x < w - 1) stack.push(i + 1);
+    if (i >= w) stack.push(i - w);
+    if (i < n - w) stack.push(i + w);
+  }
+  for (let i = 0; i < n; i++) outside[i] ^= 1;
+  return outside;
+}

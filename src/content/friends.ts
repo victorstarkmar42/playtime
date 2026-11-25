@@ -8,10 +8,10 @@ import { keyDots } from './extra';
 
 type C = CanvasRenderingContext2D;
 
-const keyChar = (outline: Pt[], keys: Pt[], center: Pt) => ({ outline, dots: (n: number) => keyDots(outline, keys, n), center });
-const polarChar = (shape: PolarShape) => ({ outline: densePolar(shape), dots: (n: number) => sampleOutline(shape, n), center: [shape.cx, shape.cy] as Pt });
-const rect = (c: C, x0: number, y0: number, x1: number, y1: number, fill: string | null, lw = 0.6) => poly(c, [[x0, y0], [x1, y0], [x1, y1], [x0, y1]], fill, lw);
-const smile = (c: C, x: number, y: number, r: number, color = INK, lw = 0.6) => {
+export const keyChar = (outline: Pt[], keys: Pt[], center: Pt) => ({ outline, dots: (n: number) => keyDots(outline, keys, n), center });
+export const polarChar = (shape: PolarShape) => ({ outline: densePolar(shape), dots: (n: number) => sampleOutline(shape, n), center: [shape.cx, shape.cy] as Pt });
+export const rect = (c: C, x0: number, y0: number, x1: number, y1: number, fill: string | null, lw = 0.6) => poly(c, [[x0, y0], [x1, y0], [x1, y1], [x0, y1]], fill, lw);
+export const smile = (c: C, x: number, y: number, r: number, color = INK, lw = 0.6) => {
   c.beginPath();
   c.arc(x, y, r, 0.15 * Math.PI, 0.85 * Math.PI);
   c.lineWidth = lw;
@@ -19,18 +19,18 @@ const smile = (c: C, x: number, y: number, r: number, color = INK, lw = 0.6) => 
   c.strokeStyle = color;
   c.stroke();
 };
-const eye = (c: C, x: number, y: number, r: number, lineOnly: boolean) => {
+export const eye = (c: C, x: number, y: number, r: number, lineOnly: boolean) => {
   circ(c, x, y, r, lineOnly ? '#fff' : INK, INK, 0.5);
   circ(c, x + r * 0.35, y - r * 0.35, r * 0.35, '#fff');
 };
-const ellipsePts = (cx: number, cy: number, rx: number, ry: number, a0: number, a1: number, step = 4): Pt[] => {
+export const ellipsePts = (cx: number, cy: number, rx: number, ry: number, a0: number, a1: number, step = 4): Pt[] => {
   const n = Math.max(1, Math.ceil(Math.abs(a1 - a0) / step));
   return Array.from({ length: n + 1 }, (_, i) => {
     const a = ((a0 + ((a1 - a0) * i) / n) * Math.PI) / 180;
     return [cx + rx * Math.cos(a), cy + ry * Math.sin(a)] as const;
   });
 };
-const ellipseR = (a: number, rx: number, ry: number) => {
+export const ellipseR = (a: number, rx: number, ry: number) => {
   const t = (a * Math.PI) / 180;
   return 1 / Math.sqrt((Math.cos(t) / rx) ** 2 + (Math.sin(t) / ry) ** 2);
 };

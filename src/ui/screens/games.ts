@@ -10,6 +10,8 @@ const inner = (svg: string) => svg.replace(/<\/?svg[^>]*>/g, '');
 const T = (x: number, y: number, t: string, color: string) =>
   `<text x="${x}" y="${y}" font-size="16" font-weight="800" text-anchor="middle" fill="${color}" font-family="sans-serif">${t}</text>`;
 const ICON = {
+  build: '<svg viewBox="0 0 100 100"><path d="M14 50L42 22L70 50Z" fill="#FFAB91" stroke="#22304F" stroke-width="4" stroke-linejoin="round"/><rect x="18" y="50" width="48" height="38" fill="#FFE082" stroke="#22304F" stroke-width="4"/><rect x="36" y="64" width="12" height="24" fill="#CE93D8" stroke="#22304F" stroke-width="3.5"/><circle cx="78" cy="30" r="14" fill="#81D4FA" stroke="#22304F" stroke-width="4"/><rect x="70" y="60" width="20" height="20" fill="#A5D6A7" stroke="#22304F" stroke-width="4"/></svg>',
+  globe: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#3B8FD9" stroke="#22304F" stroke-width="4"/><path d="M24 30c8-6 18-4 20 4s-6 10-4 18-8 12-14 6-10-22-2-28zM56 22c10 0 20 6 22 14-6 2-10-2-16 2s-2 12-8 14-10-8-8-16 2-14 10-14zM60 62c6-2 14 0 14 6s-6 12-12 10-8-14-2-16z" fill="#5DBB63" stroke="#22304F" stroke-width="3" stroke-linejoin="round"/><ellipse cx="38" cy="30" rx="12" ry="6" fill="#fff" opacity=".25"/></svg>',
   basta: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#F2672E" stroke="#22304F" stroke-width="4"/><circle cx="50" cy="50" r="26" fill="#8FD3F5"/><g fill="#fff" stroke="#22304F" stroke-width="3"><rect x="42" y="2" width="16" height="16" rx="4"/><rect x="82" y="42" width="16" height="16" rx="4"/><rect x="42" y="82" width="16" height="16" rx="4"/><rect x="2" y="42" width="16" height="16" rx="4"/></g><circle cx="50" cy="50" r="15" fill="#FFD54A" stroke="#22304F" stroke-width="4"/><path d="M50 42v9l6 4" fill="none" stroke="#22304F" stroke-width="4" stroke-linecap="round"/></svg>',
   trace: '<svg viewBox="0 0 100 100"><rect x="6" y="6" width="88" height="88" rx="18" fill="#0B1440"/><path d="M50 22l9 20 22 2-17 14 6 21-20-12-20 12 6-21-17-14 22-2z" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="6 5" stroke-linejoin="round"/><circle cx="50" cy="22" r="4" fill="#FFE53D"/><circle cx="59" cy="42" r="4" fill="#FF3EA5"/><circle cx="81" cy="44" r="4" fill="#45F27A"/><circle cx="64" cy="58" r="4" fill="#3D8BFF"/></svg>',
   reveal: '<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" rx="10" fill="#F7D35E" stroke="#22304F" stroke-width="4"/><path d="M30 24l6 12 13 1-10 8 4 13-13-8-11 8 3-13-10-8 13-1z" fill="#D9AE2E"/><path d="M50 40c10-12 30-6 32 8 3 16-8 30-24 30-14 0-22-12-18-22 2-7 6-12 10-16z" fill="#fff" stroke="#FFF1B8" stroke-width="5"/><circle cx="58" cy="56" r="4" fill="#22304F"/><circle cx="72" cy="56" r="4" fill="#22304F"/><path d="M60 66q5 5 10 0" stroke="#22304F" stroke-width="3" fill="none" stroke-linecap="round"/></svg>',
@@ -26,6 +28,7 @@ const ICON = {
 
 const AGE_TEXT = {
   basta: { '3-4': 'Rueda de letras con dibujos de ayuda: di una palabra y toca su letra (20 segundos).', '5-6': 'Di una palabra de la tarjeta y toca su primera letra antes de 15 segundos.', '7-9': 'Rueda de 22 letras y 10 segundos por turno. Contra Robi o entre dos.' },
+  build: { '3-4': 'Pon cada figura en su lugar para armar una casa, un cohete o un robot, y coloréalo.', '5-6': 'Arma figuras con cuadrados, triángulos y círculos; oye su nombre en español e inglés.', '7-9': 'Arma figuras con más piezas sólo viendo su sombra, y cuenta qué figuras usaste.' },
   trace: { '3-4': 'Sigue la línea con el dedo: figuras, números y dibujos que se encienden.', '5-6': 'Traza figuras, números y dibujos; la línea se llena de estrellas de luz.', '7-9': 'Traza números, figuras y el contorno de cada dibujo con más precisión.' },
   paintnum: { '3-4': 'Cada figura (corazón, círculo, rombo…) tiene su color: pinta las partes iguales.', '5-6': 'Pinta cada parte con el color de su número (hasta 6 colores).', '7-9': 'Pinta por números con hasta 8 colores, en zonas o en cuadritos.' },
   letters: { '3-4': 'Oye la palabra y toca la letra con la que empieza.', '5-6': 'Completa la palabra con la letra que falta.', '7-9': 'Letras que se parecen (b, d, p…) y busca todas las letras.' },
@@ -50,6 +53,8 @@ export function gamesScreen(ctx: Ctx): Screen {
     h('div', { class: 'games' },
       h('div', { class: 'ghead' }, h('h2', null, 'Juegos', h('small', null, `Games · Para ${age.replace('-', '–')} años (la edad se cambia en Inicio)`)), exitBtn(ctx, 'home')),
       h('div', { class: 'games-grid' },
+        card('build', 'g13', ICON.build, 'Construye con figuras', 'Build with shapes', AGE_TEXT.build[age]),
+        card('globe', 'g14', ICON.globe, 'Países del mundo', 'Countries', 'Gira el globo terráqueo, toca un continente y conoce su forma, su nombre y sus países.'),
         card('trace', 'g9', ICON.trace, 'Trazos de luz', 'Light trails', AGE_TEXT.trace[age]),
         card('reveal', 'g10', ICON.reveal, 'Destapa el dibujo', 'Unwrap it', 'Rompe el papel de regalo para descubrir un dibujo y luego coloréalo.'),
         card('paintnum', 'g11', ICON.paintnum, 'Pinta por números', 'Paint by numbers', AGE_TEXT.paintnum[age]),

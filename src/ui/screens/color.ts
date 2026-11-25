@@ -1,4 +1,4 @@
-import { charOf } from '../../content/characters';
+import { CHARACTER_ORDER, charOf } from '../../content/characters';
 import { addToAlbum } from '../../core/album';
 import { pop } from '../../core/audio';
 import type { Pt } from '../../core/geometry';
@@ -9,7 +9,7 @@ import { drawCharacter, H, pathOf, useBoardTransform, W } from '../../render/cha
 import { fitBoard } from '../../render/fit';
 import { INK } from '../../render/primitives';
 import { COLORS } from '../../content/words';
-import { floodRegion } from '../../core/flood';
+import { colorableMask, floodRegion, inkWalls } from '../../core/flood';
 import type { Ctx, Screen } from '../context';
 import { canvas, h, ICONS } from '../dom';
 
@@ -50,24 +50,114 @@ export function colorScreen(ctx: Ctx): Screen {
   const info = h('span', null, 'Toca un color: se dice en español y en inglés.');
   const palm = h('span', null, settings.penOnly ? 'Sólo lápiz: el dedo no pinta' : 'Rechazo de palma: automático');
 
+  // The drawing's lines, prepared once:
+  // - ink: only the dark lines (white fills such as eyes or a penguin's belly become transparent,
+  //   so they never hide the colour painted under them);
+  // - walls: line pixels, for the paint bucket;
+  // - mask: where colour may go with "colorear dentro": the outline plus every area closed by
+  //   lines, even outside the outline (a robot's arms, a car's wheels and windows).
+  const art = canvas(W, H).getContext('2d', { willReadFrequently: true })!;
+  useBoardTransform(art);
+  drawCharacter(art, ch, 'line');
+  art.setTransform(1, 0, 0, 1, 0, 0);
+  const artPx = art.getImageData(0, 0, W, H);
+  const walls = inkWalls(artPx.data, W * H);
+  const ink = canvas(W, H);
+  {
+    const d = artPx.data;
+    const out = new ImageData(W, H);
+    const n = parseInt(INK.slice(1), 16);
+    for (let i = 0; i < W * H; i++) {
+      const o = i * 4;
+      const sum = d[o] + d[o + 1] + d[o + 2];
+      const dark = Math.max(0, Math.min(1, (660 - sum) / 460));
+      if (!d[o + 3] || !dark) continue;
+      out.data[o] = n >> 16;
+      out.data[o + 1] = (n >> 8) & 255;
+      out.data[o + 2] = n & 255;
+      out.data[o + 3] = Math.round(d[o + 3] * dark);
+    }
+    ink.getContext('2d')!.putImageData(out, 0, 0);
+  }
+  const mask = canvas(W, H);
+  {
+    const m = mask.getContext('2d', { willReadFrequently: true })!;
+    useBoardTransform(m);
+    m.fillStyle = '#000';
+    m.fill(pathOf(ch));
+    m.setTransform(1, 0, 0, 1, 0, 0);
+    const shape = m.getImageData(0, 0, W, H);
+    const inside = colorableMask(walls, W, H);
+    for (let i = 0; i < W * H; i++) if (inside[i]) shape.data[i * 4 + 3] = 255;
+    m.putImageData(shape, 0, 0);
+  }
+
   const render = () => {
     vctx.setTransform(1, 0, 0, 1, 0, 0);
     vctx.fillStyle = '#fff';
     vctx.fillRect(0, 0, W, H);
     vctx.drawImage(paint, 0, 0);
-    useBoardTransform(vctx);
-    drawCharacter(vctx, ch, 'line');
-    vctx.setTransform(1, 0, 0, 1, 0, 0);
+    vctx.drawImage(ink, 0, 0);
   };
-  const clipShape = () => {
-    useBoardTransform(pctx);
-    pctx.clip(pathOf(ch));
-    pctx.setTransform(1, 0, 0, 1, 0, 0);
+  /** "Colorear dentro": drop any colour that fell outside the drawing. */
+  const keepInside = () => {
+    if (!settings.inside) return;
+    pctx.save();
+    pctx.globalCompositeOperation = 'destination-in';
+    pctx.drawImage(mask, 0, 0);
+    pctx.restore();
+  };
+
+  // ---- "¡Terminaste!" ----
+  // Colourable pixels (inside the mask, not on a line), sampled on a grid to keep it quick.
+  const STEP = 4;
+  const targets: number[] = [];
+  {
+    const md = mask.getContext('2d', { willReadFrequently: true })!.getImageData(0, 0, W, H).data;
+    for (let y = 0; y < H; y += STEP) for (let x = 0; x < W; x += STEP) {
+      const i = y * W + x;
+      if (md[i * 4 + 3] > 128 && !walls[i]) targets.push(i);
+    }
+  }
+  const coverage = (): number => {
+    if (!targets.length) return 0;
+    const d = pctx.getImageData(0, 0, W, H).data;
+    let n = 0;
+    for (const i of targets) if (d[i * 4 + 3] > 40) n++;
+    return n / targets.length;
+  };
+  const nextKey = CHARACTER_ORDER[(CHARACTER_ORDER.indexOf(key) + 1) % CHARACTER_ORDER.length];
+  let celebrated = coverage() >= 0.9; // coming back to a finished picture does not celebrate again
+  const doneBox = h('div', { class: 'cdone', hidden: true, role: 'dialog', 'aria-label': 'Terminaste' },
+    h('div', { class: 'cdone-card' },
+      h('div', { class: 'cdone-stars', 'aria-hidden': 'true' }, '★ ★ ★'),
+      h('h2', null, '¡Felicidades, terminaste!'),
+      h('p', null, `${ch.label} quedó precioso. Ya está en tu álbum.`),
+      h('button', { class: 'bigbtn', onClick: () => {
+        ctx.state.colorKey = nextKey;
+        ctx.state.freshColor = true;
+        ctx.show('color');
+      } }, `Siguiente dibujo: ${charOf(nextKey).label} →`),
+      h('div', { class: 'kbtnrow' },
+        h('button', { class: 'bigbtn alt small', onClick: () => ((ctx.state.pickFor = 'color'), ctx.show('pick')) }, 'Elegir otro'),
+        h('button', { class: 'bigbtn alt small', onClick: () => (doneBox.hidden = true) }, 'Seguir coloreando')),
+    ));
+  const celebrate = () => {
+    celebrated = true;
+    void addToAlbum(key, 'colored', view);
+    doneBox.hidden = false;
+    pop(660, 0.12);
+    setTimeout(() => pop(880, 0.12), 140);
+    setTimeout(() => pop(1100, 0.25), 280);
+    ctx.sayPair(`¡Felicidades, terminaste! Ahora puedes colorear ${charOf(nextKey).label}.`, 'Congratulations, you finished! Try the next drawing.');
+  };
+  /** After each stroke or fill: celebrate once when almost everything has colour. */
+  const checkDone = () => {
+    if (!celebrated && coverage() >= 0.9) celebrate();
   };
 
   function seg(a: Pt, b: Pt, pressure: number | null, tilt: number): void {
     pctx.save();
-    if (settings.inside && brush.tool !== 'eraser') clipShape();
     let w = brush.size * (pressure == null ? 1 : 0.35 + 1.3 * pressure);
     if (brush.tool === 'crayon') {
       w *= 1 + tilt / 45;
@@ -151,19 +241,7 @@ export function colorScreen(ctx: Ctx): Screen {
     }
   };
   // Paint bucket: fills only the area enclosed by the drawing's lines (hair, skirt, a boot…).
-  let walls: Uint8Array | null = null;
   const bucket = (p: Pt): boolean => {
-    if (!walls) {
-      const art = canvas(W, H).getContext('2d', { willReadFrequently: true })!;
-      useBoardTransform(art);
-      drawCharacter(art, ch, 'line');
-      const px = art.getImageData(0, 0, W, H).data;
-      walls = new Uint8Array(W * H);
-      for (let i = 0; i < W * H; i++) {
-        const o = i * 4;
-        walls[i] = px[o + 3] > 100 && px[o] + px[o + 1] + px[o + 2] < 480 ? 1 : 0;
-      }
-    }
     const region = floodRegion(walls, W, H, p[0], p[1]);
     const n = parseInt(brush.color.slice(1), 16);
     const img = new ImageData(W, H);
@@ -176,10 +254,8 @@ export function colorScreen(ctx: Ctx): Screen {
     if (!any) return false;
     const tmp = canvas(W, H);
     tmp.getContext('2d')!.putImageData(img, 0, 0);
-    pctx.save();
-    if (settings.inside) clipShape();
     pctx.drawImage(tmp, 0, 0);
-    pctx.restore();
+    keepInside();
     return true;
   };
 
@@ -216,12 +292,14 @@ export function colorScreen(ctx: Ctx): Screen {
       if (bucket(p)) {
         render();
         pop(520);
+        checkDone();
       } else undo.pop();
       return;
     }
     if (brush.tool === 'stamp') {
       const [es, en] = STAMPS[stampIdx];
       stamp(stampIdx, p[0], p[1], brush.size * 1.8 + 20);
+      keepInside();
       render();
       pop(660, 0.12);
       ctx.sayPair(es, en);
@@ -233,6 +311,7 @@ export function colorScreen(ctx: Ctx): Screen {
     view.setPointerCapture(e.pointerId);
     last = p;
     seg(p, p, e.pointerType === 'pen' ? e.pressure : null, 0);
+    keepInside();
     render();
     info.textContent = describe(e);
   });
@@ -245,6 +324,7 @@ export function colorScreen(ctx: Ctx): Screen {
       seg(last, p, ev.pointerType === 'pen' ? ev.pressure : null, tilt);
       last = p;
     }
+    keepInside();
     render();
     info.textContent = describe(e);
   });
@@ -252,6 +332,7 @@ export function colorScreen(ctx: Ctx): Screen {
     if (e.pointerId === activeId) {
       activeId = null;
       last = null;
+      checkDone();
     }
   };
   view.addEventListener('pointerup', end);
@@ -325,16 +406,17 @@ export function colorScreen(ctx: Ctx): Screen {
       pop(760, 0.3);
     },
   }, 'Guardar');
+  const btnDone = h('button', { class: 'bigbtn violet', onClick: celebrate }, '¡Terminé!');
 
   const el = h(
     'div',
     { class: 'view' },
     h('div', { class: 'main' },
-      h('div', { class: 'stagebox' }, h('div', { class: 'stage' }, view)),
+      h('div', { class: 'stagebox' }, h('div', { class: 'stage' }, view, doneBox)),
       h('div', { class: 'tools' },
         swatches,
         h('div', { class: 'kcard' }, ...toolBtns),
-        h('div', { class: 'kcard' }, ...sizeBtns, btnUndo, btnSave),
+        h('div', { class: 'kcard' }, ...sizeBtns, btnUndo, btnSave, btnDone),
         h('div', { class: 'kcard inputinfo' }, info, h('br'), palm),
       ),
     ),

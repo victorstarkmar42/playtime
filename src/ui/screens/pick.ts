@@ -10,9 +10,11 @@ const GROUP_LABEL: Record<string, string> = {
   Concierto: 'Las Resonantes: cantan y cazan demonios · Demon hunters',
   Objetos: 'Objetos · Things',
   Casas: 'Casas · Houses',
-  Vehículos: 'Carros · Cars',
+  Vehículos: 'Vehículos · Vehicles',
   Robots: 'Robots · Robots',
   Animales: 'Animales · Animals',
+  Naturaleza: 'Naturaleza · Nature',
+  Comida: 'Comida · Food',
   Mandalas: 'Mandalas para relajarse · Mandalas',
 };
 

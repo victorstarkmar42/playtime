@@ -20,6 +20,10 @@ import { clusterColors, insideDistance, labelRegions } from './paintnum';
 import { BASTA_CATEGORIES, bastaFirstLetter, bastaHints, bastaLetters, robiAnswer } from './basta';
 import { reviewPlan } from './review';
 import { breakSteps, RestClock, REST_PRESETS } from './rest';
+import { FIGURES, piecesFor, sameShape, shapeCounts, snapTarget } from './shapes';
+import { colorableMask, inkWalls } from './flood';
+import { continentAt, lonDelta, unproject } from './geo';
+import { CONTINENTS } from '../content/world';
 import { checkBackup, DATA_KEYS, exportData, importData } from './storage';
 
 /** Deterministic pseudo-random generator so failures are reproducible. */
@@ -640,5 +644,91 @@ describe('backup', () => {
     }
     expect(checkBackup({ app: 'otra', data: {} }).ok).toBe(false);
     expect(checkBackup({ app: 'playhour', schema: 99, data: {} }).ok).toBe(false);
+  });
+});
+
+describe('colouring inside the drawing', () => {
+  it('areas closed by lines outside the outline can be coloured; open space cannot', () => {
+    // 12×12 board: a closed square of lines (2..6) and a stray open line
+    const w = 12, h = 12, rgba = new Uint8ClampedArray(w * h * 4).fill(255);
+    const ink = (x: number, y: number) => rgba.set([30, 40, 70, 255], (y * w + x) * 4);
+    for (let i = 2; i <= 6; i++) { ink(i, 2); ink(i, 6); ink(2, i); ink(6, i); }
+    for (let i = 8; i <= 10; i++) ink(i, 9);
+    const m = colorableMask(inkWalls(rgba, w * h), w, h);
+    expect(m[4 * w + 4]).toBe(1); // inside the square
+    expect(m[2 * w + 2]).toBe(1); // the line itself
+    expect(m[0]).toBe(0);
+    expect(m[8 * w + 9]).toBe(0); // next to the open line
+  });
+});
+
+describe('build with shapes', () => {
+  it('each age gets more pieces, all inside the board, and the youngest at least 3', () => {
+    for (const f of FIGURES) {
+      const a = piecesFor(f, '3-4').length, b = piecesFor(f, '5-6').length, c = piecesFor(f, '7-9').length;
+      expect(a, f.id).toBeGreaterThanOrEqual(2);
+      expect(a).toBeLessThanOrEqual(b);
+      expect(b).toBeLessThanOrEqual(c);
+      for (const p of f.pieces) {
+        expect(p.x).toBeGreaterThanOrEqual(0);
+        expect(p.y).toBeGreaterThanOrEqual(0);
+        expect(p.x + p.w).toBeLessThanOrEqual(100);
+        expect(p.y + p.h).toBeLessThanOrEqual(100);
+        if (p.kind === 'square' || p.kind === 'circle') expect(p.w, `${f.id} ${p.kind}`).toBe(p.h);
+      }
+    }
+  });
+
+  it('a piece snaps only into an empty place of the same shape, near enough', () => {
+    const slots = piecesFor(FIGURES[0], '5-6');
+    const filled = slots.map(() => false);
+    const roof = slots.find((p) => p.kind === 'tri')!;
+    const cx = roof.x + roof.w / 2, cy = roof.y + roof.h / 2;
+    expect(snapTarget(roof, cx + 5, cy, slots, filled, 15)).toBe(slots.indexOf(roof));
+    expect(snapTarget(roof, cx + 40, cy + 40, slots, filled, 15)).toBe(-1);
+    const win = slots.filter((p) => p.kind === 'square' && p.w === 10);
+    expect(win).toHaveLength(2);
+    expect(sameShape(win[0], win[1])).toBe(true);
+    filled[slots.indexOf(win[0])] = true;
+    // the twin window goes into whichever window place is still empty
+    expect(snapTarget(win[0], win[1].x + 5, win[1].y + 5, slots, filled, 15)).toBe(slots.indexOf(win[1]));
+    expect(shapeCounts(slots).find((c) => c.kind === 'square')?.n).toBe(2);
+  });
+});
+
+describe('world', () => {
+  it('lists every country once, with the usual counts', () => {
+    const n = Object.fromEntries(CONTINENTS.map((c) => [c.id, c.countries.length]));
+    expect(n).toEqual({ norteamerica: 23, sudamerica: 12, europa: 44, africa: 54, asia: 48, oceania: 14, antartida: 0 });
+    const all = CONTINENTS.flatMap((c) => c.countries.map(([es]) => es));
+    expect(new Set(all).size).toBe(all.length);
+  });
+
+  it('finds the continent of well-known cities and leaves the oceans empty', () => {
+    const at = (lon: number, lat: number) => continentAt(lon, lat)?.id ?? 'mar';
+    expect(at(-99.1, 19.4)).toBe('norteamerica'); // Ciudad de México
+    expect(at(-74, 4.6)).toBe('sudamerica'); // Bogotá
+    expect(at(-46.6, -23.5)).toBe('sudamerica'); // São Paulo
+    expect(at(2.35, 48.85)).toBe('europa'); // París
+    expect(at(37.6, 55.75)).toBe('europa'); // Moscú
+    expect(at(-3.7, 40.4)).toBe('europa'); // Madrid
+    expect(at(31.2, 30)).toBe('africa'); // El Cairo
+    expect(at(36.8, -1.3)).toBe('africa'); // Nairobi
+    expect(at(77.2, 28.6)).toBe('asia'); // Delhi
+    expect(at(116.4, 39.9)).toBe('asia'); // Pekín
+    expect(at(139.7, 35.7)).toBe('asia'); // Tokio
+    expect(at(151.2, -33.9)).toBe('oceania'); // Sídney
+    expect(at(0, -85)).toBe('antartida');
+    expect(at(-30, 0)).toBe('mar'); // Atlántico
+    expect(at(-150, 0)).toBe('mar'); // Pacífico
+    expect(at(80, -20)).toBe('mar'); // Índico
+  });
+
+  it('the globe view maps its centre to where it is turned', () => {
+    const [lon, lat] = unproject(0, 0, -100, 30)!;
+    expect(lon).toBeCloseTo(-100);
+    expect(lat).toBeCloseTo(30);
+    expect(unproject(0.9, 0.9, 0, 0)).toBeNull();
+    expect(lonDelta(170, -170)).toBe(20);
   });
 });

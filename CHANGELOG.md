@@ -1,5 +1,14 @@
 # Cambios
 
+## 0.11.0 — 2026-11-25
+
+- **Colorear: ya se pinta todo.** Algunas partes no se podían pintar. En unas, la pintura quedaba escondida debajo de un relleno blanco (los ojos, la panza del pingüino, círculos del auto y del pez). En otras, la opción "colorear dentro" las recortaba por estar fuera del contorno principal (los brazos y antenas de los robots, las llantas y ventanas de los carros, las aletas del pez). Ahora las líneas se dibujan encima sólo como tinta, y se puede pintar todo lo que está cerrado por líneas. Se revisaron las 527 zonas cerradas de los dibujos.
+- **"¡Felicidades, terminaste!"** Al colorear casi todo el dibujo, o al tocar el botón nuevo **¡Terminé!**, aparece una felicitación con voz, el dibujo se guarda en el álbum y hay un botón para pasar al **siguiente dibujo**.
+- **Once dibujos nuevos** para unir puntos y colorear: perro, tortuga, mariposa y búho (Animales); cohete, barco y avión (Vehículos); árbol y hongo (Naturaleza, grupo nuevo); helado y pastel (Comida, grupo nuevo). Ya son 37.
+- Nuevo juego **Construye con figuras**: se arrastra cada figura (cuadrado, rectángulo, triángulo, círculo, semicírculo, trapecio) a su lugar para armar una casa, un cohete, un árbol, un robot, un barco, un tren, un castillo o una flor. También se puede tocar la pieza y luego su lugar. Cada figura dice su nombre en español e inglés. Al terminar se colorea pieza por pieza, y el juego dice cuántas figuras de cada tipo se usaron. Por edad: pocas piezas y lugares que brillan (3–4), más piezas (5–6), o sólo la sombra de la figura (7–9).
+- Nueva sección **Países del mundo** (en Inicio y en Juegos): un globo terráqueo que gira solo o con el dedo. Al tocar un continente, el globo gira hacia él y muestra su forma, su nombre con voz en español e inglés, un dato curioso y sus países; al tocar un país se oye su nombre. Los pequeños ven 4 países, los medianos 8 y los grandes todos. Incluye el juego **¿Dónde está?** para encontrar continentes.
+- Inicio tiene 6 botones; "Países" es el nuevo.
+
 ## 0.10.0 — 2026-11-24
 
 - **Descansos para los ojos.** Cada cierto tiempo la app hace una pausa: con dibujo y voz pide mirar algo lejos, parpadear, cerrar los ojos, estirarse o tomar agua, con un reloj en forma de anillo. Al terminar aparece "Seguir jugando". Si toca durante una ronda de Basta, espera a que termine la ronda.
