@@ -50,10 +50,14 @@ function spiral(): Pt[] {
   });
 }
 
-const wave = (): Pt[] => Array.from({ length: 81 }, (_, i) => [12 + i * 0.95, 50 - 14 * Math.sin((i / 80) * Math.PI * 4)] as const);
+const WAVE: Pt[] = Array.from({ length: 81 }, (_, i) => [12 + i * 0.95, 50 - 14 * Math.sin((i / 80) * Math.PI * 4)] as const);
+const SPIRAL = spiral();
+const MOON_OUT = arcPts(50, 50, 32, -60, -300);
+const MOON: Pt[] = [...MOON_OUT, ...arcPts(64, 50, 27.8, 85.9, 274.1)];
+const MOON_TIP = MOON_OUT[MOON_OUT.length - 1];
 
 export const TRACE_SHAPES: TraceFigure[] = [
-  { id: 'olas', group: 'shapes', es: 'Olas', en: 'Waves', strokes: [wave()] },
+  { id: 'olas', group: 'shapes', es: 'Olas', en: 'Waves', strokes: [WAVE] },
   { id: 'montanas', group: 'shapes', es: 'Montañas', en: 'Mountains', strokes: [[[12, 66], [27, 34], [42, 66], [57, 34], [72, 66], [88, 34]]] },
   { id: 'circulo', group: 'shapes', es: 'Círculo', en: 'Circle', strokes: [arcPts(50, 50, 33, 270, -90)] },
   { id: 'cuadrado', group: 'shapes', es: 'Cuadrado', en: 'Square', strokes: [close([[20, 20], [80, 20], [80, 80], [20, 80]])] },
@@ -61,8 +65,8 @@ export const TRACE_SHAPES: TraceFigure[] = [
   { id: 'rombo', group: 'shapes', es: 'Rombo', en: 'Diamond', strokes: [close([[50, 14], [80, 50], [50, 86], [20, 50]])] },
   { id: 'corazon', group: 'shapes', es: 'Corazón', en: 'Heart', strokes: [heart()] },
   { id: 'estrella', group: 'shapes', es: 'Estrella', en: 'Star', strokes: [starPts()] },
-  { id: 'luna', group: 'shapes', es: 'Luna', en: 'Moon', strokes: [[...arcPts(50, 50, 32, -60, -300), ...arcPts(64, 50, 27.8, 85.9, 274.1)]] },
-  { id: 'espiral', group: 'shapes', es: 'Espiral', en: 'Spiral', strokes: [spiral()] },
+  { id: 'luna', group: 'shapes', es: 'Luna', en: 'Moon', strokes: [MOON] },
+  { id: 'espiral', group: 'shapes', es: 'Espiral', en: 'Spiral', strokes: [SPIRAL] },
 ];
 
 const NUM_ES = ['cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];
@@ -125,18 +129,45 @@ export function figureBounds(strokes: Pt[][]): { x: number; y: number; w: number
 
 /* ---------------- after tracing: a small task, stars and what comes next ---------------- */
 
-/** Points to touch after tracing a shape (its corners or tips), and what they are called. */
-export const TRACE_CORNERS: Record<string, { pts: Pt[]; es: [string, string]; en: string; say: [string, string] }> = {
-  cuadrado: { pts: [[20, 20], [80, 20], [80, 80], [20, 80]], es: ['esquina', 'esquinas'], en: 'corners', say: ['El cuadrado tiene 4 esquinas', 'A square has 4 corners'] },
-  triangulo: { pts: [[50, 16], [84, 80], [16, 80]], es: ['esquina', 'esquinas'], en: 'corners', say: ['El triángulo tiene 3 esquinas', 'A triangle has 3 corners'] },
-  rombo: { pts: [[50, 14], [80, 50], [50, 86], [20, 50]], es: ['esquina', 'esquinas'], en: 'corners', say: ['El rombo tiene 4 esquinas', 'A diamond has 4 corners'] },
-  montanas: { pts: [[27, 34], [57, 34], [88, 34]], es: ['pico', 'picos'], en: 'peaks', say: ['Las montañas tienen 3 picos', 'The mountains have 3 peaks'] },
-  estrella: {
-    pts: Array.from({ length: 5 }, (_, i) => {
-      const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
-      return [50 + 36 * Math.cos(a), 54 + 36 * Math.sin(a)] as Pt;
-    }),
-    es: ['punta', 'puntas'], en: 'points', say: ['La estrella tiene 5 puntas', 'A star has 5 points'],
+/**
+ * What to touch after tracing a shape. `count`: points on the line (corners, tips, crests) touched and counted
+ * aloud; otherwise a single spot inside the shape (its centre) to touch.
+ */
+export interface TraceTap {
+  pts: Pt[];
+  count: boolean;
+  /** Spoken after "¡Lo lograste!", and shown under the canvas. */
+  ask: [string, string];
+  /** Spoken when every point has been touched. */
+  say: [string, string];
+}
+
+const corners = (pts: Pt[], word: string, them: string, shape: string, en: string): TraceTap => ({
+  pts, count: true, ask: [`Toca cada ${word} y ${them}`, `Touch and count the ${en}`], say: shape.split('|') as [string, string],
+});
+
+export const TRACE_TAPS: Record<string, TraceTap> = {
+  cuadrado: corners([[20, 20], [80, 20], [80, 80], [20, 80]], 'esquina', 'cuéntalas', 'El cuadrado tiene 4 esquinas|A square has 4 corners', 'corners'),
+  triangulo: corners([[50, 16], [84, 80], [16, 80]], 'esquina', 'cuéntalas', 'El triángulo tiene 3 esquinas|A triangle has 3 corners', 'corners'),
+  rombo: corners([[50, 14], [80, 50], [50, 86], [20, 50]], 'esquina', 'cuéntalas', 'El rombo tiene 4 esquinas|A diamond has 4 corners', 'corners'),
+  montanas: corners([[27, 34], [57, 34], [88, 34]], 'pico', 'cuéntalos', 'Las montañas tienen 3 picos|The mountains have 3 peaks', 'peaks'),
+  estrella: corners(Array.from({ length: 5 }, (_, i) => {
+    const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
+    return [50 + 36 * Math.cos(a), 54 + 36 * Math.sin(a)] as Pt;
+  }), 'punta', 'cuéntalas', 'La estrella tiene 5 puntas|A star has 5 points', 'points'),
+  olas: corners([WAVE[10], WAVE[50]], 'cresta', 'cuéntalas', 'Las olas tienen 2 crestas|The waves have 2 crests', 'crests'),
+  luna: corners([MOON[0], MOON_TIP], 'punta', 'cuéntalas', 'La luna tiene 2 puntas|The moon has 2 points', 'points'),
+  circulo: {
+    pts: [[50, 50]], count: false, ask: ['Toca el centro del círculo', 'Touch the middle of the circle'],
+    say: ['¡Ese es el centro! El círculo es redondo y no tiene esquinas', 'That is the middle! A circle is round, with no corners'],
+  },
+  espiral: {
+    pts: [SPIRAL[0]], count: false, ask: ['Toca el centro de la espiral', 'Touch the middle of the spiral'],
+    say: ['¡Llegaste al centro de la espiral!', 'You found the middle of the spiral!'],
+  },
+  corazon: {
+    pts: [[50, 58]], count: false, ask: ['Toca el corazón para que lata', 'Touch the heart to make it beat'],
+    say: ['¡Pum, pum! El corazón late', 'Thump, thump! The heart beats'],
   },
 };
 

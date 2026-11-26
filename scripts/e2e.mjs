@@ -312,9 +312,16 @@ for (const vp of VIEWPORTS) {
     };
     await traceAll();
     await sleep(300);
+    // the heart asks to be touched so it beats
     const tr = await page.evaluate(() => document.querySelector('.tstatus')?.textContent ?? '');
-    if (!tr.includes('Lo lograste')) problems.push(`[${vp.name}] trace ${tag}: ${tr}`);
-    await sleep(900);
+    const heartPts = await page.evaluate(() => window.__pymBonus());
+    if (!tr.includes('corazón') || heartPts.length !== 1) problems.push(`[${vp.name}] trace ${tag}: ${tr} (${heartPts.length})`);
+    await shot(`14-trace-heart-${tag}`);
+    for (const q of heartPts) await tap(q[0], q[1]);
+    await sleep(400);
+    const tr2 = await page.evaluate(() => document.querySelector('.tstatus')?.textContent ?? '');
+    if (!tr2.includes('Lo lograste')) problems.push(`[${vp.name}] trace heart tap ${tag}: ${tr2}`);
+    await sleep(2700);
     await shot(`14-trace-${tag}`);
     // the finish card offers the next shape not done yet; the star asks to touch and count its 5 points
     const card1 = await page.evaluate(() => ({ on: !document.querySelector('.tdone').hidden, next: document.querySelector('.tnext')?.textContent ?? '', stars: document.querySelectorAll('.tdone-stars .on').length }));

@@ -1,5 +1,10 @@
 # Cambios
 
+## 0.14.1 — 2026-11-26
+
+- **Trazos de luz:** todas las figuras tienen algo que hacer al terminar. En las olas se cuentan sus 2 crestas y en la luna sus 2 puntas; en el círculo y la espiral se toca el centro, y el corazón late al tocarlo.
+- Corregido: en las montañas decía "Toca cada pico y cuéntalas".
+
 ## 0.14.0 — 2026-11-26
 
 **Trazos de luz** más interactivo, y al terminar ofrece avanzar:

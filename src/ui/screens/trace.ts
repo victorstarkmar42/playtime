@@ -3,7 +3,7 @@ import { pop } from '../../core/audio';
 import type { Pt } from '../../core/geometry';
 import { settings } from '../../core/settings';
 import {
-  advance, figureBounds, loadTraceDone, nextFigure, numberOf, resample, saveTraceStars, TRACE_CORNERS, TRACE_NUMBERS, TRACE_SHAPES, TRACE_STEP, TRACE_TOL,
+  advance, figureBounds, loadTraceDone, nextFigure, numberOf, resample, saveTraceStars, TRACE_NUMBERS, TRACE_SHAPES, TRACE_STEP, TRACE_TAPS, TRACE_TOL,
   traceStars, type TraceFigure,
 } from '../../core/trace';
 import type { CharKey } from '../../core/types';
@@ -135,8 +135,10 @@ export function traceScreen(ctx: Ctx): Screen {
     let hinted = false;
     let lastPop = 0;
     const sparks: Spark[] = [];
-    /** After tracing: stars to count (numbers) or corners to touch (shapes). */
-    let bonus: { pts: Pt[]; hit: number[]; say: [string, string] } | null = null;
+    /** After tracing: stars to count (numbers), corners or tips to count, or the centre to touch (shapes). */
+    let bonus: { pts: Pt[]; hit: number[]; say: [string, string]; count: boolean } | null = null;
+    /** The heart beats after it is touched. */
+    let beatAt = 0;
     /** Drawings: the coloured character fades in inside the light. */
     let revealAt = 0;
     let cardTimer = 0;
@@ -321,6 +323,16 @@ export function traceScreen(ctx: Ctx): Screen {
           c.globalCompositeOperation = 'lighter';
           c.globalAlpha = 0.3 + 0.3 * Math.sin((now - doneAt) / 220);
           c.drawImage(lit, 0, 0);
+          if (beatAt) {
+            // the heart beats: two quick swells of light, again and again
+            const t = ((now - beatAt) % 1000) / 1000;
+            const s = 1 + (t < 0.5 ? 0.07 * Math.abs(Math.sin(t * Math.PI * 4)) : 0);
+            const [cx, cy] = toPx([50, 62]);
+            c.globalAlpha = 0.7;
+            c.setTransform(s, 0, 0, s, dpr * cx * (1 - s), dpr * cy * (1 - s));
+            c.drawImage(lit, 0, 0);
+            c.setTransform(1, 0, 0, 1, 0, 0);
+          }
           c.globalAlpha = 1;
           c.globalCompositeOperation = 'source-over';
         }
@@ -412,6 +424,7 @@ export function traceScreen(ctx: Ctx): Screen {
           c.fillStyle = col;
           starPath(c, x, y, u * 3.4);
           c.fill();
+          if (!bonus!.count) return;
           c.fillStyle = '#0B1440';
           c.font = `800 ${Math.round(u * 3)}px "Baloo 2", system-ui, sans-serif`;
           c.textAlign = 'center';
@@ -472,7 +485,7 @@ export function traceScreen(ctx: Ctx): Screen {
       [660, 880, 1100, 1320].forEach((f, i) => setTimeout(() => pop(f, 0.2), i * 120));
       status.textContent = `¡Lo lograste! ${fig.es} · ${fig.en}`;
       const n = numberOf(fig);
-      const corners = TRACE_CORNERS[fig.id];
+      const tap = TRACE_TAPS[fig.id];
       if (n) {
         // count as many stars as the number says, around it
         const b = figureBounds(fig.strokes);
@@ -481,13 +494,13 @@ export function traceScreen(ctx: Ctx): Screen {
           const a = -Math.PI / 2 + (i * 2 * Math.PI) / n;
           return [cx + rx * Math.cos(a), cy + ry * Math.sin(a)] as Pt;
         });
-        bonus = { pts, hit: [], say: [`¡Son ${n}! ${n} estrellas`, `${n} stars!`] };
+        bonus = { pts, hit: [], say: [`¡Son ${n}! ${n} estrellas`, `${n} stars!`], count: true };
         ctx.sayPair(`¡Lo lograste! Ahora toca ${n === 1 ? 'la estrella' : `las ${n} estrellas`} y cuéntalas.`, `Now count ${n === 1 ? 'the star' : `the ${n} stars`}.`);
         status.textContent = `Toca ${n === 1 ? 'la estrella' : `las ${n} estrellas`} y cuéntalas`;
-      } else if (corners) {
-        bonus = { pts: corners.pts, hit: [], say: corners.say };
-        ctx.sayPair(`¡Lo lograste! Ahora toca cada ${corners.es[0]} y cuéntalas.`, `Now touch and count the ${corners.en}.`);
-        status.textContent = `Toca cada ${corners.es[0]} y cuéntalas`;
+      } else if (tap) {
+        bonus = { pts: tap.pts, hit: [], say: tap.say, count: tap.count };
+        ctx.sayPair(`¡Lo lograste! Ahora ${tap.ask[0].toLowerCase()}.`, `Now ${tap.ask[1].toLowerCase()}.`);
+        status.textContent = tap.ask[0];
       } else {
         if (fig.group === 'drawings') revealAt = performance.now();
         ctx.sayPair(`¡Lo lograste! ${speakName(fig)}`, `You did it! ${fig.en}`);
@@ -518,7 +531,10 @@ export function traceScreen(ctx: Ctx): Screen {
         return;
       }
       const [es, en] = bonus.say;
-      ctx.sayPair(`${COUNT_ES[count]}. ${es}`, `${COUNT_EN[count]}. ${en}`);
+      if (bonus.count) ctx.sayPair(`${COUNT_ES[count]}. ${es}`, `${COUNT_EN[count]}. ${en}`);
+      else ctx.sayPair(es, en);
+      if (fig.id === 'corazon') beatAt = performance.now();
+      else if (!bonus.count) emit(x, y, 30, 5);
       status.textContent = `¡Lo lograste! ${es}`;
       [700, 900, 1200].forEach((f, i) => setTimeout(() => pop(f, 0.18), i * 110));
       cardTimer = window.setTimeout(() => showCard(finishStars), 2600);

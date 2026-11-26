@@ -15,7 +15,7 @@ import { activePlan, sanitizeSettings } from './settings';
 import { AGES } from './types';
 import { pickVoice } from './voice';
 import { aiMove, emptyBoard, isFull, other, winner, type Cell, type Player } from './tictactoe';
-import { advance, nextFigure, numberOf, resample, TRACE_CORNERS, TRACE_NUMBERS, TRACE_SHAPES, TRACE_STEP, traceStars, type TraceFigure } from './trace';
+import { advance, figureBounds, nextFigure, numberOf, resample, TRACE_NUMBERS, TRACE_SHAPES, TRACE_STEP, TRACE_TAPS, traceStars, type TraceFigure } from './trace';
 import { clusterColors, insideDistance, labelRegions } from './paintnum';
 import { BASTA_CATEGORIES, bastaFirstLetter, bastaHints, bastaLetters, robiAnswer } from './basta';
 import { reviewPlan } from './review';
@@ -847,14 +847,25 @@ describe('trazos de luz: después de trazar', () => {
     expect(traceStars(4, 1)).toBe(1);
   });
 
-  it('corners to touch sit on the line of their shape', () => {
-    for (const [id, c] of Object.entries(TRACE_CORNERS)) {
+  it('every shape has something to touch: counted points on its line, or a spot inside it', () => {
+    for (const f of TRACE_SHAPES) expect(TRACE_TAPS[f.id], f.id).toBeTruthy();
+    for (const [id, c] of Object.entries(TRACE_TAPS)) {
       const f = TRACE_SHAPES.find((x) => x.id === id);
       expect(f, id).toBeTruthy();
       const pts = f!.strokes.flatMap((st) => resample(st));
-      for (const q of c.pts) expect(Math.min(...pts.map((p) => Math.hypot(p[0] - q[0], p[1] - q[1]))), id).toBeLessThan(1);
-      expect(c.say[0]).toContain(String(c.pts.length));
+      const b = figureBounds(f!.strokes);
+      for (const q of c.pts) {
+        const near = Math.min(...pts.map((p) => Math.hypot(p[0] - q[0], p[1] - q[1])));
+        if (c.count) expect(near, id).toBeLessThan(1);
+        else {
+          expect(q[0] > b.x && q[0] < b.x + b.w && q[1] > b.y && q[1] < b.y + b.h, id).toBe(true);
+          expect(c.pts.length, id).toBe(1);
+        }
+      }
+      if (c.count) expect(c.say[0]).toContain(String(c.pts.length));
+      expect(new Set(c.pts.map((p) => p.join())).size, id).toBe(c.pts.length);
     }
+    expect(TRACE_TAPS.montanas.ask[0]).toContain('cuéntalos');
     expect(numberOf(TRACE_NUMBERS[2])).toBe(3);
     expect(numberOf(TRACE_SHAPES[0])).toBeNull();
   });
