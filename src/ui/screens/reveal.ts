@@ -6,7 +6,6 @@ import { drawCharacter } from '../../render/character';
 import { drawingBounds } from '../../render/fit';
 import type { Ctx, Screen } from '../context';
 import { canvas, h } from '../dom';
-import { exitBtn } from './gamekit';
 
 const SIZE = 720;
 const GRID = 24;
@@ -117,7 +116,7 @@ export function revealScreen(ctx: Ctx): Screen {
       h('button', { class: 'bigbtn alt', onClick: round }, 'Otro regalo'));
     const stage = h('div', { class: 'rv-stage' }, under, cover, fx);
     el.replaceChildren(h('div', { class: 'revealg' },
-      h('div', { class: 'ghead' }, title, exitBtn(ctx)),
+      h('div', { class: 'ghead' }, title),
       h('div', { class: 'rv-box' }, stage),
       status, actions));
 

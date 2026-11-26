@@ -1,5 +1,15 @@
 # Cambios
 
+## 0.13.0 — 2026-11-26
+
+La app se usa más como una app de Android o iPhone (revisión de interfaz hecha con ayuda de Codex):
+
+- **Flecha Atrás siempre en el mismo lugar**, arriba a la izquierda, con el nombre de la pantalla a su lado. Se quitó el botón "← Salir · Exit" de cada juego, que cambiaba de lugar y en el celular ocupaba una línea propia.
+- **Atrás regresa paso a paso** dentro de los juegos: de las preguntas al cuento y del cuento a la lista; de una tabla al menú de Tablas; de una figura a la lista en Construye, Trazos y Pinta por números; del juego al menú en Cuentas, Basta y Gato. El botón atrás del celular hace lo mismo. Países abierto desde Inicio regresa a Inicio, y Padres regresa a la pantalla desde donde se abrió.
+- **Menú "Más"** (⋮) con Inicio, Dibujos, idioma de la voz y Padres (se mantiene presionado). Ayuda y Voz siguen a la vista.
+- Los encabezados de los juegos quedan en una sola fila: avance y botones como "Ver cuento" o "Tablas".
+- Botones de al menos 48 px también en celular, la barra respeta el notch (`viewport-fit=cover`), transición corta al cambiar de pantalla (se desactiva con "menos movimiento") y respuesta visual al tocar.
+
 ## 0.12.0 — 2026-11-25
 
 Nueva sección **Para la escuela** al inicio de Juegos, con cuatro actividades pensadas para apoyar lo que se ve en primaria:

@@ -1,9 +1,6 @@
-import type { Ctx } from '../context';
 import { h } from '../dom';
 
-/** Always-visible way out of a game, back to the games menu. */
-export const exitBtn = (ctx: Ctx, to: 'games' | 'home' = 'games'): HTMLButtonElement =>
-  h('button', { class: 'bigbtn alt small gexit', onClick: () => ctx.show(to) }, to === 'games' ? '← Salir · Exit' : '← Inicio · Home');
+// The way out of every screen is the back arrow of the top bar (and the phone's back button), see app.ts.
 
 /** Progress dots for a 5-question round: done, current, pending. */
 export const progressDots = (total: number, done: number, current = true): HTMLElement =>

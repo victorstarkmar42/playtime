@@ -6,7 +6,7 @@ import {
 } from '../../core/tables';
 import type { Ctx, Screen } from '../context';
 import { h } from '../dom';
-import { exitBtn, progressDots, shake } from './gamekit';
+import { progressDots, shake } from './gamekit';
 
 /**
  * Tablas de multiplicar with spaced review. 5–6: tables of 2, 5 and 10, with dots and choices;
@@ -37,13 +37,13 @@ export function tablesScreen(ctx: Ctx): Screen {
   function menu(): void {
     clearTimeout(timer);
     if (!tables.length) {
-      wrap.replaceChildren(h('div', { class: 'ghead' }, h('h2', null, 'Tablas', h('small', null, 'Times tables')), exitBtn(ctx)),
+      wrap.replaceChildren(h('div', { class: 'ghead' }, h('h2', null, 'Tablas', h('small', null, 'Times tables'))),
         h('div', { class: 'kcard gend' }, h('p', null, 'Las tablas son a partir de 5 años. Mientras, cuenta estrellas en Cuentas.'), h('button', { class: 'bigbtn', onClick: () => ctx.show('math') }, 'Ir a Cuentas')));
       return;
     }
     const due = dueCount(state, tables, today());
     wrap.replaceChildren(
-      h('div', { class: 'ghead' }, h('h2', null, 'Tablas', h('small', null, 'Times tables · Un poco cada día')), exitBtn(ctx)),
+      h('div', { class: 'ghead' }, h('h2', null, 'Tablas', h('small', null, 'Times tables · Un poco cada día'))),
       h('button', { class: 'tab-daily', onClick: () => start(null) },
         h('b', null, 'Repaso de hoy'),
         h('small', null, due ? `${due} por repasar · Las que fallas vuelven pronto` : 'Mezcla de tablas · Las que fallas vuelven pronto')),
@@ -58,7 +58,7 @@ export function tablesScreen(ctx: Ctx): Screen {
   /** The whole table, coloured by how well each fact is known, before practising it. */
   function study(t: number): void {
     wrap.replaceChildren(
-      h('div', { class: 'ghead' }, h('h2', null, `Tabla del ${t}`, h('small', null, `${t} times table`)), h('button', { class: 'bigbtn alt small', onClick: menu }, 'Tablas'), exitBtn(ctx)),
+      h('div', { class: 'ghead' }, h('h2', null, `Tabla del ${t}`, h('small', null, `${t} times table`)), h('button', { class: 'bigbtn alt small', onClick: menu }, 'Tablas')),
       h('div', { class: 'tab-sheet kcard' }, ...factsOf(t).map((x) => {
         const box = state[factKey(x)]?.box ?? -1;
         return h('button', { class: `tab-fact${box >= LEARNED_BOX ? ' good' : box >= 0 ? ' some' : ''}`, onClick: () => ctx.sayPair(`${x.a} por ${x.b}, ${x.a * x.b}`, `${x.a} times ${x.b}, ${x.a * x.b}`) },
@@ -99,8 +99,7 @@ export function tablesScreen(ctx: Ctx): Screen {
       h('div', { class: 'ghead' },
         h('h2', null, current ? `Tabla del ${current}` : 'Repaso de hoy'),
         progressDots(round.length, idx),
-        h('button', { class: 'bigbtn alt small', onClick: menu }, 'Tablas'),
-        exitBtn(ctx)),
+        h('button', { class: 'bigbtn alt small', onClick: menu }, 'Tablas')),
       q, answers);
     ctx.sayPair(`${x.a} por ${x.b}`, `${x.a} times ${x.b}`);
   }
@@ -166,12 +165,11 @@ export function tablesScreen(ctx: Ctx): Screen {
         h('p', null, score === n ? 'Estas volverán en unos días para no olvidarlas.' : 'Las que fallaste volverán en el próximo repaso.'),
         h('div', { class: 'kbtnrow' },
           h('button', { class: 'bigbtn', onClick: () => start(current) }, 'Otra ronda'),
-          h('button', { class: 'bigbtn alt', onClick: menu }, 'Tablas'),
-          exitBtn(ctx))),
+          h('button', { class: 'bigbtn alt', onClick: menu }, 'Tablas'))),
     );
     ctx.sayPair(`${msg} ${score} de ${n}.`, `${score} out of ${n}.`);
   }
 
   menu();
-  return { el, destroy: () => clearTimeout(timer), onHelp: () => round.length && idx < round.length && wrap.querySelector('.mq') && ctx.sayPair(`${f().a} por ${f().b}`, `${f().a} times ${f().b}`) };
+  return { el, back: () => (tables.length > 0 && !wrap.querySelector('.tab-grid') ? (menu(), true) : false), destroy: () => clearTimeout(timer), onHelp: () => round.length && idx < round.length && wrap.querySelector('.mq') && ctx.sayPair(`${f().a} por ${f().b}`, `${f().a} times ${f().b}`) };
 }

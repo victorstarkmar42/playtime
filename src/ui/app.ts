@@ -6,7 +6,7 @@ import { activePlan, settings, updateSettings } from '../core/settings';
 import { LANG_MODES } from '../core/types';
 import { Speaker } from '../core/voice';
 import { newSession, restoreSession, saveSession } from '../game/session';
-import type { AppState, Ctx, Screen, ScreenName } from './context';
+import type { AppState, Ctx, NavDir, Screen, ScreenName } from './context';
 import { h, holdToActivate, ICONS } from './dom';
 import { setupFullscreen } from './fullscreen';
 import { createRestBreak } from './restbreak';
@@ -38,6 +38,19 @@ import { onboardingScreen } from './screens/onboarding';
 import { parentsScreen } from './screens/parents';
 import { pickScreen } from './screens/pick';
 import { wordsScreen } from './screens/words';
+
+const TITLES: Partial<Record<ScreenName, [string, string]>> = {
+  home: ['PlayHour', ''],
+  pick: ['Dibujos', 'Drawings'],
+  dots: ['Unir puntos', 'Connect the dots'],
+  color: ['Colorear', 'Coloring'],
+  album: ['Álbum', 'Album'],
+  words: ['Palabras', 'Words'],
+  games: ['Juegos', 'Games'],
+  globe: ['Países del mundo', 'Countries'],
+  parents: ['Padres', 'Parents'],
+  parentquiz: ['Evaluación', 'Parents quiz'],
+};
 
 const SCREENS: Record<ScreenName, (ctx: Ctx) => Screen> = {
   onboarding: onboardingScreen,
@@ -73,13 +86,27 @@ const SCREENS: Record<ScreenName, (ctx: Ctx) => Screen> = {
 export function createApp(root: HTMLElement): void {
   root.classList.add('screen');
 
-  const btnHome = h('button', { class: 'ibtn', 'aria-label': 'Inicio', title: 'Inicio', html: ICONS.home });
-  const btnPick = h('button', { class: 'ibtn', 'aria-label': 'Dibujos', title: 'Dibujos', html: ICONS.grid });
-  const btnLang = h('button', { class: 'langpill', title: 'Idioma de la voz' });
-  const btnVoice = h('button', { class: 'ibtn', 'aria-label': 'Voz', title: 'Voz' });
+  // Top bar, like a phone app: back arrow and title on the left; help, voice and "more" on the right.
+  const btnBack = h('button', { class: 'ibtn nav', 'aria-label': 'Atrás', title: 'Atrás', 'data-nav': 'back', html: ICONS.back });
+  const titleMain = h('span', { class: 't-main' });
+  const titleSub = h('span', { class: 't-sub' });
+  const titleEl = h('div', { class: 'apptitle' }, titleMain, titleSub);
   const btnHelp = h('button', { class: 'ibtn', 'aria-label': 'Ayuda', title: 'Ayuda', html: ICONS.hand });
-  const btnParents = h('button', { class: 'ibtn gate', 'aria-label': 'Padres: mantén presionado', title: 'Padres: mantén presionado', html: ICONS.lock + '<span class="ring"></span>' });
-  const bar = h('header', { class: 'appbar' }, btnHome, btnPick, h('span', { class: 'spacer' }), btnLang, btnVoice, btnHelp, btnParents);
+  const btnVoice = h('button', { class: 'ibtn', 'aria-label': 'Voz', title: 'Voz' });
+  const btnMore = h('button', { class: 'ibtn', 'aria-label': 'Más opciones', title: 'Más', 'aria-haspopup': 'menu', 'aria-expanded': 'false', 'data-nav': 'more', html: ICONS.more });
+  const item = (nav: string, icon: string, label: string, extra = '') =>
+    h('button', { class: `mitem${extra}`, role: 'menuitem', 'data-nav': nav }, h('span', { class: 'mico', html: icon }), h('span', { class: 'mlabel' }, label));
+  const btnHome = item('home', ICONS.home, 'Inicio');
+  const btnPick = item('pick', ICONS.grid, 'Dibujos');
+  const btnLang = item('lang', ICONS.lang, 'Idioma de la voz');
+  const btnParents = item('parents', ICONS.lock, 'Padres (mantén presionado)', ' gate');
+  btnParents.append(h('span', { class: 'ring' }));
+  const menu = h('div', { class: 'amenu', role: 'menu', hidden: true }, btnHome, btnPick, btnLang, btnParents);
+  const bar = h('header', { class: 'appbar' }, btnBack, titleEl, btnHelp, btnVoice, btnMore, menu);
+  const setMenu = (open: boolean) => {
+    menu.hidden = !open;
+    btnMore.setAttribute('aria-expanded', String(open));
+  };
   const views = h('main', { class: 'views' });
   const toastEl = h('div', { class: 'toast', hidden: true, role: 'status' });
 
@@ -94,6 +121,8 @@ export function createApp(root: HTMLElement): void {
   root.append(bar, views, restBreak.el, night, toastEl);
 
   let current: { name: ScreenName; screen: Screen } | null = null;
+  /** Where each screen was opened from (Países from Inicio goes back to Inicio; Padres to where it was opened). */
+  const openedFrom: Partial<Record<ScreenName, ScreenName>> = {};
   let toastTimer = 0;
 
   const speaker = new Speaker(() => settings.voice, (l) => (l === 'es' ? settings.voiceEs : settings.voiceEn));
@@ -128,12 +157,15 @@ export function createApp(root: HTMLElement): void {
     state,
     speaker,
     timer,
-    show(name) {
+    show(name, dir: NavDir = 'fwd') {
       // leaving a screen silences what it was saying, except words said by the tap that opened the next one
       if (performance.now() - lastSay > 400) speaker.cancel();
+      setMenu(false);
+      if (dir === 'fwd' && current && current.name !== name) openedFrom[name] = current.name;
       current?.screen.destroy?.();
       views.replaceChildren();
       const screen = SCREENS[name](ctx);
+      if (dir !== 'none') screen.el.classList.add(dir === 'back' ? 'enter-back' : 'enter-fwd');
       views.append(screen.el);
       current = { name, screen };
       ctx.refreshBar();
@@ -155,15 +187,71 @@ export function createApp(root: HTMLElement): void {
     refreshBar() {
       const name = current?.name;
       bar.hidden = name === 'onboarding';
-      btnHome.setAttribute('aria-pressed', String(name === 'home'));
-      btnPick.setAttribute('aria-pressed', String(name === 'pick'));
+      root.classList.toggle('reduced', settings.reduced);
+      const to = backTarget(name);
+      btnBack.hidden = !to;
+      btnBack.setAttribute('aria-label', to ? `Atrás: ${TITLES[to]?.[0] ?? ''}` : 'Atrás');
+      btnHome.setAttribute('aria-current', String(name === 'home'));
+      btnPick.setAttribute('aria-current', String(name === 'pick'));
       btnHelp.classList.toggle('off', !current?.screen.onHelp);
-      btnLang.textContent = LANG_SHORT[settings.lang];
+      (btnLang.querySelector('.mlabel') as HTMLElement).textContent = `Idioma de la voz: ${LANG_SHORT[settings.lang]}`;
       btnVoice.innerHTML = settings.voice ? ICONS.speaker : ICONS.mute;
       btnVoice.setAttribute('aria-pressed', String(settings.voice));
+      syncTitle();
     },
   };
 
+  /** Title of the bar: the screen's own heading (kept in sync as the screen changes), or a fixed name. */
+  function syncTitle(): void {
+    const name = current?.name;
+    const h2 = current?.screen.el.querySelector('.ghead h2');
+    let main = '';
+    let sub = '';
+    if (h2) {
+      main = [...h2.childNodes].filter((n) => !(n instanceof HTMLElement && n.tagName === 'SMALL')).map((n) => n.textContent ?? '').join('').trim();
+      sub = h2.querySelector('small')?.textContent?.trim() ?? '';
+    }
+    if (!main && name) [main, sub] = TITLES[name] ?? ['', ''];
+    if (titleMain.textContent !== main) titleMain.textContent = main;
+    if (titleSub.textContent !== sub) titleSub.textContent = sub;
+    titleSub.hidden = !sub;
+    titleEl.classList.toggle('brand', name === 'home');
+  }
+  let titleQueued = false;
+  new MutationObserver(() => {
+    if (titleQueued) return;
+    titleQueued = true;
+    requestAnimationFrame(() => {
+      titleQueued = false;
+      syncTitle();
+      const to = backTarget(current?.name);
+      btnBack.hidden = !to;
+    });
+  }).observe(views, { childList: true, subtree: true, characterData: true });
+
+  /** One way back for the arrow and the phone's back button: first a step inside the screen, then the previous screen. */
+  function goBack(fromSystem: boolean): void {
+    setMenu(false);
+    if (!night.hidden || restBreak.active()) return; // rest screens: back does nothing
+    if (current?.screen.back?.()) {
+      speaker.cancel();
+      return;
+    }
+    const to = backTarget(current?.name);
+    if (current?.name === 'color' || current?.name === 'dots') state.pickFor = current.name;
+    if (to) ctx.show(to, 'back');
+    else if (fromSystem && current?.name === 'home') ctx.toast('Para salir, cierra la app desde el celular');
+  }
+
+  btnBack.onclick = () => goBack(false);
+  btnMore.onclick = (e) => {
+    e.stopPropagation();
+    setMenu(menu.hidden === true);
+  };
+  document.addEventListener('pointerdown', (e) => {
+    if (!menu.hidden && !menu.contains(e.target as Node) && e.target !== btnMore && !btnMore.contains(e.target as Node)) setMenu(false);
+  });
+  document.addEventListener('keydown', (e) => e.key === 'Escape' && setMenu(false));
   btnHome.onclick = () => ctx.show('home');
   btnPick.onclick = () => {
     state.pickFor = current?.name === 'color' ? 'color' : 'dots';
@@ -174,7 +262,7 @@ export function createApp(root: HTMLElement): void {
     updateSettings({ lang: next });
     ctx.toast(LANG_NAME[next]);
     ctx.sayPair('Hola', 'Hello');
-    ctx.show(current?.name ?? 'home');
+    ctx.show(current?.name ?? 'home', 'none');
   };
   btnVoice.onclick = () => {
     updateSettings({ voice: !settings.voice });
@@ -189,7 +277,7 @@ export function createApp(root: HTMLElement): void {
       pop(700, 0.2);
       ctx.show('parents');
     },
-    () => ctx.toast('Padres: mantén presionado el candado'),
+    () => ctx.toast('Padres: mantén presionado el botón'),
   );
   holdToActivate(nightBtn, 2000, () => {
     night.hidden = true;
@@ -205,21 +293,23 @@ export function createApp(root: HTMLElement): void {
     history.pushState({ pym: 'trap' }, '');
     armed = true;
   };
-  const backTarget = (name: ScreenName | undefined): ScreenName | null => {
+  function backTarget(name: ScreenName | undefined): ScreenName | null {
     if (!name || name === 'home' || name === 'onboarding') return null;
+    if (name === 'globe' && openedFrom.globe === 'home') return 'home';
+    if (name === 'parents') {
+      const from = openedFrom.parents;
+      return from && !['parents', 'parentquiz', 'onboarding'].includes(from) ? from : 'home';
+    }
     if (['gato', 'guess', 'math', 'abacus', 'maze', 'sudoku', 'crossword', 'letters', 'trace', 'reveal', 'paintnum', 'basta', 'build', 'globe', 'stories', 'syllables', 'tables', 'problems'].includes(name)) return 'games';
     if (name === 'parentquiz') return 'parents';
     if (name === 'dots') return 'pick';
-    if (name === 'color') return (state.pickFor = 'color'), 'pick';
+    if (name === 'color') return 'pick';
     return 'home';
-  };
+  }
   window.addEventListener('popstate', () => {
     armed = false;
     arm();
-    if (!night.hidden || restBreak.active()) return; // rest screens: back does nothing
-    const to = backTarget(current?.name);
-    if (to) ctx.show(to);
-    else if (current?.name === 'home') ctx.toast('Para salir, cierra la app desde el celular');
+    goBack(true);
   });
   let touched = false;
   const onUser = () => {

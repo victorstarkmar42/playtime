@@ -6,7 +6,7 @@ import { settings } from '../../core/settings';
 import type { Lang } from '../../core/types';
 import type { Ctx, Screen } from '../context';
 import { h } from '../dom';
-import { exitBtn, progressDots, shake } from './gamekit';
+import { progressDots, shake } from './gamekit';
 
 const ROUNDS = 5;
 /** Last word shown for each letter in the alphabet (kept while the app is open). */
@@ -61,7 +61,7 @@ export function lettersScreen(ctx: Ctx): Screen {
   let prompt = '';
 
   const head = (title: string, sub: string, ...extra: (HTMLElement | null)[]) =>
-    h('div', { class: 'ghead' }, h('h2', null, title, h('small', null, sub)), ...extra, exitBtn(ctx));
+    h('div', { class: 'ghead' }, h('h2', null, title, h('small', null, sub)), ...extra);
 
   function menu(): void {
     clearTimeout(timer);
@@ -164,8 +164,7 @@ export function lettersScreen(ctx: Ctx): Screen {
         progressDots(n, score, false),
         h('div', { class: 'kbtnrow' },
           h('button', { class: 'bigbtn', onClick: start }, 'Otra vez · Again'),
-          h('button', { class: 'bigbtn alt', onClick: alphabet }, 'Abecedario'),
-          exitBtn(ctx))),
+          h('button', { class: 'bigbtn alt', onClick: alphabet }, 'Abecedario'))),
     );
     ctx.sayPair(`${msg} ${score} de ${n}.`, `${score} out of ${n}.`);
   }

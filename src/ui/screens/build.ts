@@ -5,7 +5,7 @@ import { settings } from '../../core/settings';
 import { FIGURES, piecePath, preciosoEs, unEs, piecesFor, sameShape, SHAPE_NAME, shapeCounts, snapTarget, SNAP, type Figure, type Piece, type ShapeKind } from '../../core/shapes';
 import type { Ctx, Screen } from '../context';
 import { h } from '../dom';
-import { exitBtn, shake } from './gamekit';
+import { shake } from './gamekit';
 
 const NS = 'http://www.w3.org/2000/svg';
 const svg = <K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string, string | number> = {}): SVGElementTagNameMap[K] => {
@@ -64,7 +64,7 @@ export function buildScreen(ctx: Ctx): Screen {
       }, preview(f), h('span', null, f.es[0].toUpperCase() + f.es.slice(1))));
     }
     el.replaceChildren(h('div', { class: 'bd-pick' },
-      h('div', { class: 'ghead' }, h('h2', null, 'Construye con figuras', h('small', null, 'Build with shapes')), exitBtn(ctx)),
+      h('div', { class: 'ghead' }, h('h2', null, 'Construye con figuras', h('small', null, 'Build with shapes'))),
       h('p', { class: 'gstatus' }, settings.age === '3-4' ? 'Elige qué quieres construir.' : 'Elige una figura. Pon cada pieza en su lugar y después coloréala.'),
       grid));
     ctx.sayPair('¿Qué quieres construir?', 'What do you want to build?');
@@ -101,7 +101,7 @@ export function buildScreen(ctx: Ctx): Screen {
     const boardBox = h('div', { class: 'bd-boardbox' }, board);
     const ghost = h('div', { class: 'bd-ghost', hidden: true });
     el.replaceChildren(h('div', { class: 'buildg' },
-      h('div', { class: 'ghead' }, title, h('button', { class: 'bigbtn alt small', onClick: picker }, 'Otra figura'), exitBtn(ctx)),
+      h('div', { class: 'ghead' }, title, h('button', { class: 'bigbtn alt small', onClick: picker }, 'Otra figura')),
       status,
       h('div', { class: 'bd-main' }, boardBox, side),
       ghost));
@@ -289,6 +289,7 @@ export function buildScreen(ctx: Ctx): Screen {
   picker();
   return {
     el,
+    back: () => (el.querySelector('.bd-grid') ? false : (picker(), true)),
     destroy: () => cleanup?.(),
     onHelp: () => ctx.sayPair('Arrastra cada figura a su lugar, o tócala y luego toca su lugar. Cuando termines, toca un color y luego una pieza para pintarla.', 'Drag each shape to its place. Then pick a color and touch a piece to paint it.'),
   };

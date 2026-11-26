@@ -75,7 +75,7 @@ for (const vp of VIEWPORTS) {
   await shot('7-color');
   await clickText('button', 'Guardar');
   await sleep(500);
-  await page.evaluate(() => document.querySelector('.appbar .ibtn').click());
+  await page.evaluate(() => document.querySelector('[data-nav="home"]').click());
   await sleep(300);
   await clickText('.tile', 'Mi álbum');
   await sleep(500);
@@ -83,7 +83,7 @@ for (const vp of VIEWPORTS) {
   console.log(vp.name, 'album items', albumCount);
   await shot('8-album');
   // words: the revealed car must bring its words, each with ES and EN buttons
-  await page.evaluate(() => document.querySelector('.appbar .ibtn').click());
+  await page.evaluate(() => document.querySelector('[data-nav="home"]').click());
   await sleep(300);
   await clickText('.tile', 'Palabras');
   await sleep(300);
@@ -97,7 +97,7 @@ for (const vp of VIEWPORTS) {
   console.log(vp.name, 'word cards', words.cards);
   await shot('8b-words');
   // age: change it from the home screen without the parents' gate
-  await page.evaluate(() => document.querySelector('.appbar .ibtn').click());
+  await page.evaluate(() => document.querySelector('[data-nav="home"]').click());
   await sleep(300);
   await clickText('.hchip', 'Edad');
   await shot('8c-home-age');
@@ -106,7 +106,7 @@ for (const vp of VIEWPORTS) {
   if (age !== '7-9') problems.push(`[${vp.name}] age did not change (${age})`);
   // games: tic-tac-toe against the computer (age is 7–9 now: hard level) and two players
   const goGames = async () => {
-    await page.evaluate(() => document.querySelector('.appbar .ibtn').click());
+    await page.evaluate(() => document.querySelector('[data-nav="home"]').click());
     await sleep(300);
     await clickText('.tile', 'Juegos');
   };
@@ -130,7 +130,7 @@ for (const vp of VIEWPORTS) {
   }
   // guess the word, for each age: pick the picture / pick the word / spell (brute force on the tiles)
   for (const [age, label] of [['3-4', '3–4'], ['5-6', '5–6'], ['7-9', '7–9']]) {
-    await page.evaluate(() => document.querySelector('.appbar .ibtn').click());
+    await page.evaluate(() => document.querySelector('[data-nav="home"]').click());
     await sleep(300);
     await clickText('.hchip', 'Edad');
     await clickText('.agepick button', label);
@@ -173,13 +173,13 @@ for (const vp of VIEWPORTS) {
   await shot('13-guess-end');
   // math, abacus, maze, sudoku and crossword, for the oldest and (tablet) the youngest age
   const setAge = async (label) => {
-    await page.evaluate(() => document.querySelector('.appbar .ibtn').click());
+    await page.evaluate(() => document.querySelector('[data-nav="home"]').click());
     await sleep(300);
     await clickText('.hchip', 'Edad');
     await clickText('.agepick button', label);
   };
   const openGame = async (name) => {
-    await page.evaluate(() => document.querySelector('.appbar .ibtn').click());
+    await page.evaluate(() => document.querySelector('[data-nav="home"]').click());
     await sleep(300);
     await clickText('.tile', 'Juegos');
     await clickText('.gtile-card', name);
@@ -457,7 +457,7 @@ for (const vp of VIEWPORTS) {
   // the new Resonantes drawings must be solvable too (tablet only, to keep the run short)
   if (vp.name === 'tablet') {
     for (const [key, name] of [['mina', 'Mina'], ['kira', 'Kira'], ['micro', 'micrófono'], ['minaPop', 'Mina'], ['kiraPop', 'Kira'], ['estrella', 'estrella'], ['casa', 'casa'], ['granero', 'granero'], ['carreras', 'carreras'], ['camioneta', 'camioneta'], ['autobus', 'autobús'], ['mandalaFlor', 'flor'], ['mandalaCopo', 'copo'], ['mandalaSol', 'sol'], ['naraPop', 'Nara']]) {
-      await page.evaluate(() => document.querySelector('.appbar .ibtn').click());
+      await page.evaluate(() => document.querySelector('[data-nav="home"]').click());
       await sleep(300);
       await clickText('.tile', 'Unir puntos');
       await clickSel(`.pick-card[data-key="${key}"]`);
@@ -485,7 +485,10 @@ for (const vp of VIEWPORTS) {
     await clickText('.cdone button', 'Siguiente');
   }
   // parents: keyboard hold on the lock (Enter down 1.6 s)
-  await page.focus('.appbar .gate');
+  await clickSel('[data-nav="more"]');
+  await sleep(200);
+  await shot('9-more-menu');
+  await page.focus('.amenu .gate');
   await page.keyboard.down('Enter');
   await sleep(1700);
   await page.keyboard.up('Enter');
@@ -524,8 +527,35 @@ for (const vp of VIEWPORTS) {
   if (!quiz.includes('de 8')) problems.push(`[${vp.name}] parent quiz: ${quiz}`);
   await shot('15-parentquiz-result');
   await clickText('.pquiz button', 'Volver a Padres');
+  // back arrow in the top bar: inside Cuentos it steps back (story → list), then to Juegos, then Inicio
+  {
+    const nav = () => page.evaluate(() => {
+      const b = document.querySelector('[data-nav="back"]');
+      const r = b.getBoundingClientRect();
+      const where = document.querySelector('.st-text') ? 'story' : document.querySelector('.st-list') ? 'list' : document.querySelector('.games') ? 'games' : document.querySelector('.home') ? 'home' : 'other';
+      return { where, title: document.querySelector('.apptitle .t-main').textContent, shown: !b.hidden, x: Math.round(r.left), y: Math.round(r.top) };
+    });
+    await page.evaluate(() => document.querySelector('[data-nav="home"]').click());
+    await clickText('.tile', 'Juegos');
+    await clickText('.gtile-card', 'Cuentos');
+    await clickSel('.st-card');
+    await sleep(300);
+    const steps = [await nav()];
+    for (let i = 0; i < 3; i++) {
+      if (!steps[steps.length - 1].shown) break;
+      await clickSel('[data-nav="back"]');
+      await sleep(350);
+      steps.push(await nav());
+    }
+    const path = steps.map((x) => x.where).join(',');
+    console.log(vp.name, 'arrow:', steps.map((x) => `${x.where}(${x.title})`).join(' → '));
+    if (path !== 'story,list,games,home') problems.push(`[${vp.name}] back arrow path: ${path}`);
+    if (steps[0].x > 24 || steps[1].x !== steps[0].x || steps[2].x !== steps[0].x) problems.push(`[${vp.name}] back arrow moved: ${JSON.stringify(steps)}`);
+    if (steps[3]?.shown) problems.push(`[${vp.name}] back arrow shown on Inicio`);
+    if (!steps[1].title.startsWith('Cuentos')) problems.push(`[${vp.name}] bar title: ${steps[1].title}`);
+  }
   // phone back button: game → games menu → home → stays in the app
-  await page.evaluate(() => document.querySelector('.appbar .ibtn').click());
+  await page.evaluate(() => document.querySelector('[data-nav="home"]').click());
   await clickText('.tile', 'Juegos');
   await clickText('.gtile-card', 'Laberinto');
   const where = () => page.evaluate(() => (document.querySelector('.mazeg') ? 'maze' : document.querySelector('.games') ? 'games' : document.querySelector('.home') ? 'home' : 'other') + ' ' + location.href);

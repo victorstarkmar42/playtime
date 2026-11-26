@@ -5,7 +5,7 @@ import { recordStep } from '../../core/progress';
 import { settings } from '../../core/settings';
 import type { Ctx, Screen } from '../context';
 import { h } from '../dom';
-import { exitBtn, progressDots, shake } from './gamekit';
+import { progressDots, shake } from './gamekit';
 
 const ROUNDS = 5;
 const KIND_LABEL: Record<MathKind, { es: string; en: string; sym: string }> = {
@@ -34,7 +34,7 @@ export function mathScreen(ctx: Ctx): Screen {
     clearTimeout(timer);
     if (kinds.length === 1) return start(kinds[0]);
     wrap.replaceChildren(
-      h('div', { class: 'ghead' }, h('h2', null, 'Cuentas', h('small', null, 'Math · ¿Qué quieres practicar?')), exitBtn(ctx)),
+      h('div', { class: 'ghead' }, h('h2', null, 'Cuentas', h('small', null, 'Math · ¿Qué quieres practicar?'))),
       h('div', { class: 'mkinds' }, ...kinds.map((k) =>
         h('button', { class: `mkind k-${k}`, onClick: () => (ctx.sayPair(KIND_LABEL[k].es, KIND_LABEL[k].en), start(k)) },
           h('span', { class: 'msym' }, KIND_LABEL[k].sym), KIND_LABEL[k].es, h('small', null, KIND_LABEL[k].en)))),
@@ -72,8 +72,7 @@ export function mathScreen(ctx: Ctx): Screen {
       h('div', { class: 'ghead' },
         h('h2', null, KIND_LABEL[kind].es, h('small', null, KIND_LABEL[kind].en)),
         progressDots(ROUNDS, idx),
-        kinds.length > 1 ? h('button', { class: 'bigbtn alt small', onClick: menu }, 'Cambiar') : null,
-        exitBtn(ctx)),
+        kinds.length > 1 ? h('button', { class: 'bigbtn alt small', onClick: menu }, 'Cambiar') : null),
       h('div', { class: 'mq kcard' }, h('div', { class: `mtext${q.op.kind === 'count' ? ' small' : ''}` }, text), visual()),
       h('div', { class: 'mopts' }, ...q.options.map((n) => {
         const b: HTMLButtonElement = h('button', { class: 'mopt', onClick: () => answer(n, b) }, String(n));
@@ -124,12 +123,11 @@ export function mathScreen(ctx: Ctx): Screen {
         progressDots(ROUNDS, score, false),
         h('div', { class: 'kbtnrow' },
           h('button', { class: 'bigbtn', onClick: () => start(kind) }, 'Otra vez · Again'),
-          kinds.length > 1 ? h('button', { class: 'bigbtn alt', onClick: menu }, 'Otra cuenta') : null,
-          exitBtn(ctx))),
+          kinds.length > 1 ? h('button', { class: 'bigbtn alt', onClick: menu }, 'Otra cuenta') : null)),
     );
     ctx.sayPair(`${msg} ${score} de ${ROUNDS}.`, `${score} out of ${ROUNDS}.`);
   }
 
   menu();
-  return { el, destroy: () => clearTimeout(timer), onHelp: () => q && say() };
+  return { el, back: () => (kinds.length > 1 && !wrap.querySelector('.mkinds') ? (menu(), true) : false), destroy: () => clearTimeout(timer), onHelp: () => q && say() };
 }

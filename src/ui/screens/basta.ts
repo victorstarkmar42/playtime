@@ -4,7 +4,6 @@ import { primaryLang } from '../../core/lang';
 import { settings } from '../../core/settings';
 import type { Ctx, Screen } from '../context';
 import { h } from '../dom';
-import { exitBtn } from './gamekit';
 import { HEART_SVG, ROBOT_SVG, STAR_SVG } from './gato';
 
 type Who = 1 | 2;
@@ -52,7 +51,7 @@ export function bastaScreen(ctx: Ctx): Screen {
     choosing = true;
     running = false;
     wrap.replaceChildren(
-      h('div', { class: 'ghead' }, h('h2', null, 'Basta', h('small', null, 'Rueda de letras · Di una palabra y toca su primera letra')), exitBtn(ctx)),
+      h('div', { class: 'ghead' }, h('h2', null, 'Basta', h('small', null, 'Rueda de letras · Di una palabra y toca su primera letra'))),
       h('div', { class: 'gmodes' },
         h('button', { class: 'gmode', onClick: () => start('two') },
           h('span', { class: 'gpair' }, h('i', { html: STAR_SVG }), h('i', { html: HEART_SVG })),
@@ -104,7 +103,7 @@ export function bastaScreen(ctx: Ctx): Screen {
     loser = 0;
     running = false;
     wrap.replaceChildren(
-      h('div', { class: 'ghead' }, h('button', { class: 'bigbtn alt small gexit', onClick: chooseMode }, '← Salir · Exit'), h('h2', null, 'Basta')),
+      h('div', { class: 'ghead' }, h('h2', null, 'Basta')),
       h('div', { class: 'bbody' },
         h('div', { class: 'bside' },
           h('div', { class: 'bplayers' }, chips[1], chips[2]),
@@ -261,6 +260,7 @@ export function bastaScreen(ctx: Ctx): Screen {
   }
   return {
     el,
+    back: () => (choosing ? false : (chooseMode(), true)),
     busy: () => running,
     destroy: stopTimers,
     onHelp: () => (choosing

@@ -5,7 +5,7 @@ import { recordWord } from '../../core/progress';
 import { settings } from '../../core/settings';
 import type { Ctx, Screen } from '../context';
 import { canvas, h } from '../dom';
-import { exitBtn, progressDots, shake } from './gamekit';
+import { progressDots, shake } from './gamekit';
 
 const TW = 1024;
 const TH = 512;
@@ -296,7 +296,7 @@ export function globeScreen(ctx: Ctx): Screen {
 
   const el = h('div', { class: 'view' },
     h('div', { class: 'globeg' },
-      h('div', { class: 'ghead' }, h('h2', null, 'Países del mundo', h('small', null, 'Countries of the world')), quizBtn, exitBtn(ctx)),
+      h('div', { class: 'ghead' }, h('h2', null, 'Países del mundo', h('small', null, 'Countries of the world')), quizBtn),
       h('div', { class: 'gl-main' },
         h('div', { class: 'gl-stage' }, globe, h('div', { class: 'gl-q' }, status, dots)),
         info)));

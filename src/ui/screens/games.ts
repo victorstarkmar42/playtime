@@ -3,7 +3,6 @@ import { settings } from '../../core/settings';
 import { levelFor } from '../../core/tictactoe';
 import type { Ctx, Screen, ScreenName } from '../context';
 import { h } from '../dom';
-import { exitBtn } from './gamekit';
 import { HEART_SVG, LEVEL_LABEL, STAR_SVG } from './gato';
 
 const inner = (svg: string) => svg.replace(/<\/?svg[^>]*>/g, '');
@@ -59,7 +58,7 @@ export function gamesScreen(ctx: Ctx): Screen {
       h('span', { class: 'tile-ico', html: icon }), es, h('small', null, en), h('span', { class: 'ghelp' }, help));
   const el = h('div', { class: 'view' },
     h('div', { class: 'games' },
-      h('div', { class: 'ghead' }, h('h2', null, 'Juegos', h('small', null, `Games · Para ${age.replace('-', '–')} años (la edad se cambia en Inicio)`)), exitBtn(ctx, 'home')),
+      h('div', { class: 'ghead' }, h('h2', null, 'Juegos', h('small', null, `Games · Para ${age.replace('-', '–')} años (la edad se cambia en Inicio)`))),
       h('h3', { class: 'gsec' }, 'Para la escuela', h('small', null, 'School skills')),
       h('div', { class: 'games-grid' },
         card('stories', 'g15', ICON.stories, 'Cuentos', 'Stories', AGE_TEXT.stories[age]),

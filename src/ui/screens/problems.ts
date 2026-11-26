@@ -6,7 +6,7 @@ import { recordStep } from '../../core/progress';
 import { settings } from '../../core/settings';
 import type { Ctx, Screen } from '../context';
 import { h, ICONS } from '../dom';
-import { exitBtn, progressDots, shake } from './gamekit';
+import { progressDots, shake } from './gamekit';
 
 const ROUNDS = 5;
 const SYMS: Sym[] = ['+', '−', '×', '÷'];
@@ -53,7 +53,7 @@ export function problemsScreen(ctx: Ctx): Screen {
     wrap.replaceChildren(
       h('div', { class: 'ghead' },
         h('h2', null, 'Problemas', h('small', null, 'Word problems')),
-        progressDots(ROUNDS, idx), exitBtn(ctx)),
+        progressDots(ROUNDS, idx)),
       h('div', { class: `pb-card kcard${age === '3-4' ? ' little' : ''}` },
         h('button', { class: 'ibtn st-say', 'aria-label': 'Oír el problema', html: ICONS.speaker, onClick: read }),
         h('p', { class: 'pb-text' }, p[lang]),
@@ -132,7 +132,7 @@ export function problemsScreen(ctx: Ctx): Screen {
       h('div', { class: 'gend kcard' },
         h('h2', null, msg, h('small', null, `${score} de ${ROUNDS} al primer intento`)),
         progressDots(ROUNDS, score, false),
-        h('div', { class: 'kbtnrow' }, h('button', { class: 'bigbtn', onClick: begin }, 'Otra vez · Again'), exitBtn(ctx))),
+        h('div', { class: 'kbtnrow' }, h('button', { class: 'bigbtn', onClick: begin }, 'Otra vez · Again'))),
     );
     ctx.sayPair(`${msg} ${score} de ${ROUNDS}.`, `${score} out of ${ROUNDS}.`);
   }

@@ -5,7 +5,7 @@ import { recordStep } from '../../core/progress';
 import { settings } from '../../core/settings';
 import type { Ctx, Screen } from '../context';
 import { h, ICONS } from '../dom';
-import { exitBtn, progressDots, shake } from './gamekit';
+import { progressDots, shake } from './gamekit';
 
 /**
  * Cuentos: a short story read aloud sentence by sentence (the sentence, and the word when the voice
@@ -33,7 +33,7 @@ export function storiesScreen(ctx: Ctx): Screen {
     clearTimeout(timer);
     ctx.speaker.cancel();
     wrap.replaceChildren(
-      h('div', { class: 'ghead' }, h('h2', null, 'Cuentos', h('small', null, 'Stories · Elige un cuento')), exitBtn(ctx)),
+      h('div', { class: 'ghead' }, h('h2', null, 'Cuentos', h('small', null, 'Stories · Elige un cuento'))),
       h('div', { class: 'st-list' }, ...list.map((s) => {
         const t = tx(s.title.es, s.title.en);
         return h('button', { class: 'st-card', onClick: () => (speak(s.title[lang]), open(s)) },
@@ -67,7 +67,7 @@ export function storiesScreen(ctx: Ctx): Screen {
     }));
     const t = tx(s.title.es, s.title.en);
     wrap.replaceChildren(
-      h('div', { class: 'ghead' }, h('h2', null, `${s.pic} ${t.main}`, t.sub ? h('small', null, t.sub) : null), h('button', { class: 'bigbtn alt small', onClick: menu }, 'Cuentos'), exitBtn(ctx)),
+      h('div', { class: 'ghead' }, h('h2', null, `${s.pic} ${t.main}`, t.sub ? h('small', null, t.sub) : null), h('button', { class: 'bigbtn alt small', onClick: menu }, 'Cuentos')),
       h('div', { class: `st-page kcard${little ? ' big' : ''}` }, text),
       h('div', { class: 'kbtnrow st-actions' },
         h('button', { class: 'bigbtn violet', onClick: () => readFrom(0) }, h('span', { class: 'ico', html: ICONS.speaker }), 'Leer conmigo'),
@@ -114,8 +114,7 @@ export function storiesScreen(ctx: Ctx): Screen {
       h('div', { class: 'ghead' },
         h('h2', null, `${story.pic} ${tx(story.title.es, story.title.en).main}`),
         progressDots(story.questions.length, qi),
-        h('button', { class: 'bigbtn alt small', onClick: () => open(story) }, 'Ver cuento'),
-        exitBtn(ctx)),
+        h('button', { class: 'bigbtn alt small', onClick: () => open(story) }, 'Ver cuento')),
       h('div', { class: 'st-q kcard' },
         h('button', { class: 'ibtn st-say', 'aria-label': 'Oír la pregunta', html: ICONS.speaker, onClick: sayQ }),
         h('div', null, h('b', null, t.main), t.sub ? h('small', null, t.sub) : null)),
@@ -182,6 +181,11 @@ export function storiesScreen(ctx: Ctx): Screen {
   menu();
   return {
     el,
+    back: () => {
+      if (wrap.querySelector('.st-q, .gend')) return open(story), true;
+      if (wrap.querySelector('.st-text')) return menu(), true;
+      return false;
+    },
     destroy: () => (clearTimeout(timer), ctx.speaker.cancel()),
     onHelp: () => (wrap.querySelector('.st-q') ? sayQ() : wrap.querySelector('.st-text') ? readFrom(0) : ctx.sayPair('Elige un cuento', 'Pick a story')),
   };

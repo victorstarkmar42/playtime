@@ -29,7 +29,9 @@ Antes de dar un cambio por terminado: `npm run typecheck`, `npm test` y `npm run
 - `src/content/world.ts` (continentes y países) + `src/core/geo.ts` + `src/ui/screens/globe.ts`: Países del mundo.
 - Para la escuela: `src/content/stories.ts` + `src/ui/screens/stories.ts` (Cuentos), `src/core/syllables.ts` (Sílabas), `src/core/tables.ts` (Tablas, repaso espaciado guardado en `pym-tables`), `src/core/problems.ts` (Problemas). Cuentos y Sílabas usan el idioma principal de la voz (`primaryLang`), porque son lectura.
 - `src/core/flood.ts`: bote de pintura y la máscara de "colorear dentro" (todo lo cerrado por líneas).
-- `src/ui/screens/gamekit.ts`: `exitBtn` (cada juego debe tener botón Salir), `progressDots`, `shake`.
+- Navegación (`src/ui/app.ts`): la barra superior tiene la flecha **Atrás** siempre en el mismo lugar, el título de la pantalla, Ayuda, Voz y el menú **Más** (Inicio, Dibujos, idioma y Padres con pulsación larga). La flecha y el botón atrás del celular usan la misma función: primero `screen.back()` (un paso dentro del juego; devuelve `false` si ya no hay pasos) y luego `backTarget`. No pongas botones "Salir" dentro de las pantallas.
+- El título de la barra se toma del `h2` de `.ghead` (texto principal y `small`); ese `h2` no se muestra en la pantalla. Si una pantalla no tiene `.ghead`, agrega su título en `TITLES` de `app.ts`.
+- `src/ui/screens/gamekit.ts`: `progressDots`, `shake`.
 - `src/styles.css`: todos los estilos. Se adaptan con consultas de contenedor (`@container app`): vertical, ancho máximo de 600 px y 440 px, y alto máximo de 480 px.
 
 ## Reglas del proyecto

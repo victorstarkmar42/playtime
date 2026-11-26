@@ -5,7 +5,7 @@ import { settings } from '../../core/settings';
 import { sylKindFor, sylRounds, wordText, type SylRound } from '../../core/syllables';
 import type { Ctx, Screen } from '../context';
 import { h, ICONS } from '../dom';
-import { exitBtn, progressDots, shake } from './gamekit';
+import { progressDots, shake } from './gamekit';
 
 const ROUNDS = 5;
 
@@ -42,7 +42,7 @@ export function syllablesScreen(ctx: Ctx): Screen {
   function head(): HTMLElement {
     return h('div', { class: 'ghead' },
       h('h2', null, 'Sílabas', h('small', null, kind === 'clap' ? 'Syllables · ¿Cuántos aplausos?' : 'Syllables · Arma la palabra')),
-      progressDots(ROUNDS, idx), exitBtn(ctx));
+      progressDots(ROUNDS, idx));
   }
 
   function show(): void {
@@ -140,7 +140,7 @@ export function syllablesScreen(ctx: Ctx): Screen {
       h('div', { class: 'gend kcard' },
         h('h2', null, msg, h('small', null, `${score} de ${ROUNDS} al primer intento`)),
         h('div', { class: 'syl-done' }, ...rounds.map((x) => h('span', null, x.word.pic, h('small', null, x.parts.join('-'))))),
-        h('div', { class: 'kbtnrow' }, h('button', { class: 'bigbtn', onClick: begin }, 'Otra vez · Again'), exitBtn(ctx))),
+        h('div', { class: 'kbtnrow' }, h('button', { class: 'bigbtn', onClick: begin }, 'Otra vez · Again'))),
     );
     ctx.sayPair(`${msg} ${score} de ${ROUNDS}.`, `${score} out of ${ROUNDS}.`);
   }

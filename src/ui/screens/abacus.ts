@@ -4,7 +4,7 @@ import { recordStep } from '../../core/progress';
 import { settings } from '../../core/settings';
 import type { Ctx, Screen } from '../context';
 import { h } from '../dom';
-import { exitBtn, progressDots, shake } from './gamekit';
+import { progressDots, shake } from './gamekit';
 
 const ROUNDS = 5;
 const ROW_COLORS = ['#F2672E', '#3FA35B', '#7B61D9'];
@@ -67,8 +67,7 @@ export function abacusScreen(ctx: Ctx): Screen {
     wrap.replaceChildren(
       h('div', { class: 'ghead' },
         h('h2', null, free ? 'Ábaco libre' : `Pon el ${target}`, h('small', null, free ? 'Free play · Toca las cuentas' : `Show ${target} on the abacus`)),
-        free ? null : progressDots(ROUNDS, idx),
-        exitBtn(ctx)),
+        free ? null : progressDots(ROUNDS, idx)),
       h('div', { class: 'aframe' }, ...rowEls),
       h('div', { class: 'abottom' },
         showValue ? h('div', { class: 'avalue' }, String(value)) : null,
@@ -120,8 +119,7 @@ export function abacusScreen(ctx: Ctx): Screen {
         progressDots(ROUNDS, score, false),
         h('div', { class: 'kbtnrow' },
           h('button', { class: 'bigbtn', onClick: () => begin() }, 'Otra vez · Again'),
-          h('button', { class: 'bigbtn alt', onClick: () => begin(true) }, 'Ábaco libre'),
-          exitBtn(ctx))),
+          h('button', { class: 'bigbtn alt', onClick: () => begin(true) }, 'Ábaco libre'))),
     );
   }
 

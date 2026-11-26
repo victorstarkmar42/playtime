@@ -8,7 +8,6 @@ import type { CharKey } from '../../core/types';
 import { drawThumb } from '../../render/character';
 import type { Ctx, Screen } from '../context';
 import { canvas, h, ICONS } from '../dom';
-import { exitBtn } from './gamekit';
 
 const ROUNDS = 5;
 
@@ -161,7 +160,7 @@ export function guessScreen(ctx: Ctx): Screen {
         ));
     }
 
-    wrap.replaceChildren(h('div', { class: 'ghead' }, title, stars(), exitBtn(ctx)), body);
+    wrap.replaceChildren(h('div', { class: 'ghead' }, title, stars()), body);
     prompt();
   }
 
@@ -173,7 +172,6 @@ export function guessScreen(ctx: Ctx): Screen {
         h('div', { class: 'gstars big' }, ...rounds.map((_, i) => h('span', { class: i < score ? 'done' : '' }))),
         h('div', { class: 'kbtnrow' },
           h('button', { class: 'bigbtn', onClick: begin }, 'Jugar otra vez · Again'),
-          exitBtn(ctx),
         ),
       ),
     );

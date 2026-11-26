@@ -8,7 +8,7 @@ import { settings } from '../../core/settings';
 import { drawThumb } from '../../render/character';
 import type { Ctx, Screen } from '../context';
 import { canvas, h } from '../dom';
-import { exitBtn, shake } from './gamekit';
+import { shake } from './gamekit';
 
 /** A clue is a picture, a colour swatch or a number: no reading needed to know the word. */
 type Clue = { word: string; es: string; en: string; draw: () => HTMLElement };
@@ -128,7 +128,7 @@ export function crosswordScreen(ctx: Ctx): Screen {
   }
 
   wrap.append(
-    h('div', { class: 'ghead' }, h('h2', null, 'Crucigrama', h('small', null, `Crossword · Toca un dibujo y escribe su nombre${lang === 'en' ? ' en inglés' : ''}`)), exitBtn(ctx)),
+    h('div', { class: 'ghead' }, h('h2', null, 'Crucigrama', h('small', null, `Crossword · Toca un dibujo y escribe su nombre${lang === 'en' ? ' en inglés' : ''}`))),
     status,
     h('div', { class: 'cbox' }, h('div', { class: 'cleft' }, gridEl, keys), clueEl),
     h('div', { class: 'kbtnrow gbtns' }, h('button', { class: 'bigbtn alt small', onClick: start }, 'Otro crucigrama · New')),

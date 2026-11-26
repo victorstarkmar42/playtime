@@ -3,7 +3,6 @@ import { canStep, DIRS, E, makeMaze, mazeSize, N, S, solveMaze, W, type Maze } f
 import { settings } from '../../core/settings';
 import type { Ctx, Screen } from '../context';
 import { canvas, h } from '../dom';
-import { exitBtn } from './gamekit';
 
 const CELL = 90;
 const PAD = 14;
@@ -150,7 +149,7 @@ export function mazeScreen(ctx: Ctx): Screen {
   }
 
   wrap.append(
-    h('div', { class: 'ghead' }, h('h2', null, 'Laberinto', h('small', null, 'Maze · Arrastra el dedo por el camino')), exitBtn(ctx)),
+    h('div', { class: 'ghead' }, h('h2', null, 'Laberinto', h('small', null, 'Maze · Arrastra el dedo por el camino'))),
     status,
     h('div', { class: 'mazebox' }, h('div', { class: 'mazewrap', style: `--ar:${cv.width / cv.height}` }, cv),
       h('div', { class: 'marrows' }, arrow(0, 'Arriba', '▲'), arrow(3, 'Izquierda', '◀'), arrow(1, 'Derecha', '▶'), arrow(2, 'Abajo', '▼'))),

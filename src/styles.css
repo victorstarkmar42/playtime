@@ -468,7 +468,7 @@ h2 small, .pick h2 small, .album h2 small { display: block; font-family: var(--f
 }
 @container app (max-width: 440px) {
   .appbar { gap: 4px; padding-left: max(8px, env(safe-area-inset-left)); padding-right: max(8px, env(safe-area-inset-right)); }
-  .ibtn { width: 44px; height: 44px; border-radius: 13px; }
+  .ibtn { width: 48px; height: 48px; border-radius: 13px; }
   .ibtn svg { width: 24px; height: 24px; }
   .langpill { height: 44px; padding: 0 8px; font-size: .85rem; border-radius: 13px; }
   .main { padding: 8px; gap: 8px; }
@@ -477,8 +477,8 @@ h2 small, .pick h2 small, .album h2 small { display: block; font-family: var(--f
 }
 @container app (max-height: 480px) {
   .appbar { padding-top: max(4px, env(safe-area-inset-top)); padding-bottom: 4px; }
-  .ibtn, .langpill { height: 42px; }
-  .ibtn { width: 42px; }
+  .ibtn, .langpill { height: 48px; }
+  .ibtn { width: 48px; }
   .prompt { font-size: 1.6rem; }
   .main { padding: 6px 10px; gap: 8px; }
   .home { grid-template-rows: minmax(150px, 1fr) auto auto; grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr 1fr; }
@@ -868,4 +868,58 @@ h2 small, .pick h2 small, .album h2 small { display: block; font-family: var(--f
   .tabg .mq { padding: 8px; }
   .tabg .mtext { font-size: 2.2rem; }
   .pb-group { font-size: 1.4rem; }
+}
+
+/* ---------- top bar like a phone app: back · title · help · voice · more ---------- */
+.appbar { position: relative; z-index: 15; gap: 4px; min-height: calc(64px + env(safe-area-inset-top, 0px));
+  padding: max(8px, env(safe-area-inset-top, 0px)) max(8px, env(safe-area-inset-right, 0px)) 8px max(8px, env(safe-area-inset-left, 0px)); }
+.appbar .ibtn { width: 48px; height: 48px; border-radius: 14px; }
+.ibtn.nav, .ibtn[data-nav="more"] { background: transparent; }
+.ibtn.nav svg { width: 30px; height: 30px; }
+.ibtn.nav:active, .ibtn[data-nav="more"]:active { background: rgba(34, 48, 79, .08); }
+.apptitle { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; padding: 0 6px; }
+.apptitle .t-main { font-size: 1.35rem; font-weight: 800; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.apptitle .t-sub { font-family: var(--f-body); font-size: .8rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.apptitle.brand .t-main { color: var(--dot); font-size: 1.55rem; }
+.ibtn.nav[hidden] + .apptitle { padding-left: 10px; }
+.amenu { position: absolute; top: calc(100% - 6px); right: max(8px, env(safe-area-inset-right, 0px)); z-index: 30; min-width: 260px; max-width: calc(100cqw - 16px);
+  display: flex; flex-direction: column; padding: 6px; background: #fff; border-radius: 16px; box-shadow: 0 8px 24px #22304F26; }
+.mitem { position: relative; display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 14px; border: 0; border-radius: 12px; background: none;
+  font-size: 1.05rem; font-weight: 700; text-align: left; cursor: pointer; overflow: hidden; }
+.mitem:hover, .mitem:active { background: rgba(34, 48, 79, .08); }
+.mitem[aria-current="true"] { color: var(--dot); }
+.mico { display: grid; place-items: center; width: 28px; flex: none; }
+.mico svg { width: 24px; height: 24px; }
+.mitem.gate .ring { -webkit-mask: linear-gradient(#000 0 0) bottom / 100% 5px no-repeat; mask: linear-gradient(#000 0 0) bottom / 100% 5px no-repeat;
+  background: linear-gradient(90deg, var(--dot) calc(var(--p, 0) * 100%), transparent 0); }
+
+/* the title lives in the bar; each screen's heading row keeps only progress and actions */
+.ghead h2 { display: none; }
+.ghead:not(:has(> :not(h2))) { display: none; }
+.ghead { flex-wrap: nowrap; }
+.ghead .gstars { margin-right: auto; }
+.ghead .bigbtn { flex: none; }
+.bigbtn.small { min-height: 48px; }
+
+/* moving between screens: forward slides in from the right, back from the left */
+@keyframes view-in-fwd { from { opacity: 0; transform: translateX(16px); } }
+@keyframes view-in-back { from { opacity: 0; transform: translateX(-16px); } }
+.view.enter-fwd { animation: view-in-fwd .18s cubic-bezier(.2, 0, 0, 1); }
+.view.enter-back { animation: view-in-back .18s cubic-bezier(.2, 0, 0, 1); }
+.screen.reduced .view { animation: none; }
+.screen.reduced .bigbtn:active, .screen.reduced .mopt:active, .screen.reduced .st-opt:active { transform: none; }
+.view { overscroll-behavior-y: contain; }
+
+/* touch feedback on answers and cards */
+.mopt:active, .st-opt:active, .st-card:active, .tab-btn:active, .syl-clap:active, .syl-tile:active, .tile:active { transform: scale(.98); }
+
+@container app (max-width: 440px) {
+  .appbar { gap: 2px; padding-left: max(4px, env(safe-area-inset-left, 0px)); padding-right: max(4px, env(safe-area-inset-right, 0px)); }
+  .appbar .ibtn { width: 48px; height: 48px; }
+  .apptitle .t-main { font-size: 1.2rem; }
+}
+@container app (max-height: 480px) {
+  .appbar { min-height: calc(56px + env(safe-area-inset-top, 0px)); padding-top: max(4px, env(safe-area-inset-top, 0px)); padding-bottom: 4px; }
+  .appbar .ibtn { width: 48px; height: 48px; }
+  .apptitle .t-sub { display: none; }
 }

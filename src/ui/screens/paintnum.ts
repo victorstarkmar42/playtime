@@ -9,7 +9,7 @@ import { drawThumb, pathOf } from '../../render/character';
 import { INK } from '../../render/primitives';
 import type { Ctx, Screen } from '../context';
 import { canvas, h } from '../dom';
-import { exitBtn, shake } from './gamekit';
+import { shake } from './gamekit';
 import { drawZoomed, zoomOf } from './reveal';
 
 type Mode = 'zones' | 'squares';
@@ -163,7 +163,7 @@ export function paintnumScreen(ctx: Ctx): Screen {
         th, h('span', null, ch.label), done.has(`${lastMode}:${key}`) ? h('b', { class: 'pn-check', 'aria-label': 'terminado' }, '✓') : null);
     }));
     el.replaceChildren(h('div', { class: 'pick pnpick' },
-      h('div', { class: 'ghead' }, h('h2', null, 'Pinta por números', h('small', null, sym ? 'Paint by shapes · Cada figura tiene su color' : 'Paint by numbers · Cada número tiene su color')), exitBtn(ctx)),
+      h('div', { class: 'ghead' }, h('h2', null, 'Pinta por números', h('small', null, sym ? 'Paint by shapes · Cada figura tiene su color' : 'Paint by numbers · Cada número tiene su color'))),
       tabs, grid));
     el.scrollTop = 0;
   }
@@ -423,7 +423,7 @@ export function paintnumScreen(ctx: Ctx): Screen {
       h('button', { class: 'bigbtn alt', onClick: () => play(key, mode === 'zones' ? 'squares' : 'zones') }, mode === 'zones' ? 'En cuadritos' : 'En zonas'));
     const stage = h('div', { class: `pn-stage ${mode}` }, paint, lines, marks);
     el.replaceChildren(h('div', { class: 'pnplay' },
-      h('div', { class: 'ghead' }, h('button', { class: 'bigbtn alt small gexit', onClick: showPicker }, '← Dibujos'), h('h2', null, ch.label, h('small', null, mode === 'zones' ? 'Zonas' : 'Cuadritos'))),
+      h('div', { class: 'ghead' }, h('h2', null, ch.label, h('small', null, mode === 'zones' ? 'Zonas' : 'Cuadritos'))),
       h('div', { class: 'pn-body' }, h('div', { class: 'pn-box' }, stage), pal),
       status, actions));
 
@@ -504,6 +504,7 @@ export function paintnumScreen(ctx: Ctx): Screen {
   showPicker();
   return {
     el,
+    back: () => (playing ? (showPicker(), true) : false),
     onHelp: () => ctx.sayPair(sym ? 'Cada figura tiene su color. Toca el color y luego las partes con esa figura.' : 'Cada número tiene su color. Toca el número y luego las partes con ese número.', 'Each number has its own color.'),
   };
 }

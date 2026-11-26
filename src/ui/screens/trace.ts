@@ -5,7 +5,6 @@ import { settings } from '../../core/settings';
 import { advance, figureBounds, resample, TRACE_NUMBERS, TRACE_SHAPES, TRACE_STEP, TRACE_TOL, type TraceFigure } from '../../core/trace';
 import type { Ctx, Screen } from '../context';
 import { canvas, h, ICONS } from '../dom';
-import { exitBtn } from './gamekit';
 
 const RAINBOW = ['#FF3EA5', '#FF8A1F', '#FFE53D', '#45F27A', '#3D8BFF', '#A04DFF'];
 const BRUSHES: { es: string; colors: string[] }[] = [
@@ -90,7 +89,7 @@ export function traceScreen(ctx: Ctx): Screen {
         h('div', { class: 'tpick-grid' }, ...figures.filter((f) => f.group === g).map((f) =>
           h('button', { class: 'tpick-card', dataset: { id: f.id }, 'aria-label': f.es, onClick: () => (pop(520, 0.1), play(f)) }, thumb(f), h('span', null, f.es))))));
     el.replaceChildren(h('div', { class: 'tpick' },
-      h('div', { class: 'ghead' }, h('h2', null, 'Trazos de luz', h('small', null, 'Light trails · Sigue la línea con tu dedo')), exitBtn(ctx)),
+      h('div', { class: 'ghead' }, h('h2', null, 'Trazos de luz', h('small', null, 'Light trails · Sigue la línea con tu dedo'))),
       ...sections));
     el.scrollTop = 0;
   }
@@ -123,7 +122,6 @@ export function traceScreen(ctx: Ctx): Screen {
     const title = h('h2', null, fig.es, h('small', null, fig.en));
     const undoBtn = h('button', { class: 'bigbtn alt small ticon', 'aria-label': 'Deshacer', html: ICONS.undo, onClick: undo });
     const nextBtn = h('button', { class: 'bigbtn small', onClick: () => play(figures[(figures.indexOf(fig) + 1) % figures.length]) }, 'Otra →');
-    const backBtn = h('button', { class: 'bigbtn alt small gexit', onClick: showPicker }, '← Figuras');
     const status = h('p', { class: 'tstatus', role: 'status' }, 'Empieza en la luz que brilla y sigue la línea.');
     const brushes = h('div', { class: 'tbrushes', role: 'radiogroup', 'aria-label': 'Colores de luz' },
       ...BRUSHES.map((b, i) => h('button', {
@@ -137,7 +135,7 @@ export function traceScreen(ctx: Ctx): Screen {
       }, h('i'))));
     const wrap = h('div', { class: 'twrap' }, cv);
     el.replaceChildren(h('div', { class: 'traceg' },
-      h('div', { class: 'ghead' }, backBtn, title, undoBtn, nextBtn),
+      h('div', { class: 'ghead' }, title, undoBtn, nextBtn),
       h('div', { class: 'tbody' }, wrap, brushes),
       status));
 
@@ -483,6 +481,7 @@ export function traceScreen(ctx: Ctx): Screen {
   showPicker();
   return {
     el,
+    back: () => (stop ? (showPicker(), true) : false),
     destroy: () => stop?.(),
     onHelp: () => ctx.sayPair('Pon tu dedo en la estrellita que brilla y sigue la línea sin soltar', 'Put your finger on the shining star and follow the line'),
   };

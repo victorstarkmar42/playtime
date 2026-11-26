@@ -3,7 +3,7 @@ import { makeSudoku, sudokuFor, type Sudoku } from '../../core/puzzles';
 import { settings } from '../../core/settings';
 import type { Ctx, Screen } from '../context';
 import { h } from '../dom';
-import { exitBtn, shake } from './gamekit';
+import { shake } from './gamekit';
 import { HEART_SVG, STAR_SVG } from './gato';
 
 const PICS = [
@@ -82,7 +82,7 @@ export function sudokuScreen(ctx: Ctx): Screen {
   }
 
   wrap.append(
-    h('div', { class: 'ghead' }, h('h2', null, 'Sudoku', h('small', null, spec.pictures ? 'Con dibujos · Toca un espacio y luego un dibujo' : 'Toca un espacio y luego un número')), exitBtn(ctx)),
+    h('div', { class: 'ghead' }, h('h2', null, 'Sudoku', h('small', null, spec.pictures ? 'Con dibujos · Toca un espacio y luego un dibujo' : 'Toca un espacio y luego un número'))),
     status,
     h('div', { class: 'sbox' }, board, palette),
     h('div', { class: 'kbtnrow gbtns' }, h('button', { class: 'bigbtn alt small', onClick: start }, 'Otro sudoku · New')),

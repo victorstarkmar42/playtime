@@ -3,7 +3,6 @@ import { settings } from '../../core/settings';
 import { aiMove, emptyBoard, isFull, levelFor, other, winner, type Cell, type Player } from '../../core/tictactoe';
 import type { Ctx, Screen } from '../context';
 import { h } from '../dom';
-import { exitBtn } from './gamekit';
 
 export const STAR_SVG = '<svg viewBox="0 0 100 100"><path d="M50 8l12 29 32 3-24 21 8 31-28-17-28 17 8-31-24-21 32-3z" fill="#FFD54A" stroke="#22304F" stroke-width="5" stroke-linejoin="round"/></svg>';
 export const HEART_SVG = '<svg viewBox="0 0 100 100"><path d="M50 88C20 66 8 50 8 33a21 21 0 0142-9 21 21 0 0142 9c0 17-12 33-42 55z" fill="#FF6FA5" stroke="#22304F" stroke-width="5" stroke-linejoin="round"/></svg>';
@@ -35,7 +34,7 @@ export function gatoScreen(ctx: Ctx): Screen {
   function chooseMode(): void {
     clearTimeout(timer);
     wrap.replaceChildren(
-      h('div', { class: 'ghead' }, h('h2', null, 'Gato', h('small', null, 'Tic-tac-toe · Pon tres iguales en línea: derecho, de lado o en diagonal')), exitBtn(ctx)),
+      h('div', { class: 'ghead' }, h('h2', null, 'Gato', h('small', null, 'Tic-tac-toe · Pon tres iguales en línea: derecho, de lado o en diagonal'))),
       h('div', { class: 'gmodes' },
         h('button', { class: 'gmode', onClick: () => start('two') },
           h('span', { class: 'gpair' }, h('i', { html: STAR_SVG }), h('i', { html: HEART_SVG })),
@@ -133,11 +132,10 @@ export function gatoScreen(ctx: Ctx): Screen {
       h('div', { class: 'kbtnrow gbtns' },
         over ? h('button', { class: 'bigbtn', onClick: newRound }, 'Otra vez · Again') : null,
         h('button', { class: 'bigbtn alt small', onClick: chooseMode }, 'Cambiar jugadores'),
-        exitBtn(ctx),
       ),
     );
   }
 
   chooseMode();
-  return { el, destroy: () => clearTimeout(timer), onHelp: () => (choosing ? sayChoices() : mode === 'cpu' ? ctx.sayPair('Toca una casilla. Gana quien pone tres iguales en línea. Robi es un robot: cuando es su turno, él solo pone su ficha.', 'Touch a square. Three in a row wins. Robi is a robot: on his turn he plays by himself.') : ctx.sayPair('Toca una casilla. Gana quien pone tres iguales en línea.', 'Touch a square. Three in a row wins.')) };
+  return { el, back: () => (choosing ? false : (chooseMode(), true)), destroy: () => clearTimeout(timer), onHelp: () => (choosing ? sayChoices() : mode === 'cpu' ? ctx.sayPair('Toca una casilla. Gana quien pone tres iguales en línea. Robi es un robot: cuando es su turno, él solo pone su ficha.', 'Touch a square. Three in a row wins. Robi is a robot: on his turn he plays by himself.') : ctx.sayPair('Toca una casilla. Gana quien pone tres iguales en línea.', 'Touch a square. Three in a row wins.')) };
 }

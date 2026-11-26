@@ -6,6 +6,8 @@ import type { GameSession } from '../game/session';
 
 export type ScreenName = 'onboarding' | 'home' | 'pick' | 'dots' | 'color' | 'album' | 'words' | 'games' | 'gato' | 'guess' | 'math' | 'abacus' | 'maze' | 'sudoku' | 'crossword' | 'letters' | 'trace' | 'reveal' | 'paintnum' | 'basta' | 'build' | 'globe' | 'stories' | 'syllables' | 'tables' | 'problems' | 'parents' | 'parentquiz';
 
+export type NavDir = 'fwd' | 'back' | 'none';
+
 export interface Screen {
   el: HTMLElement;
   destroy?(): void;
@@ -13,6 +15,11 @@ export interface Screen {
   onHelp?(): void;
   /** True while an eye break must wait (e.g. a timed round is running). */
   busy?(): boolean;
+  /**
+   * Back arrow / phone back button: go one step back inside the screen (questions → story → list).
+   * Return false when there is no inner step left, and the app opens the previous screen.
+   */
+  back?(): boolean;
 }
 
 export interface AppState {
@@ -28,7 +35,8 @@ export interface Ctx {
   state: AppState;
   speaker: Speaker;
   timer: PlayTimer;
-  show(name: ScreenName): void;
+  /** Opens a screen. 'back' animates as a return; 'none' redraws in place (e.g. after a language change). */
+  show(name: ScreenName, dir?: NavDir): void;
   toast(msg: string): void;
   /** Says a phrase in the parent's chosen language order. */
   sayPair(es: string, en: string): void;
