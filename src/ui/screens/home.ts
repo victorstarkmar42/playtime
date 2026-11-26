@@ -7,10 +7,10 @@ import { drawThumb } from '../../render/character';
 import type { Ctx, Screen } from '../context';
 import { canvas, h } from '../dom';
 import { renderInstall } from '../pwa';
-import { lastGame, openGame } from './games';
+import { GAME_CATS, gamesForAge, lastGame, openGame } from './games';
+import { listAlbum } from '../../core/album';
 
 const GLOBE_ICON = '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#3B8FD9" stroke="#22304F" stroke-width="4"/><path d="M24 30c8-6 18-4 20 4s-6 10-4 18-8 12-14 6-10-22-2-28zM56 22c10 0 20 6 22 14-6 2-10-2-16 2s-2 12-8 14-10-8-8-16 2-14 10-14zM60 62c6-2 14 0 14 6s-6 12-12 10-8-14-2-16z" fill="#5DBB63" stroke="#22304F" stroke-width="3" stroke-linejoin="round"/><ellipse cx="38" cy="30" rx="12" ry="6" fill="#fff" opacity=".25"/></svg>';
-const DOTS_ICON = '<svg viewBox="0 0 100 100"><g fill="#F2672E"><circle cx="50" cy="12" r="6"/><circle cx="61" cy="38" r="6"/><circle cx="90" cy="40" r="6"/><circle cx="67" cy="60" r="6"/><circle cx="76" cy="88" r="6"/><circle cx="50" cy="72" r="6"/><circle cx="24" cy="88" r="6"/><circle cx="33" cy="60" r="6"/></g><path d="M50 12L61 38 90 40 67 60 76 88 50 72" fill="none" stroke="#22304F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const COLOR_ICON = '<svg viewBox="0 0 100 100"><path d="M22 78c10-4 18-14 28-30s22-24 30-22" fill="none" stroke="#3FA35B" stroke-width="12" stroke-linecap="round"/><path d="M64 14l22 22-38 38-26 4 4-26z" fill="#FFD54A" stroke="#22304F" stroke-width="4" stroke-linejoin="round"/></svg>';
 const ALBUM_ICON = '<svg viewBox="0 0 100 100"><rect x="14" y="20" width="72" height="60" rx="10" fill="#fff" stroke="#22304F" stroke-width="4"/><circle cx="36" cy="42" r="8" fill="#F2B91C"/><path d="M18 76l22-20 14 12 12-10 18 18" fill="#B9A8FF" stroke="#22304F" stroke-width="4" stroke-linejoin="round"/></svg>';
 const WORDS_ICON = '<svg viewBox="0 0 100 100"><rect x="8" y="16" width="52" height="40" rx="12" fill="#fff" stroke="#22304F" stroke-width="4"/><path d="M20 56l-4 14 16-14" fill="#fff" stroke="#22304F" stroke-width="4" stroke-linejoin="round"/><text x="34" y="44" font-size="22" font-weight="800" text-anchor="middle" fill="#F2672E" font-family="sans-serif">ES</text><rect x="42" y="42" width="50" height="38" rx="12" fill="#B9A8FF" stroke="#22304F" stroke-width="4"/><path d="M80 80l4 12-14-12" fill="#B9A8FF" stroke="#22304F" stroke-width="4" stroke-linejoin="round"/><text x="67" y="69" font-size="22" font-weight="800" text-anchor="middle" fill="#22304F" font-family="sans-serif">EN</text></svg>';
@@ -20,9 +20,20 @@ const GEAR_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 
 const AGE_LABEL: Record<Age, string> = { '3-4': '3–4 años', '5-6': '5–6 años', '7-9': '7–9 años' };
 
+/** An original mystery figure (a fish), half-joined; the next dot is the one that shines. */
+const HERO_DOTS = (() => {
+  const P = [[20, 62], [52, 32], [92, 20], [132, 28], [162, 50], [194, 30], [188, 62], [194, 94], [162, 76], [132, 98], [92, 106], [52, 94]];
+  const NUM = [[14, 52], [48, 22], [92, 10], [136, 18], [170, 44], [203, 24], [200, 64], [208, 100], [168, 90], [134, 114], [92, 119], [46, 108]];
+  const done = 7;
+  const line = P.slice(0, done).map((p) => p.join(',')).join(' ');
+  const dots = P.map(([x, y], i) => (i === done
+    ? `<circle class="hhero-next" cx="${x}" cy="${y}" r="11" fill="#FFE53D" opacity=".6"/><circle cx="${x}" cy="${y}" r="6.5" fill="#F2672E" stroke="#22304F" stroke-width="2"/>`
+    : `<circle cx="${x}" cy="${y}" r="5" fill="#F2672E"/>`)).join('');
+  const nums = NUM.map(([x, y], i) => `<text x="${x}" y="${y}"${i === done ? ' font-weight="800" font-size="11"' : ''}>${i + 1}</text>`).join('');
+  return `<svg viewBox="0 0 220 124"><polyline points="${line}" fill="none" stroke="#22304F" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>${dots}<g font-family="Lexend, sans-serif" font-size="9" font-weight="500" fill="#22304F" text-anchor="middle">${nums}</g></svg>`;
+})();
+
 export function homeScreen(ctx: Ctx): Screen {
-  const tile = (cls: string, icon: string, es: string, en: string, onClick: () => void) =>
-    h('button', { class: `tile ${cls}`, onClick: () => (ctx.sayPair(es, en), onClick()) }, h('span', { class: 'tile-ico', html: icon }), es, h('small', null, en));
 
   const g = ctx.state.game;
   const play = () => h('span', { class: 'hcont-go', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></svg>' });
@@ -80,22 +91,50 @@ export function homeScreen(ctx: Ctx): Screen {
   const install = h('div', { class: 'install', hidden: true });
   renderInstall(install);
 
+  // "Unir puntos" is the cover: a mystery drawing half-joined, the next number shining
+  const hero = h('button', { class: 'tile main hhero', 'aria-label': 'Unir puntos: jugar', onClick: () => (ctx.sayPair('Unir puntos', 'Connect the dots'), (ctx.state.pickFor = 'dots'), ctx.show('pick')) },
+    h('span', { class: 'hhero-head' }, h('b', null, 'Unir puntos'), h('small', null, 'Connect the dots')),
+    h('span', { class: 'hhero-ask' }, '¿Qué dibujo se esconde hoy?'),
+    h('span', { class: 'hhero-art', html: HERO_DOTS }),
+    h('span', { class: 'hhero-go' }, h('span', { 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24"><path d="M7 4.5v15l12.5-7.5z"/></svg>' }), 'Jugar'));
+
+  const quad = (cls: string, icon: string, es: string, en: string, onClick: () => void, extra?: HTMLElement) =>
+    h('button', { class: `tile hq ${cls}`, onClick: () => (ctx.sayPair(es, en), onClick()) },
+      h('span', { class: 'hq-top' }, h('span', { class: 'tile-ico', html: icon }), extra ?? null),
+      h('span', { class: 'hq-name' }, es, h('small', null, en)));
+  const catDots = h('span', { class: 'hq-cats', 'aria-hidden': 'true' }, ...GAME_CATS.map((c) => h('i', { class: `cat-${c.id}` })));
+
+  const albumCount = h('small', null);
+  void listAlbum().then((items) => (albumCount.textContent = items.length ? ` · ${items.length} ${items.length === 1 ? 'dibujo' : 'dibujos'}` : '')).catch(() => {});
+  const album = h('button', { class: 'tile halbum', onClick: () => (ctx.sayPair('Mi álbum', 'My album'), ctx.show('album')) },
+    h('span', { class: 'tile-ico', html: ALBUM_ICON }),
+    h('span', { class: 'halbum-name' }, 'Mi álbum', albumCount),
+    h('span', { class: 'halbum-go', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>' }));
+
   const el = h(
     'div',
-    { class: 'view' },
+    { class: 'view homeview' },
     h('div', { class: 'home' },
-      cont,
-      h('div', { class: 'htiles' },
-        tile('main', DOTS_ICON, 'Unir puntos', 'Connect the dots', () => ((ctx.state.pickFor = 'dots'), ctx.show('pick'))),
-        tile('c2', COLOR_ICON, 'Colorear', 'Color', () => ((ctx.state.pickFor = 'color'), ctx.show('pick'))),
-        tile('c3', ALBUM_ICON, 'Mi álbum', 'My album', () => ctx.show('album')),
-        tile('c4', WORDS_ICON, 'Palabras', 'Words', () => ctx.show('words')),
-        tile('c5', GAMES_ICON, 'Juegos', 'Games', () => ctx.show('games')),
-        tile('c6', GLOBE_ICON, 'Países', 'Countries', () => ctx.show('globe')),
+      hero,
+      h('div', { class: 'hside' },
+        cont,
+        h('div', { class: 'hquad' },
+          quad('c2', COLOR_ICON, 'Colorear', 'Color', () => ((ctx.state.pickFor = 'color'), ctx.show('pick'))),
+          quad('c4', WORDS_ICON, 'Palabras', 'Words', () => ctx.show('words')),
+          quad('c5', GAMES_ICON, 'Juegos', `${gamesForAge().length} juegos · Games`, () => ctx.show('games'), catDots),
+          quad('c6', GLOBE_ICON, 'Países', 'Countries', () => ctx.show('globe')),
+        ),
+        album,
       ),
       install,
       prefs,
     ),
   );
-  return { el };
+  return {
+    el,
+    onHelp: () => ctx.sayPair(
+      'Toca Unir puntos para descubrir el dibujo escondido. También puedes colorear, oír palabras, jugar o conocer países.',
+      'Touch Connect the dots to find the hidden drawing. You can also color, hear words, play games or visit countries.',
+    ),
+  };
 }

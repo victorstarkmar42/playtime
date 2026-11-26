@@ -91,7 +91,7 @@ export function createApp(root: HTMLElement): void {
   const titleMain = h('span', { class: 't-main' });
   const titleSub = h('span', { class: 't-sub' });
   const titleEl = h('div', { class: 'apptitle' }, titleMain, titleSub);
-  const btnHelp = h('button', { class: 'ibtn', 'aria-label': 'Ayuda', title: 'Ayuda', html: ICONS.hand });
+  const btnHelp = h('button', { class: 'ibtn', 'aria-label': 'Ayuda', title: 'Ayuda', html: ICONS.help });
   const btnVoice = h('button', { class: 'ibtn', 'aria-label': 'Voz', title: 'Voz' });
   const btnMore = h('button', { class: 'ibtn', 'aria-label': 'Más opciones', title: 'Más', 'aria-haspopup': 'menu', 'aria-expanded': 'false', 'data-nav': 'more', html: ICONS.more });
   const item = (nav: string, icon: string, label: string, extra = '') =>

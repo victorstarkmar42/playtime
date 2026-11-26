@@ -1,5 +1,16 @@
 # Cambios
 
+## 0.16.0 — 2026-11-26
+
+Nueva vista principal (Inicio):
+
+- Fondo de **papel punteado**, como de unir puntos.
+- **Unir puntos es la portada:** un dibujo misterioso a medio unir, con el siguiente número brillando, la pregunta "¿Qué dibujo se esconde hoy?" y un botón **Jugar**. En tableta y laptop ocupa la mitad izquierda.
+- **Colorear, Palabras, Juegos y Países** en tarjetas con el dibujo arriba y el nombre abajo, como una app. Juegos muestra los colores de sus tipos y cuántos juegos hay.
+- **Mi álbum** pasa a una franja que dice cuántos dibujos hay guardados.
+- **Seguir jugando** más compacto.
+- El botón de **Ayuda** ahora es un signo de interrogación (antes una manita) y en Inicio la voz explica qué se puede hacer.
+
 ## 0.15.0 — 2026-11-26
 
 Rediseño de Inicio y Juegos:
