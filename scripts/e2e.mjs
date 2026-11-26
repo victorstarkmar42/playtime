@@ -99,7 +99,7 @@ for (const vp of VIEWPORTS) {
   // age: change it from the home screen without the parents' gate
   await page.evaluate(() => document.querySelector('[data-nav="home"]').click());
   await sleep(300);
-  await clickText('.hchip', 'Edad');
+  await clickSel('.hset');
   await shot('8c-home-age');
   await clickText('.agepick button', '7–9');
   const age = await page.evaluate(() => JSON.parse(localStorage.getItem('pym-settings')).age);
@@ -112,7 +112,7 @@ for (const vp of VIEWPORTS) {
   };
   await goGames();
   await shot('12-games');
-  await clickText('.gtile-card', 'Gato');
+  await clickText('.gcard', 'Gato');
   await shot('12-gato-modes');
   for (const m of ['Contra Robi', 'Dos jugadores']) {
     await clickText('.gmode', m);
@@ -132,10 +132,10 @@ for (const vp of VIEWPORTS) {
   for (const [age, label] of [['3-4', '3–4'], ['5-6', '5–6'], ['7-9', '7–9']]) {
     await page.evaluate(() => document.querySelector('[data-nav="home"]').click());
     await sleep(300);
-    await clickText('.hchip', 'Edad');
+    await clickSel('.hset');
     await clickText('.agepick button', label);
     await clickText('.tile', 'Juegos');
-    await clickText('.gtile-card', 'Adivina');
+    await clickText('.gcard', 'Adivina');
     for (let round = 0; round < 5; round++) {
       await page.evaluate(async () => {
         const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -175,14 +175,14 @@ for (const vp of VIEWPORTS) {
   const setAge = async (label) => {
     await page.evaluate(() => document.querySelector('[data-nav="home"]').click());
     await sleep(300);
-    await clickText('.hchip', 'Edad');
+    await clickSel('.hset');
     await clickText('.agepick button', label);
   };
   const openGame = async (name) => {
     await page.evaluate(() => document.querySelector('[data-nav="home"]').click());
     await sleep(300);
     await clickText('.tile', 'Juegos');
-    await clickText('.gtile-card', name);
+    await clickText('.gcard', name);
     await sleep(300);
   };
   for (const label of vp.name === 'tablet' ? ['7–9', '3–4'] : ['7–9']) {
@@ -573,7 +573,7 @@ for (const vp of VIEWPORTS) {
     });
     await page.evaluate(() => document.querySelector('[data-nav="home"]').click());
     await clickText('.tile', 'Juegos');
-    await clickText('.gtile-card', 'Cuentos');
+    await clickText('.gcard', 'Cuentos');
     await clickSel('.st-card');
     await sleep(300);
     const steps = [await nav()];
@@ -593,7 +593,7 @@ for (const vp of VIEWPORTS) {
   // phone back button: game → games menu → home → stays in the app
   await page.evaluate(() => document.querySelector('[data-nav="home"]').click());
   await clickText('.tile', 'Juegos');
-  await clickText('.gtile-card', 'Laberinto');
+  await clickText('.gcard', 'Laberinto');
   const where = () => page.evaluate(() => (document.querySelector('.mazeg') ? 'maze' : document.querySelector('.games') ? 'games' : document.querySelector('.home') ? 'home' : 'other') + ' ' + location.href);
   const trail = [await where()];
   for (let i = 0; i < 4; i++) {
@@ -604,6 +604,13 @@ for (const vp of VIEWPORTS) {
   console.log(vp.name, 'back:', trail.map((t) => t.split(' ')[0]).join(' → '));
   const kinds = trail.map((t) => t.split(' ')[0]);
   if (kinds.join() !== 'maze,games,home,home,home' || trail.some((t) => !t.includes('localhost'))) problems.push(`[${vp.name}] back button: ${trail.join(' | ')}`);
+  // Inicio offers the last game, one tap away
+  const cont = await page.evaluate(() => document.querySelector('.hcont')?.textContent ?? '');
+  if (!cont.includes('Laberinto')) problems.push(`[${vp.name}] seguir jugando: ${cont}`);
+  await shot('23-home-continue');
+  await clickSel('.hcont');
+  await sleep(300);
+  if (!(await page.evaluate(() => !!document.querySelector('.mazeg')))) problems.push(`[${vp.name}] seguir jugando did not open the maze`);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   if (overflow) problems.push(`[${vp.name}] horizontal overflow`);
   await page.close();

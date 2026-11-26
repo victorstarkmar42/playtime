@@ -1,5 +1,17 @@
 # Cambios
 
+## 0.15.0 — 2026-11-26
+
+Rediseño de Inicio y Juegos:
+
+- **Juegos:** tarjetas compactas de una línea (dibujo y nombre) agrupadas por tipo, cada tipo con su color: morado para leer y escribir, verde para números, naranja para arte y trazos, y azul para pensar y explorar. En celular los 18 juegos caben en poco más de una pantalla (antes eran unas 10). El botón Ayuda explica los colores con voz.
+- **Padres:** nueva sección "Qué hace cada juego", con la descripción de cada juego para la edad elegida y la explicación de la voz.
+- **Inicio:** botón grande **Seguir jugando** con el último juego abierto. La edad y la voz pasan a una sola línea discreta abajo; al tocarla aparecen las opciones.
+- **Tableta y laptop:** Cuentas, Tablas, Sílabas, Problemas y Letras usan toda la pantalla, con pregunta, dibujos y botones de respuesta más grandes.
+- La barra de Juegos dice "Games · 7–9 años" sin cortarse.
+- Los avisos (por ejemplo "Edad: 7–9 años") salen abajo y ya no tapan los títulos.
+- La tarjeta principal de Inicio da un pequeño salto al tocarla (se desactiva con Movimiento reducido).
+
 ## 0.14.1 — 2026-11-26
 
 - **Trazos de luz:** todas las figuras tienen algo que hacer al terminar. En las olas se cuentan sus 2 crestas y en la luna sus 2 puntas; en el círculo y la espiral se toca el centro, y el corazón late al tocarlo.

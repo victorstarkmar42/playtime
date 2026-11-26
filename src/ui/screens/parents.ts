@@ -1,7 +1,7 @@
 import { CHARACTER_ORDER, charOf } from '../../content/characters';
 import { lastQuizResult } from './parentquiz';
 import { clearAlbum } from '../../core/album';
-import { LANG_NAME } from '../../core/lang';
+import { LANG_HINT, LANG_NAME } from '../../core/lang';
 import type { Skill } from '../../core/math';
 import { accuracy, dayKey, progress, resetProgress } from '../../core/progress';
 import { MIN_TRIES, reviewPlan, type Technique } from '../../core/review';
@@ -12,6 +12,7 @@ import { AGES, LANG_MODES, type Age, type Mode } from '../../core/types';
 import { enterFullscreen, fullscreenSupported } from '../fullscreen';
 import type { Ctx, Screen } from '../context';
 import { h } from '../dom';
+import { GAME_CATS, gamesForAge } from './games';
 
 const SKILL_LABEL: Record<Skill, string> = {
   seq: 'Secuencia de números',
@@ -229,7 +230,7 @@ export function parentsScreen(ctx: Ctx): Screen {
         h('h3', null, 'Idiomas y voz'),
         h('div', { class: 'setting' }, h('span', null, 'Cómo suena la app'), h('span'),
           seg(LANG_MODES, (l) => LANG_NAME[l], () => settings.lang, (l) => (updateSettings({ lang: l }), ctx.sayPair('Hola', 'Hello'))),
-          h('small', null, 'Cada frase se dice primero en el idioma principal y después en el segundo.')),
+          h('small', null, `${LANG_HINT[settings.lang]} En Palabras se puede oír cada palabra en español o en inglés.`)),
         toggle('optVoice', 'Voz activada', 'voice'),
         h('div', { class: 'setting' }, h('span', null, 'Voces del dispositivo'), h('button', { class: 'bigbtn alt small', onClick: () => ctx.sayPair('Hola, vamos a jugar.', "Hi, let's play.") }, 'Probar'), voiceInfo),
         h('div', { class: 'setting' }, h('span', null, 'Elegir voz'), h('span'), voicePick,
@@ -250,6 +251,13 @@ export function parentsScreen(ctx: Ctx): Screen {
           h('small', null, fullscreenSupported()
             ? 'En celular y tableta, si salen las barras al deslizar, el siguiente toque las vuelve a ocultar. La app instalada en Android se abre ya a pantalla completa.'
             : 'Este navegador no permite ocultar sus barras (por ejemplo, iPhone). Instala la app desde Safari → Compartir → Agregar a pantalla de inicio para jugar sin la barra del navegador.')),
+      ),
+      h('section', { class: 'pcard' },
+        h('h3', null, 'Qué hace cada juego'),
+        h('p', { class: 'muted' }, `Para ${AGE_LABEL[settings.age]} años. En Juegos, los colores agrupan los juegos por tipo.`),
+        ...GAME_CATS.map((c) => h('details', { class: `pguide cat-${c.id}` },
+          h('summary', null, h('i', { 'aria-hidden': 'true' }), c.es),
+          h('ul', null, ...gamesForAge().filter((g) => g.cat === c.id).map((g) => h('li', null, h('b', null, g.es), ' — ', g.help()))))),
       ),
       h('section', { class: 'pcard restcard' },
         h('h3', null, 'Tiempo de juego y descansos'),

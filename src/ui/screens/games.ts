@@ -1,5 +1,6 @@
 import { kindFor, spellLang } from '../../core/guess';
 import { settings } from '../../core/settings';
+import { DATA_KEYS, readJSON, writeJSON } from '../../core/storage';
 import { levelFor } from '../../core/tictactoe';
 import type { Ctx, Screen, ScreenName } from '../context';
 import { h } from '../dom';
@@ -47,43 +48,87 @@ const AGE_TEXT = {
   crossword: { '3-4': '2 palabras cortas con casi todas las letras.', '5-6': '3 palabras con algunas letras.', '7-9': '5 palabras desde cero.' },
 } as const;
 
-/** Games menu, explained for the current age. */
+/** Kinds of games: each has a fixed colour, so children find "the green ones" (numbers) without reading. */
+export type GameCat = 'read' | 'num' | 'art' | 'think';
+export const GAME_CATS: { id: GameCat; es: string; en: string; say: string }[] = [
+  { id: 'read', es: 'Leer y escribir', en: 'Reading', say: 'morados, para leer y escribir' },
+  { id: 'num', es: 'Números', en: 'Numbers', say: 'verdes, para los números' },
+  { id: 'art', es: 'Arte y trazos', en: 'Art', say: 'naranjas, para dibujar y pintar' },
+  { id: 'think', es: 'Pensar y explorar', en: 'Thinking', say: 'azules, para pensar y explorar' },
+];
+
+export interface GameInfo {
+  to: ScreenName;
+  cat: GameCat;
+  es: string;
+  en: string;
+  icon: string;
+  /** What it is for the current age (shown to parents). */
+  help: () => string;
+}
+
+const inLang = () => (spellLang(settings.lang) === 'en' ? 'inglés' : 'español');
+const byAge = (t: Record<'3-4' | '5-6' | '7-9', string>) => () => t[settings.age];
+
+export const GAMES: GameInfo[] = [
+  { to: 'stories', cat: 'read', es: 'Cuentos', en: 'Stories', icon: ICON.stories, help: byAge(AGE_TEXT.stories) },
+  { to: 'syllables', cat: 'read', es: 'Sílabas', en: 'Syllables', icon: ICON.syllables, help: byAge(AGE_TEXT.syllables) },
+  { to: 'letters', cat: 'read', es: 'Letras', en: 'Letters', icon: ICON.letters, help: byAge(AGE_TEXT.letters) },
+  {
+    to: 'guess', cat: 'read', es: 'Adivina la palabra', en: 'Guess the word', icon: ICON.guess,
+    help: () => { const k = kindFor(settings.age); return k === 'spell' ? `Mira el dibujo y escribe su nombre en ${inLang()}.` : AGE_TEXT.guess[k]; },
+  },
+  { to: 'crossword', cat: 'read', es: 'Crucigrama', en: 'Crossword', icon: ICON.crossword, help: () => `${AGE_TEXT.crossword[settings.age]} Con dibujos, en ${inLang()}.` },
+  { to: 'basta', cat: 'read', es: 'Basta', en: 'Letter wheel', icon: ICON.basta, help: byAge(AGE_TEXT.basta) },
+  { to: 'math', cat: 'num', es: 'Cuentas', en: 'Math', icon: ICON.math, help: byAge(AGE_TEXT.math) },
+  { to: 'tables', cat: 'num', es: 'Tablas', en: 'Times tables', icon: ICON.tables, help: byAge(AGE_TEXT.tables) },
+  { to: 'problems', cat: 'num', es: 'Problemas', en: 'Word problems', icon: ICON.problems, help: byAge(AGE_TEXT.problems) },
+  { to: 'abacus', cat: 'num', es: 'Ábaco', en: 'Abacus', icon: ICON.abacus, help: byAge(AGE_TEXT.abacus) },
+  { to: 'trace', cat: 'art', es: 'Trazos de luz', en: 'Light trails', icon: ICON.trace, help: byAge(AGE_TEXT.trace) },
+  { to: 'reveal', cat: 'art', es: 'Destapa el dibujo', en: 'Unwrap it', icon: ICON.reveal, help: () => 'Rompe el papel de regalo para descubrir un dibujo y luego coloréalo.' },
+  { to: 'paintnum', cat: 'art', es: 'Pinta por números', en: 'Paint by numbers', icon: ICON.paintnum, help: byAge(AGE_TEXT.paintnum) },
+  { to: 'build', cat: 'art', es: 'Construye con figuras', en: 'Build with shapes', icon: ICON.build, help: byAge(AGE_TEXT.build) },
+  { to: 'maze', cat: 'think', es: 'Laberinto', en: 'Maze', icon: ICON.maze, help: byAge(AGE_TEXT.maze) },
+  { to: 'sudoku', cat: 'think', es: 'Sudoku', en: 'Sudoku', icon: ICON.sudoku, help: byAge(AGE_TEXT.sudoku) },
+  { to: 'gato', cat: 'think', es: 'Gato', en: 'Tic-tac-toe', icon: ICON.gato, help: () => `Dos jugadores en este dispositivo, o contra Robi, un robot que juega solo (nivel ${LEVEL_LABEL[levelFor(settings.age)]}).` },
+  { to: 'globe', cat: 'think', es: 'Países del mundo', en: 'Countries', icon: ICON.globe, help: () => 'Gira el globo terráqueo, toca un continente y conoce su forma, su nombre y sus países.' },
+];
+
+/** The games offered at the current age (times tables start at 5). */
+export const gamesForAge = (): GameInfo[] => GAMES.filter((g) => !(g.to === 'tables' && settings.age === '3-4'));
+
+/** The last game opened from the menu, for "Seguir jugando" on Inicio. */
+export function lastGame(): GameInfo | null {
+  const to = readJSON<unknown>(DATA_KEYS.lastGame, null);
+  return gamesForAge().find((g) => g.to === to) ?? null;
+}
+export const openGame = (ctx: Ctx, g: GameInfo): void => {
+  writeJSON(DATA_KEYS.lastGame, g.to);
+  ctx.sayPair(g.es, g.en);
+  ctx.show(g.to);
+};
+
+/** Games menu: one-line cards grouped by kind, each kind with its colour. What each game is lives in Padres. */
 export function gamesScreen(ctx: Ctx): Screen {
   const age = settings.age;
-  const kind = kindFor(age);
-  const inLang = spellLang(settings.lang) === 'en' ? 'inglés' : 'español';
-  const guessHelp = kind === 'spell' ? `Mira el dibujo y escribe su nombre en ${inLang}.` : AGE_TEXT.guess[kind];
-  const card = (to: ScreenName, cls: string, icon: string, es: string, en: string, help: string) =>
-    h('button', { class: `tile gtile-card ${cls}`, onClick: () => (ctx.sayPair(es, en), ctx.show(to)) },
-      h('span', { class: 'tile-ico', html: icon }), es, h('small', null, en), h('span', { class: 'ghelp' }, help));
+  const list = gamesForAge();
+  const card = (g: GameInfo) =>
+    h('button', { class: `gcard cat-${g.cat}`, onClick: () => openGame(ctx, g) },
+      h('span', { class: 'gcard-ico', html: g.icon }), h('span', null, g.es));
   const el = h('div', { class: 'view' },
     h('div', { class: 'games' },
-      h('div', { class: 'ghead' }, h('h2', null, 'Juegos', h('small', null, `Games · Para ${age.replace('-', '–')} años (la edad se cambia en Inicio)`))),
-      h('h3', { class: 'gsec' }, 'Para la escuela', h('small', null, 'School skills')),
-      h('div', { class: 'games-grid' },
-        card('stories', 'g15', ICON.stories, 'Cuentos', 'Stories', AGE_TEXT.stories[age]),
-        card('syllables', 'g16', ICON.syllables, 'Sílabas', 'Syllables', AGE_TEXT.syllables[age]),
-        age !== '3-4' ? card('tables', 'g17', ICON.tables, 'Tablas', 'Times tables', AGE_TEXT.tables[age]) : null,
-        card('problems', 'g18', ICON.problems, 'Problemas', 'Word problems', AGE_TEXT.problems[age]),
-      ),
-      h('h3', { class: 'gsec' }, 'Juegos', h('small', null, 'Games')),
-      h('div', { class: 'games-grid' },
-        card('build', 'g13', ICON.build, 'Construye con figuras', 'Build with shapes', AGE_TEXT.build[age]),
-        card('globe', 'g14', ICON.globe, 'Países del mundo', 'Countries', 'Gira el globo terráqueo, toca un continente y conoce su forma, su nombre y sus países.'),
-        card('trace', 'g9', ICON.trace, 'Trazos de luz', 'Light trails', AGE_TEXT.trace[age]),
-        card('reveal', 'g10', ICON.reveal, 'Destapa el dibujo', 'Unwrap it', 'Rompe el papel de regalo para descubrir un dibujo y luego coloréalo.'),
-        card('paintnum', 'g11', ICON.paintnum, 'Pinta por números', 'Paint by numbers', AGE_TEXT.paintnum[age]),
-        card('basta', 'g12', ICON.basta, 'Basta', 'Letter wheel', AGE_TEXT.basta[age]),
-        card('math', 'g3', ICON.math, 'Cuentas', 'Math', AGE_TEXT.math[age]),
-        card('abacus', 'g4', ICON.abacus, 'Ábaco', 'Abacus', AGE_TEXT.abacus[age]),
-        card('letters', 'g8', ICON.letters, 'Letras', 'Letters', AGE_TEXT.letters[age]),
-        card('guess', 'g1', ICON.guess, 'Adivina la palabra', 'Guess the word', guessHelp),
-        card('crossword', 'g6', ICON.crossword, 'Crucigrama', 'Crossword', `${AGE_TEXT.crossword[age]} Con dibujos, en ${inLang}.`),
-        card('maze', 'g5', ICON.maze, 'Laberinto', 'Maze', AGE_TEXT.maze[age]),
-        card('sudoku', 'g7', ICON.sudoku, 'Sudoku', 'Sudoku', AGE_TEXT.sudoku[age]),
-        card('gato', 'g2', ICON.gato, 'Gato', 'Tic-tac-toe', `Dos jugadores en este dispositivo, o contra Robi, un robot que juega solo (nivel ${LEVEL_LABEL[levelFor(age)]}).`),
-      ),
+      h('div', { class: 'ghead' }, h('h2', null, 'Juegos', h('small', null, `Games · ${age.replace('-', '–')} años`))),
+      ...GAME_CATS.flatMap((c) => [
+        h('h3', { class: `gsec cat-${c.id}` }, h('i', { 'aria-hidden': 'true' }), c.es, h('small', null, c.en)),
+        h('div', { class: 'gcards' }, ...list.filter((g) => g.cat === c.id).map(card)),
+      ]),
     ),
   );
-  return { el };
+  return {
+    el,
+    onHelp: () => ctx.sayPair(
+      `Toca un juego. Los juegos ${GAME_CATS.map((c) => c.say).join('; los ')}.`,
+      'Touch a game. Purple for reading, green for numbers, orange for art, blue for thinking.',
+    ),
+  };
 }
