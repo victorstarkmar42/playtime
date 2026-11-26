@@ -5,7 +5,7 @@ export type Op =
   | { kind: 'start' }
   | { kind: 'count'; n: number }
   | { kind: 'calc'; a: number; sym: Sym; b: number };
-export type Skill = 'seq' | 'count' | 'sum' | 'sub' | 'mul' | 'div';
+export type Skill = 'seq' | 'count' | 'sum' | 'sub' | 'mul' | 'div' | 'read' | 'syl' | 'prob';
 export type Rng = () => number;
 
 const rnd = (rng: Rng, a: number, b: number) => a + Math.floor(rng() * (b - a + 1));

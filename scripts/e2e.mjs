@@ -388,6 +388,70 @@ for (const vp of VIEWPORTS) {
     if (!q.startsWith('¿Dónde está')) problems.push(`[${vp.name}] globe quiz ${tag}: ${q}`);
     await shot(`18-globe-${tag}`);
     console.log(vp.name, tag, 'build', bdText.slice(0, 24), '| globe', gl, chips, '|', q);
+    // Para la escuela: Cuentos, Sílabas, Tablas (5+), Problemas, answered by trying options
+    const tryUntil = (btnSel, doneSel) => page.evaluate(async (b, d) => {
+      for (let pass = 0; pass < 8 && !document.querySelector(d); pass++)
+        for (const x of document.querySelectorAll(b)) {
+          if (document.querySelector(d)) return;
+          if (!x.disabled) x.click();
+          await new Promise((r) => setTimeout(r, 30));
+        }
+    }, btnSel, doneSel);
+    await openGame('Cuentos');
+    await clickSel('.st-card');
+    await sleep(300);
+    await shot(`19-story-${tag}`);
+    await clickText('.storyg button', 'Preguntas');
+    const nq = await page.evaluate(() => document.querySelectorAll('.gstars span').length);
+    for (let r = 0; r < nq; r++) {
+      await sleep(200);
+      if (r === 0) await shot(`19-story-q-${tag}`);
+      await tryUntil('.st-opt', '.storyg.right');
+      await sleep(1800);
+    }
+    const stEnd = await page.evaluate(() => document.querySelector('.gend')?.textContent ?? '');
+    if (!stEnd.includes('al primer intento')) problems.push(`[${vp.name}] stories ${tag}: ${stEnd.slice(0, 40)}`);
+    await openGame('Sílabas');
+    for (let r = 0; r < 5; r++) {
+      await sleep(200);
+      if (r === 0) await shot(`20-syllables-${tag}`);
+      await tryUntil('.syl-clap, .syl-tile', '.sylg.right');
+      await sleep(2800);
+    }
+    const syEnd = await page.evaluate(() => document.querySelector('.gend')?.textContent ?? '');
+    if (!syEnd.includes('al primer intento')) problems.push(`[${vp.name}] syllables ${tag}: ${syEnd.slice(0, 40)}`);
+    let tbEnd = '-';
+    if (label !== '3–4') {
+      await openGame('Tablas');
+      await shot(`21-tables-${tag}`);
+      await clickSel('.tab-daily');
+      for (let r = 0; r < 10; r++) {
+        await sleep(200);
+        if (r === 0) await shot(`21-tables-q-${tag}`);
+        await page.evaluate(() => {
+          const [a, b] = document.querySelector('.mtext').textContent.match(/\d+/g).map(Number);
+          const keys = [...document.querySelectorAll('.tab-key')];
+          for (const ch of String(a * b)) keys.find((k) => k.textContent === ch).click();
+          keys.find((k) => k.textContent === '✓').click();
+        });
+        await sleep(1450);
+      }
+      tbEnd = await page.evaluate(() => document.querySelector('.gend')?.textContent ?? '');
+      if (!tbEnd.includes('10 de 10')) problems.push(`[${vp.name}] tables ${tag}: ${tbEnd.slice(0, 40)}`);
+      const saved = await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('pym-tables') || '{}')).length);
+      if (saved < 10) problems.push(`[${vp.name}] tables ${tag}: only ${saved} facts saved`);
+    }
+    await openGame('Problemas');
+    for (let r = 0; r < 5; r++) {
+      await sleep(200);
+      if (r === 0) await shot(`22-problems-${tag}`);
+      await tryUntil('.pb-sym', '.pb-answers .mopt:not(.pb-sym)');
+      await tryUntil('.pb-answers .mopt:not(.pb-sym)', '.probg.right');
+      await sleep(1900);
+    }
+    const pbEnd = await page.evaluate(() => document.querySelector('.gend')?.textContent ?? '');
+    if (!pbEnd.includes('al primer intento')) problems.push(`[${vp.name}] problems ${tag}: ${pbEnd.slice(0, 40)}`);
+    console.log(vp.name, tag, 'stories', stEnd.slice(0, 18), '| syllables', syEnd.slice(0, 14), '| tables', tbEnd.slice(0, 14), '| problems', pbEnd.slice(0, 14));
     console.log(vp.name, tag, 'math', mathEnd.slice(0, 12), '| abacus', abEnd.slice(0, 12), '| maze', mz.slice(0, 12), '| sudoku', sd, '| cross', cr.slice(0, 22));
   }
   // the new Resonantes drawings must be solvable too (tablet only, to keep the run short)

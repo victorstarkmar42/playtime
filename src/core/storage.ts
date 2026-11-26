@@ -12,6 +12,7 @@ export const DATA_KEYS = {
   paintDone: 'pym-pn-done',
   parentQuiz: 'pym-parentquiz',
   profile: 'pym-profile',
+  tables: 'pym-tables',
 } as const;
 export type DataName = keyof typeof DATA_KEYS;
 

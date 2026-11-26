@@ -1,5 +1,15 @@
 # Cambios
 
+## 0.12.0 — 2026-11-25
+
+Nueva sección **Para la escuela** al inicio de Juegos, con cuatro actividades pensadas para apoyar lo que se ve en primaria:
+
+- **Cuentos.** Doce cuentos cortos y originales (cuatro por edad), en español o inglés según el idioma de la voz. Se leen en voz alta frase por frase y la frase que se lee se ilumina (y la palabra, cuando la voz del dispositivo lo permite). Se puede tocar una palabra para oírla o una frase para leer desde ahí. Después vienen preguntas de comprensión: quién, qué pasó y por qué. Los de 3–4 años escuchan el cuento solo y contestan tocando dibujos.
+- **Sílabas.** 3–4: se oye la palabra separada (ma… ri… po… sa) y se elige cuántos aplausos tiene. 5–6: se arma la palabra tocando sus sílabas en orden. 7–9: palabras más largas y dos sílabas de más que no van. Unas 70 palabras con dibujo.
+- **Tablas de multiplicar** (desde 5 años) con repaso espaciado: cada multiplicación que se contesta bien vuelve en 1, 2, 4, 7 y luego 14 días, y la que se falla vuelve en el mismo día. "Repaso de hoy" junta las que tocan; también se puede elegir una tabla, verla completa y practicarla. 5–6: tablas del 2, 5 y 10 con puntitos y opciones; 7–9: todas, contestando con teclado de números. Al segundo error se muestra el resultado correcto.
+- **Problemas con dibujos.** Problemas cortos leídos en voz alta: juntar y quitar hasta 5 (3–4), también comparar hasta 10 (5–6), y hasta 100 con grupos, repartos y problemas de dos pasos (7–9). Los de 7–9 primero eligen qué operación usar y luego el resultado.
+- El **área de padres** muestra también los aciertos en comprensión de lectura, sílabas y problemas, y el plan de repaso los incluye. Las tablas se borran junto con el progreso.
+
 ## 0.11.0 — 2026-11-25
 
 - **Colorear: ya se pinta todo.** Algunas partes no se podían pintar. En unas, la pintura quedaba escondida debajo de un relleno blanco (los ojos, la panza del pingüino, círculos del auto y del pez). En otras, la opción "colorear dentro" las recortaba por estar fuera del contorno principal (los brazos y antenas de los robots, las llantas y ventanas de los carros, las aletas del pez). Ahora las líneas se dibujan encima sólo como tinta, y se puede pintar todo lo que está cerrado por líneas. Se revisaron las 527 zonas cerradas de los dibujos.

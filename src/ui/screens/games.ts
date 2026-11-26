@@ -10,6 +10,10 @@ const inner = (svg: string) => svg.replace(/<\/?svg[^>]*>/g, '');
 const T = (x: number, y: number, t: string, color: string) =>
   `<text x="${x}" y="${y}" font-size="16" font-weight="800" text-anchor="middle" fill="${color}" font-family="sans-serif">${t}</text>`;
 const ICON = {
+  stories: '<svg viewBox="0 0 100 100"><path d="M50 24C38 16 22 16 10 20v60c12-4 28-4 40 4 12-8 28-8 40-4V20c-12-4-28-4-40 4z" fill="#fff" stroke="#22304F" stroke-width="5" stroke-linejoin="round"/><path d="M50 24v60" stroke="#22304F" stroke-width="4"/><path d="M20 34h20M20 46h22M20 58h18M60 34h20M58 46h22M60 58h16" stroke="#7B61D9" stroke-width="4" stroke-linecap="round"/></svg>',
+  syllables: `<svg viewBox="0 0 100 100"><rect x="6" y="30" width="40" height="40" rx="10" fill="#FFD54A" stroke="#22304F" stroke-width="5"/><rect x="54" y="30" width="40" height="40" rx="10" fill="#8FD3F5" stroke="#22304F" stroke-width="5"/>${T(26, 57, 'ca', '#22304F').replace('font-size="16"', 'font-size="22"')}${T(74, 57, 'sa', '#22304F').replace('font-size="16"', 'font-size="22"')}</svg>`,
+  tables: `<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" rx="16" fill="#fff" stroke="#22304F" stroke-width="5"/><g fill="#3FA35B"><circle cx="30" cy="30" r="6"/><circle cx="50" cy="30" r="6"/><circle cx="70" cy="30" r="6"/><circle cx="30" cy="50" r="6"/><circle cx="50" cy="50" r="6"/><circle cx="70" cy="50" r="6"/></g>${T(50, 82, '2 × 3', '#F2672E').replace('font-size="16"', 'font-size="20"')}</svg>`,
+  problems: `<svg viewBox="0 0 100 100"><rect x="8" y="12" width="84" height="60" rx="14" fill="#fff" stroke="#22304F" stroke-width="5"/><path d="M30 72l-6 16 20-16" fill="#fff" stroke="#22304F" stroke-width="5" stroke-linejoin="round"/><circle cx="30" cy="40" r="9" fill="#F2672E"/><circle cx="52" cy="40" r="9" fill="#F2672E"/><circle cx="74" cy="40" r="9" fill="#F2672E" opacity=".35"/><path d="M30 31q2-6 6-6" stroke="#3FA35B" stroke-width="3" fill="none"/></svg>`,
   build: '<svg viewBox="0 0 100 100"><path d="M14 50L42 22L70 50Z" fill="#FFAB91" stroke="#22304F" stroke-width="4" stroke-linejoin="round"/><rect x="18" y="50" width="48" height="38" fill="#FFE082" stroke="#22304F" stroke-width="4"/><rect x="36" y="64" width="12" height="24" fill="#CE93D8" stroke="#22304F" stroke-width="3.5"/><circle cx="78" cy="30" r="14" fill="#81D4FA" stroke="#22304F" stroke-width="4"/><rect x="70" y="60" width="20" height="20" fill="#A5D6A7" stroke="#22304F" stroke-width="4"/></svg>',
   globe: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#3B8FD9" stroke="#22304F" stroke-width="4"/><path d="M24 30c8-6 18-4 20 4s-6 10-4 18-8 12-14 6-10-22-2-28zM56 22c10 0 20 6 22 14-6 2-10-2-16 2s-2 12-8 14-10-8-8-16 2-14 10-14zM60 62c6-2 14 0 14 6s-6 12-12 10-8-14-2-16z" fill="#5DBB63" stroke="#22304F" stroke-width="3" stroke-linejoin="round"/><ellipse cx="38" cy="30" rx="12" ry="6" fill="#fff" opacity=".25"/></svg>',
   basta: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#F2672E" stroke="#22304F" stroke-width="4"/><circle cx="50" cy="50" r="26" fill="#8FD3F5"/><g fill="#fff" stroke="#22304F" stroke-width="3"><rect x="42" y="2" width="16" height="16" rx="4"/><rect x="82" y="42" width="16" height="16" rx="4"/><rect x="42" y="82" width="16" height="16" rx="4"/><rect x="2" y="42" width="16" height="16" rx="4"/></g><circle cx="50" cy="50" r="15" fill="#FFD54A" stroke="#22304F" stroke-width="4"/><path d="M50 42v9l6 4" fill="none" stroke="#22304F" stroke-width="4" stroke-linecap="round"/></svg>',
@@ -27,6 +31,10 @@ const ICON = {
 };
 
 const AGE_TEXT = {
+  stories: { '3-4': 'Escucha un cuento corto y contesta tocando los dibujos.', '5-6': 'Lee (o escucha) un cuento y contesta quién, qué pasó y por qué.', '7-9': 'Cuentos más largos con preguntas para pensar: por qué pasó y qué enseña.' },
+  syllables: { '3-4': 'Oye la palabra y di cuántos aplausos tiene: ma-ri-po-sa.', '5-6': 'Arma la palabra tocando sus sílabas en orden: ca-sa.', '7-9': 'Palabras largas y sílabas de más que no van.' },
+  tables: { '3-4': '', '5-6': 'Tablas del 2, del 5 y del 10, con puntitos.', '7-9': 'Todas las tablas con repaso: las que fallas vuelven pronto.' },
+  problems: { '3-4': 'Problemas cortos con dibujos y voz: juntar y quitar hasta 5.', '5-6': 'Juntar, quitar y comparar hasta 10, con dibujos.', '7-9': 'Primero elige la operación y luego el resultado: hasta 100, grupos y repartos.' },
   basta: { '3-4': 'Rueda de letras con dibujos de ayuda: di una palabra y toca su letra (20 segundos).', '5-6': 'Di una palabra de la tarjeta y toca su primera letra antes de 15 segundos.', '7-9': 'Rueda de 22 letras y 10 segundos por turno. Contra Robi o entre dos.' },
   build: { '3-4': 'Pon cada figura en su lugar para armar una casa, un cohete o un robot, y coloréalo.', '5-6': 'Arma figuras con cuadrados, triángulos y círculos; oye su nombre en español e inglés.', '7-9': 'Arma figuras con más piezas sólo viendo su sombra, y cuenta qué figuras usaste.' },
   trace: { '3-4': 'Sigue la línea con el dedo: figuras, números y dibujos que se encienden.', '5-6': 'Traza figuras, números y dibujos; la línea se llena de estrellas de luz.', '7-9': 'Traza números, figuras y el contorno de cada dibujo con más precisión.' },
@@ -52,6 +60,14 @@ export function gamesScreen(ctx: Ctx): Screen {
   const el = h('div', { class: 'view' },
     h('div', { class: 'games' },
       h('div', { class: 'ghead' }, h('h2', null, 'Juegos', h('small', null, `Games · Para ${age.replace('-', '–')} años (la edad se cambia en Inicio)`)), exitBtn(ctx, 'home')),
+      h('h3', { class: 'gsec' }, 'Para la escuela', h('small', null, 'School skills')),
+      h('div', { class: 'games-grid' },
+        card('stories', 'g15', ICON.stories, 'Cuentos', 'Stories', AGE_TEXT.stories[age]),
+        card('syllables', 'g16', ICON.syllables, 'Sílabas', 'Syllables', AGE_TEXT.syllables[age]),
+        age !== '3-4' ? card('tables', 'g17', ICON.tables, 'Tablas', 'Times tables', AGE_TEXT.tables[age]) : null,
+        card('problems', 'g18', ICON.problems, 'Problemas', 'Word problems', AGE_TEXT.problems[age]),
+      ),
+      h('h3', { class: 'gsec' }, 'Juegos', h('small', null, 'Games')),
       h('div', { class: 'games-grid' },
         card('build', 'g13', ICON.build, 'Construye con figuras', 'Build with shapes', AGE_TEXT.build[age]),
         card('globe', 'g14', ICON.globe, 'Países del mundo', 'Countries', 'Gira el globo terráqueo, toca un continente y conoce su forma, su nombre y sus países.'),

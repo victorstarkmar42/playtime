@@ -27,6 +27,7 @@ Antes de dar un cambio por terminado: `npm run typecheck`, `npm test` y `npm run
 - `src/ui/fullscreen.ts`: pantalla completa.
 - `src/core/shapes.ts` + `src/ui/screens/build.ts`: Construye con figuras.
 - `src/content/world.ts` (continentes y países) + `src/core/geo.ts` + `src/ui/screens/globe.ts`: Países del mundo.
+- Para la escuela: `src/content/stories.ts` + `src/ui/screens/stories.ts` (Cuentos), `src/core/syllables.ts` (Sílabas), `src/core/tables.ts` (Tablas, repaso espaciado guardado en `pym-tables`), `src/core/problems.ts` (Problemas). Cuentos y Sílabas usan el idioma principal de la voz (`primaryLang`), porque son lectura.
 - `src/core/flood.ts`: bote de pintura y la máscara de "colorear dentro" (todo lo cerrado por líneas).
 - `src/ui/screens/gamekit.ts`: `exitBtn` (cada juego debe tener botón Salir), `progressDots`, `shake`.
 - `src/styles.css`: todos los estilos. Se adaptan con consultas de contenedor (`@container app`): vertical, ancho máximo de 600 px y 440 px, y alto máximo de 480 px.

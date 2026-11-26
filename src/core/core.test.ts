@@ -25,6 +25,10 @@ import { colorableMask, inkWalls } from './flood';
 import { continentAt, lonDelta, unproject } from './geo';
 import { CONTINENTS } from '../content/world';
 import { checkBackup, DATA_KEYS, exportData, importData } from './storage';
+import { SYL_WORDS, sylPool, sylRounds } from './syllables';
+import { factKey, factsOf, grade, INTERVALS, learnedIn, pickRound, ROUND, TABLES_FOR, tableOptions, type TableState } from './tables';
+import { kindsFor, makeProblem } from './problems';
+import { STORIES, storiesFor } from '../content/stories';
 
 /** Deterministic pseudo-random generator so failures are reproducible. */
 function seeded(seed: number) {
@@ -556,12 +560,12 @@ describe('basta letter wheel', () => {
 describe('review plan', () => {
   it('suggests a technique for weak skills and lists mastered ones', () => {
     const s = (right: number, tries: number) => ({ right, tries });
-    const plan = reviewPlan({ seq: s(9, 10), count: s(0, 2), sum: s(6, 10), sub: s(4, 10), mul: s(0, 0), div: s(0, 0) });
+    const plan = reviewPlan({ seq: s(9, 10), count: s(0, 2), sum: s(6, 10), sub: s(4, 10), mul: s(0, 0), div: s(0, 0), read: s(0, 0), syl: s(0, 0), prob: s(0, 0) });
     expect(plan.review.map((r) => r.skill)).toEqual(['sub', 'sum']);
     expect(plan.review[0].technique).toBe('cpa');
     expect(plan.review[1].technique).toBe('interleaved');
     expect(plan.mastered).toEqual(['seq']);
-    expect(reviewPlan({ seq: s(1, 2), count: s(0, 0), sum: s(0, 0), sub: s(0, 0), mul: s(0, 0), div: s(0, 0) }).review).toEqual([]);
+    expect(reviewPlan({ seq: s(1, 2), count: s(0, 0), sum: s(0, 0), sub: s(0, 0), mul: s(0, 0), div: s(0, 0), read: s(0, 0), syl: s(0, 0), prob: s(0, 0) }).review).toEqual([]);
   });
 });
 
@@ -730,5 +734,101 @@ describe('world', () => {
     expect(lat).toBeCloseTo(30);
     expect(unproject(0.9, 0.9, 0, 0)).toBeNull();
     expect(lonDelta(170, -170)).toBe(20);
+  });
+});
+
+describe('para la escuela', () => {
+  it('every syllable split rebuilds a real word, with no empty syllables', () => {
+    for (const w of SYL_WORDS) {
+      expect(w.es.every((x) => x.length > 0)).toBe(true);
+      expect(w.es.join('')).toMatch(/^[a-záéíóúüñ]+$/);
+      if (w.en) expect(w.en.join('')).toMatch(/^[a-z]+$/);
+    }
+    const es = SYL_WORDS.map((w) => w.es.join(''));
+    expect(new Set(es).size).toBe(es.length);
+  });
+
+  it('syllable rounds fit the age and tiles hold every syllable', () => {
+    for (const age of AGES) for (const lang of ['es', 'en'] as const) {
+      expect(sylPool(age, lang).length).toBeGreaterThanOrEqual(8);
+      for (let seed = 1; seed < 30; seed++) {
+        const rounds = sylRounds(age, lang, 5, seeded(seed));
+        expect(rounds).toHaveLength(5);
+        expect(new Set(rounds.map((r) => r.parts.join('-'))).size).toBe(5);
+        for (const r of rounds) {
+          const left = [...r.tiles];
+          for (const part of r.parts) {
+            const i = left.indexOf(part);
+            expect(i).toBeGreaterThanOrEqual(0);
+            left.splice(i, 1);
+          }
+          expect(left.length).toBe(age === '7-9' ? 2 : 0);
+          if (age === '3-4') expect(r.claps).toContain(r.parts.length);
+        }
+      }
+    }
+  });
+
+  it('times tables: spaced review moves facts up and sends mistakes back', () => {
+    const st: TableState = {};
+    const f = { a: 7, b: 8 };
+    expect(grade(st, f, true, 100)).toEqual({ box: 1, due: 100 + INTERVALS[1] });
+    expect(grade(st, f, true, 101)).toEqual({ box: 2, due: 101 + INTERVALS[2] });
+    expect(grade(st, f, false, 103)).toEqual({ box: 0, due: 103 });
+    for (let i = 0; i < 10; i++) grade(st, f, true, 200);
+    expect(st[factKey(f)].box).toBe(INTERVALS.length - 1);
+    expect(TABLES_FOR['3-4']).toEqual([]);
+  });
+
+  it('times tables: rounds bring back due facts first and options include the answer', () => {
+    const st: TableState = {};
+    for (const x of factsOf(3)) grade(st, x, true, 10); // box 1, due day 11
+    grade(st, { a: 6, b: 7 }, false, 11); // box 0, due day 11
+    const tables = TABLES_FOR['7-9'];
+    const daily = pickRound(st, tables, null, 11, seeded(4));
+    expect(daily).toHaveLength(ROUND);
+    expect(daily.map(factKey)).toContain('6x7');
+    expect(new Set(daily.map(factKey)).size).toBe(ROUND);
+    const one = pickRound(st, tables, 9, 11, seeded(5));
+    expect(one).toHaveLength(ROUND);
+    expect(one.filter((x) => x.a !== 9).length).toBeLessThanOrEqual(3);
+    expect(learnedIn(st, 3)).toBe(0);
+    for (let seed = 1; seed < 40; seed++) {
+      const x = { a: 1 + (seed % 10), b: 1 + ((seed * 7) % 10) };
+      const opts = tableOptions(x, 4, seeded(seed));
+      expect(opts).toContain(x.a * x.b);
+      expect(new Set(opts).size).toBe(opts.length);
+      expect(opts.every((n) => n > 0)).toBe(true);
+    }
+  });
+
+  it('word problems: right answer, in range, and Spanish agrees with the noun', () => {
+    for (const age of AGES) for (let seed = 1; seed < 200; seed++) {
+      const pr = makeProblem(age, seeded(seed));
+      expect(kindsFor(age)).toContain(pr.kind);
+      expect(pr.options).toContain(pr.answer);
+      expect(new Set(pr.options).size).toBe(pr.options.length);
+      expect(pr.answer).toBeGreaterThan(0);
+      if (age === '3-4') expect(pr.answer).toBeLessThanOrEqual(5);
+      if (age === '5-6') expect(pr.answer).toBeLessThanOrEqual(10);
+      expect(pr.es).toContain(pr.item.fem ? '¿Cuántas' : '¿Cuántos');
+      expect(pr.es).not.toContain(` 1 ${pr.item.es[1]}`); // "1 manzanas"
+      expect(pr.en).not.toMatch(/undefined|NaN/);
+      expect(pr.es).not.toMatch(/undefined|NaN/);
+    }
+  });
+
+  it('stories: same sentences in both languages, questions with the right answer first', () => {
+    for (const age of AGES) expect(storiesFor(age).length).toBeGreaterThanOrEqual(3);
+    expect(new Set(STORIES.map((x) => x.id)).size).toBe(STORIES.length);
+    for (const st of STORIES) {
+      expect(st.es.length).toBe(st.en.length);
+      expect(st.questions.length).toBeGreaterThanOrEqual(2);
+      for (const q of st.questions) {
+        expect(q.options.length).toBe(3);
+        expect(new Set(q.options.map((o) => o.es)).size).toBe(3);
+        if (st.age === '3-4') expect(q.options.every((o) => !!o.pic)).toBe(true);
+      }
+    }
   });
 });

@@ -35,6 +35,13 @@ export function pickVoice<T extends VoiceLike>(voices: readonly T[], lang: Lang)
   return candidates[0] ?? null;
 }
 
+/** Optional callbacks while reading aloud (not every voice reports words). */
+export interface SayHooks {
+  start?(item: number): void;
+  word?(item: number, charIndex: number): void;
+  end?(): void;
+}
+
 export class Speaker {
   private voices: SpeechSynthesisVoice[] = [];
   onVoicesChanged: (() => void) | null = null;
@@ -81,7 +88,7 @@ export class Speaker {
   }
 
   /** Cancels anything playing, then speaks each item in order with the voice of its language. */
-  say(items: SpeakItem[]): void {
+  say(items: SpeakItem[], hooks?: SayHooks): void {
     if (!this.supported || !this.isEnabled() || items.length === 0) return;
     try {
       speechSynthesis.cancel();
@@ -92,6 +99,12 @@ export class Speaker {
         u.lang = v?.lang ?? (it.lang === 'es' ? 'es-MX' : 'en-US');
         u.rate = 0.92;
         u.pitch = 1; // a raised pitch makes most voices sound more artificial
+        if (hooks) {
+          const i = items.indexOf(it);
+          u.onstart = () => hooks.start?.(i);
+          u.onboundary = (e) => { if (e.name === 'word' || e.name === undefined) hooks.word?.(i, e.charIndex); };
+          if (i === items.length - 1) u.onend = () => hooks.end?.();
+        }
         speechSynthesis.speak(u);
       }
     } catch {

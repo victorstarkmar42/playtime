@@ -1,5 +1,5 @@
 import type { Skill } from './math';
-import { DATA_KEYS, readJSON, writeJSON } from './storage';
+import { DATA_KEYS, readJSON, removeKey, writeJSON } from './storage';
 import type { CharKey } from './types';
 
 export interface SkillStat {
@@ -20,7 +20,7 @@ export interface Progress {
 }
 
 const KEY = DATA_KEYS.progress;
-const SKILLS: Skill[] = ['seq', 'count', 'sum', 'sub', 'mul', 'div'];
+const SKILLS: Skill[] = ['seq', 'count', 'sum', 'sub', 'mul', 'div', 'read', 'syl', 'prob'];
 
 export function emptyProgress(): Progress {
   const skills = {} as Record<Skill, SkillStat>;
@@ -86,4 +86,5 @@ export function accuracy(s: SkillStat): number | null {
 export function resetProgress(): void {
   Object.assign(progress, emptyProgress());
   save();
+  removeKey(DATA_KEYS.tables);
 }

@@ -20,6 +20,9 @@ const SKILL_TIP: Record<string, string> = {
   sub: 'restar quitando objetos ("tenías 5 galletas y comiste 2"), y Cuentas → Restas',
   mul: 'armar grupos iguales con objetos (3 platos con 4 uvas) y Cuentas → Multiplicaciones',
   div: 'repartir cosas en partes iguales entre la familia, y Cuentas → Divisiones',
+  read: 'leer juntos un cuento corto y preguntar quién, qué pasó y por qué, y Cuentos en Juegos',
+  syl: 'aplaudir cada sílaba de palabras de la casa (ca-sa, me-sa), y Sílabas en Juegos',
+  prob: 'inventar problemas con cosas de la casa y dibujarlos antes de hacer la cuenta, y Problemas en Juegos',
 };
 
 /** Profile tip from what the child has actually played. */

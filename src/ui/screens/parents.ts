@@ -20,11 +20,14 @@ const SKILL_LABEL: Record<Skill, string> = {
   sub: 'Restas',
   mul: 'Multiplicaciones',
   div: 'Divisiones',
+  read: 'Comprensión de lectura',
+  syl: 'Sílabas',
+  prob: 'Problemas con palabras',
 };
 const TECHNIQUE: Record<Technique, { name: string; how: (skill: string) => string }> = {
   spaced: { name: 'Repaso espaciado', how: (s) => `Repasen ${s.toLowerCase()} mañana, en 3 días y en una semana: poco rato, varias veces.` },
   interleaved: { name: 'Práctica intercalada', how: () => 'Mezclen sumas y restas en la misma ronda (Cuentas → Mezcla), para que elija qué operación usar.' },
-  cpa: { name: 'Concreto → dibujo → número', how: (s) => `Practiquen ${s.toLowerCase()} con objetos de verdad o con los dibujos de Cuentas antes de pasar a solo números.` },
+  cpa: { name: 'Concreto → dibujo → número', how: (s) => `Practiquen ${s.toLowerCase()} con objetos de verdad o con los dibujos de la app antes de pasar a solo números o letras.` },
 };
 
 const AGE_LABEL: Record<Age, string> = { '3-4': '3–4', '5-6': '5–6', '7-9': '7–9' };
