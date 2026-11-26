@@ -923,3 +923,36 @@ h2 small, .pick h2 small, .album h2 small { display: block; font-family: var(--f
   .appbar .ibtn { width: 48px; height: 48px; }
   .apptitle .t-sub { display: none; }
 }
+
+/* ---------- Trazos de luz: progress, stars and the finish card ---------- */
+.tpick h3 { display: flex; align-items: center; gap: 10px; }
+.tcount { font-family: var(--f-body); font-weight: 600; font-size: .85rem; color: #AFC0EE; background: #0E1A52; border: 2px solid #23357F; border-radius: 999px; padding: 2px 10px; }
+.tcount.full { color: #0B1440; background: #FFE53D; border-color: #FFE53D; }
+.tpick-card.done { border-color: #4A5FC0; }
+.tstars { color: #FFE53D; letter-spacing: 2px; font-size: .95rem; line-height: 1; }
+.tcont { flex: none; background: #FFE53D; color: #0B1440; box-shadow: 0 4px 0 #C9A800; }
+.tdone { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; background: rgba(4, 7, 32, .55); animation: tdone-in .25s ease-out; }
+@keyframes tdone-in { from { opacity: 0; } }
+.tdone-card { width: min(100%, 420px); display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 18px 18px 16px; text-align: center;
+  background: #0E1A52; border: 3px solid #4A5FC0; border-radius: 24px; color: #EAF0FF; box-shadow: 0 10px 30px rgba(0, 0, 0, .45); }
+.tdone-card h3 { font-size: 1.7rem; color: #fff; }
+.tdone-card p { font-family: var(--f-body); color: #CFDAFF; }
+.tdone-tip { font-size: .85rem; }
+.tdone-stars { display: flex; gap: 6px; font-size: 2.6rem; line-height: 1; }
+.tdone-stars span { color: #2B3B85; }
+.tdone-stars span.on { color: #FFE53D; text-shadow: 0 0 14px #FFE53D; animation: tstar-pop .4s ease-out backwards; }
+.tdone-stars span.on:nth-child(2) { animation-delay: .12s; }
+.tdone-stars span.on:nth-child(3) { animation-delay: .24s; }
+@keyframes tstar-pop { from { transform: scale(0); } 70% { transform: scale(1.25); } }
+.tnext { display: flex; align-items: center; gap: 10px; width: 100%; justify-content: center; min-height: 64px; background: #FFE53D; color: #0B1440; box-shadow: 0 4px 0 #C9A800; }
+.tnext canvas { width: 46px; height: 46px; border-radius: 10px; background: #0B1440; flex: none; }
+.tdone-card .kbtnrow { justify-content: center; }
+.tdone-card .bigbtn.alt { background: #1B2A6E; color: #EAF0FF; box-shadow: 0 4px 0 #0B1440; }
+.screen.reduced .tdone, .screen.reduced .tdone-stars span.on { animation: none; }
+@container app (max-height: 480px) {
+  .tdone-card { gap: 6px; padding: 10px 14px; }
+  .tdone-card h3 { font-size: 1.3rem; }
+  .tdone-stars { font-size: 1.8rem; }
+  .tnext { min-height: 52px; }
+  .tdone-tip { display: none; }
+}

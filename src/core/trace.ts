@@ -1,4 +1,5 @@
 import { arcPts, dist, type Pt } from './geometry';
+import { DATA_KEYS, readJSON, writeJSON } from './storage';
 import type { Age } from './types';
 
 /** A figure to trace with a finger: one or more strokes in the 0–100 box, each followed from its first point. */
@@ -120,4 +121,72 @@ export function figureBounds(strokes: Pt[][]): { x: number; y: number; w: number
     x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
   }
   return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+}
+
+/* ---------------- after tracing: a small task, stars and what comes next ---------------- */
+
+/** Points to touch after tracing a shape (its corners or tips), and what they are called. */
+export const TRACE_CORNERS: Record<string, { pts: Pt[]; es: [string, string]; en: string; say: [string, string] }> = {
+  cuadrado: { pts: [[20, 20], [80, 20], [80, 80], [20, 80]], es: ['esquina', 'esquinas'], en: 'corners', say: ['El cuadrado tiene 4 esquinas', 'A square has 4 corners'] },
+  triangulo: { pts: [[50, 16], [84, 80], [16, 80]], es: ['esquina', 'esquinas'], en: 'corners', say: ['El triángulo tiene 3 esquinas', 'A triangle has 3 corners'] },
+  rombo: { pts: [[50, 14], [80, 50], [50, 86], [20, 50]], es: ['esquina', 'esquinas'], en: 'corners', say: ['El rombo tiene 4 esquinas', 'A diamond has 4 corners'] },
+  montanas: { pts: [[27, 34], [57, 34], [88, 34]], es: ['pico', 'picos'], en: 'peaks', say: ['Las montañas tienen 3 picos', 'The mountains have 3 peaks'] },
+  estrella: {
+    pts: Array.from({ length: 5 }, (_, i) => {
+      const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
+      return [50 + 36 * Math.cos(a), 54 + 36 * Math.sin(a)] as Pt;
+    }),
+    es: ['punta', 'puntas'], en: 'points', say: ['La estrella tiene 5 puntas', 'A star has 5 points'],
+  },
+};
+
+/** The number a number figure shows (0–9), or null for other figures. */
+export const numberOf = (f: TraceFigure): number | null => (f.group === 'numbers' ? Number(f.id.slice(1)) : null);
+
+/**
+ * Stars for one figure: 3 when it was traced without lifting the finger (one piece per stroke),
+ * 2 with up to two extra lifts, 1 otherwise.
+ */
+export function traceStars(pieces: number, strokes: number): number {
+  const extra = Math.max(0, pieces - strokes);
+  return extra === 0 ? 3 : extra <= 2 ? 2 : 1;
+}
+
+export interface NextStep {
+  fig: TraceFigure;
+  /** This finish completed its group (shown once, the first time). */
+  groupDone: boolean;
+  /** Every figure has been done at least once. */
+  allDone: boolean;
+}
+
+/**
+ * What to offer after finishing `currentId` (already counted in `done`; `firstTime` if it was not done before):
+ * the next figure not done yet in the same group; when the group is complete, the first one not done in the
+ * following groups; when everything is done, simply the next figure in order.
+ */
+export function nextFigure(order: TraceFigure[], done: Record<string, number>, currentId: string, firstTime: boolean): NextStep {
+  const i = Math.max(0, order.findIndex((f) => f.id === currentId));
+  const cur = order[i];
+  const same = order.filter((f) => f.group === cur.group);
+  const j = same.indexOf(cur);
+  const groupDone = firstTime && same.every((f) => done[f.id]);
+  const allDone = order.every((f) => done[f.id]);
+  const inGroup = [...same.slice(j + 1), ...same.slice(0, j)].find((f) => !done[f.id]);
+  if (inGroup) return { fig: inGroup, groupDone, allDone };
+  const other = [...order.slice(i + 1), ...order.slice(0, i)].find((f) => !done[f.id]);
+  return { fig: other ?? order[(i + 1) % order.length], groupDone, allDone };
+}
+
+/** Best stars per figure id, kept on the device (and in the backup). */
+export function loadTraceDone(): Record<string, number> {
+  const raw = readJSON<unknown>(DATA_KEYS.traceDone, null);
+  const out: Record<string, number> = {};
+  if (raw && typeof raw === 'object')
+    for (const [k, v] of Object.entries(raw as Record<string, unknown>)) if (typeof v === 'number' && v >= 1 && v <= 3) out[k] = Math.round(v);
+  return out;
+}
+export function saveTraceStars(done: Record<string, number>, id: string, stars: number): void {
+  done[id] = Math.max(done[id] ?? 0, stars);
+  writeJSON(DATA_KEYS.traceDone, done);
 }

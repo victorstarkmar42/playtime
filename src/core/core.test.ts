@@ -15,7 +15,7 @@ import { activePlan, sanitizeSettings } from './settings';
 import { AGES } from './types';
 import { pickVoice } from './voice';
 import { aiMove, emptyBoard, isFull, other, winner, type Cell, type Player } from './tictactoe';
-import { advance, resample, TRACE_NUMBERS, TRACE_SHAPES, TRACE_STEP } from './trace';
+import { advance, nextFigure, numberOf, resample, TRACE_CORNERS, TRACE_NUMBERS, TRACE_SHAPES, TRACE_STEP, traceStars, type TraceFigure } from './trace';
 import { clusterColors, insideDistance, labelRegions } from './paintnum';
 import { BASTA_CATEGORIES, bastaFirstLetter, bastaHints, bastaLetters, robiAnswer } from './basta';
 import { reviewPlan } from './review';
@@ -830,5 +830,48 @@ describe('para la escuela', () => {
         if (st.age === '3-4') expect(q.options.every((o) => !!o.pic)).toBe(true);
       }
     }
+  });
+});
+
+describe('trazos de luz: después de trazar', () => {
+  it('shape and number ids are unique and never use the drawings prefix (d-)', () => {
+    const ids = [...TRACE_SHAPES, ...TRACE_NUMBERS].map((f) => f.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids.some((id) => id.startsWith('d-'))).toBe(false);
+  });
+
+  it('stars: 3 without lifting the finger, fewer with extra lifts', () => {
+    expect(traceStars(1, 1)).toBe(3);
+    expect(traceStars(2, 2)).toBe(3);
+    expect(traceStars(3, 1)).toBe(2);
+    expect(traceStars(4, 1)).toBe(1);
+  });
+
+  it('corners to touch sit on the line of their shape', () => {
+    for (const [id, c] of Object.entries(TRACE_CORNERS)) {
+      const f = TRACE_SHAPES.find((x) => x.id === id);
+      expect(f, id).toBeTruthy();
+      const pts = f!.strokes.flatMap((st) => resample(st));
+      for (const q of c.pts) expect(Math.min(...pts.map((p) => Math.hypot(p[0] - q[0], p[1] - q[1]))), id).toBeLessThan(1);
+      expect(c.say[0]).toContain(String(c.pts.length));
+    }
+    expect(numberOf(TRACE_NUMBERS[2])).toBe(3);
+    expect(numberOf(TRACE_SHAPES[0])).toBeNull();
+  });
+
+  it('offers the next figure not done, then the next group once, then just the next one', () => {
+    const fig = (id: string, group: TraceFigure['group']): TraceFigure => ({ id, group, es: id, en: id, strokes: [[[0, 0], [1, 1]]] });
+    const order = [fig('a', 'shapes'), fig('b', 'shapes'), fig('c', 'shapes'), fig('n1', 'numbers'), fig('n2', 'numbers')];
+    const done: Record<string, number> = { a: 3 };
+    expect(nextFigure(order, done, 'a', true)).toMatchObject({ fig: { id: 'b' }, groupDone: false, allDone: false });
+    done.c = 2;
+    expect(nextFigure(order, done, 'c', true).fig.id).toBe('b'); // wraps inside the group
+    done.b = 1;
+    expect(nextFigure(order, done, 'b', true)).toMatchObject({ fig: { id: 'n1' }, groupDone: true, allDone: false });
+    expect(nextFigure(order, done, 'b', false).groupDone).toBe(false); // repeating a figure: no new "finished" message
+    done.n1 = 3;
+    done.n2 = 3;
+    expect(nextFigure(order, done, 'n2', true)).toMatchObject({ fig: { id: 'a' }, groupDone: true, allDone: true });
+    expect(nextFigure(order, done, 'a', false)).toMatchObject({ fig: { id: 'b' }, groupDone: false, allDone: true });
   });
 });

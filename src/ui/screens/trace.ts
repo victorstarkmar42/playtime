@@ -2,7 +2,12 @@ import { CHARACTER_ORDER, charOf } from '../../content/characters';
 import { pop } from '../../core/audio';
 import type { Pt } from '../../core/geometry';
 import { settings } from '../../core/settings';
-import { advance, figureBounds, resample, TRACE_NUMBERS, TRACE_SHAPES, TRACE_STEP, TRACE_TOL, type TraceFigure } from '../../core/trace';
+import {
+  advance, figureBounds, loadTraceDone, nextFigure, numberOf, resample, saveTraceStars, TRACE_CORNERS, TRACE_NUMBERS, TRACE_SHAPES, TRACE_STEP, TRACE_TOL,
+  traceStars, type TraceFigure,
+} from '../../core/trace';
+import type { CharKey } from '../../core/types';
+import { drawCharacter } from '../../render/character';
 import type { Ctx, Screen } from '../context';
 import { canvas, h, ICONS } from '../dom';
 
@@ -18,16 +23,26 @@ const BRUSHES: { es: string; colors: string[] }[] = [
 ];
 let brushIx = 0;
 
-/** Every figure: shapes, numbers and the outline of each drawing. */
+/** Every figure: shapes, numbers and the outline of each drawing (ids 'd-<drawing>', so they never clash with a shape such as 'estrella'). */
 function allFigures(): TraceFigure[] {
   const drawings: TraceFigure[] = CHARACTER_ORDER.map((k) => {
     const ch = charOf(k);
-    return { id: k, group: 'drawings', es: ch.label, en: ch.vocab.en, strokes: [[...ch.outline, ch.outline[0]]] };
+    return { id: `d-${k}`, group: 'drawings', es: ch.label, en: ch.vocab.en, strokes: [[...ch.outline, ch.outline[0]]] };
   });
   return [...TRACE_SHAPES, ...TRACE_NUMBERS, ...drawings];
 }
 
 const GROUPS: [TraceFigure['group'], string][] = [['shapes', 'Figuras · Shapes'], ['numbers', 'Números · Numbers'], ['drawings', 'Dibujos · Drawings']];
+/** "Terminaste todas las figuras", "Seguir con los números". */
+const GROUP_WORDS: Record<TraceFigure['group'], { all: string; name: string; en: string }> = {
+  shapes: { all: 'todas las figuras', name: 'las figuras', en: 'all the shapes' },
+  numbers: { all: 'todos los números', name: 'los números', en: 'all the numbers' },
+  drawings: { all: 'todos los dibujos', name: 'los dibujos', en: 'all the drawings' },
+};
+const COUNT_ES = ['cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez'];
+const COUNT_EN = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+const speakName = (f: TraceFigure) => f.es.replace(/^\d+ · /, '');
+const starText = (n: number) => '★'.repeat(n) + '☆'.repeat(3 - n);
 
 function starPath(c: CanvasRenderingContext2D, x: number, y: number, r: number): void {
   c.beginPath();
@@ -77,6 +92,8 @@ interface Spark { x: number; y: number; vx: number; vy: number; life: number; ma
 /** Trazos de luz: follow the dashed line with a finger; it lights up with little stars that stay. */
 export function traceScreen(ctx: Ctx): Screen {
   const figures = allFigures();
+  const doneMap = loadTraceDone();
+  const done_ = (id: string) => !!doneMap[id];
   const el = h('div', { class: 'view tview' });
   let stop: (() => void) | null = null;
 
@@ -84,12 +101,20 @@ export function traceScreen(ctx: Ctx): Screen {
     if (stop) ctx.speaker.cancel();
     stop?.();
     stop = null;
-    const sections = GROUPS.map(([g, title]) =>
-      h('section', null, h('h3', null, title),
-        h('div', { class: 'tpick-grid' }, ...figures.filter((f) => f.group === g).map((f) =>
-          h('button', { class: 'tpick-card', dataset: { id: f.id }, 'aria-label': f.es, onClick: () => (pop(520, 0.1), play(f)) }, thumb(f), h('span', null, f.es))))));
+    const sections = GROUPS.map(([g, title]) => {
+      const list = figures.filter((f) => f.group === g);
+      const n = list.filter((f) => doneMap[f.id]).length;
+      return h('section', null,
+        h('h3', null, title, h('span', { class: `tcount${n === list.length ? ' full' : ''}` }, n === list.length ? `✓ ${n} de ${list.length}` : `${n} de ${list.length}`)),
+        h('div', { class: 'tpick-grid' }, ...list.map((f) =>
+          h('button', { class: `tpick-card${doneMap[f.id] ? ' done' : ''}`, dataset: { id: f.id }, 'aria-label': f.es, onClick: () => (pop(520, 0.1), play(f)) },
+            thumb(f), h('span', null, f.es), doneMap[f.id] ? h('span', { class: 'tstars', 'aria-label': `${doneMap[f.id]} estrellas` }, starText(doneMap[f.id])) : null))));
+    });
+    const todo = figures.find((f) => !doneMap[f.id]);
+    const any = figures.some((f) => doneMap[f.id]);
     el.replaceChildren(h('div', { class: 'tpick' },
-      h('div', { class: 'ghead' }, h('h2', null, 'Trazos de luz', h('small', null, 'Light trails · Sigue la línea con tu dedo'))),
+      h('div', { class: 'ghead' }, h('h2', null, 'Trazos de luz', h('small', null, 'Light trails · Sigue la línea con tu dedo')),
+        todo ? h('button', { class: 'bigbtn tcont', onClick: () => (pop(520, 0.1), play(todo)) }, `${any ? 'Continuar' : 'Empezar'}: ${speakName(todo)} →`) : null),
       ...sections));
     el.scrollTop = 0;
   }
@@ -110,6 +135,11 @@ export function traceScreen(ctx: Ctx): Screen {
     let hinted = false;
     let lastPop = 0;
     const sparks: Spark[] = [];
+    /** After tracing: stars to count (numbers) or corners to touch (shapes). */
+    let bonus: { pts: Pt[]; hit: number[]; say: [string, string] } | null = null;
+    /** Drawings: the coloured character fades in inside the light. */
+    let revealAt = 0;
+    let cardTimer = 0;
 
     const cv = canvas(10, 10, 'tcanvas');
     cv.setAttribute('aria-label', `Traza: ${fig.es}`);
@@ -133,7 +163,8 @@ export function traceScreen(ctx: Ctx): Screen {
           pop(600 + i * 60, 0.08);
         },
       }, h('i'))));
-    const wrap = h('div', { class: 'twrap' }, cv);
+    const card = h('div', { class: 'tdone', hidden: true, role: 'dialog', 'aria-live': 'polite' });
+    const wrap = h('div', { class: 'twrap' }, cv, card);
     el.replaceChildren(h('div', { class: 'traceg' },
       h('div', { class: 'ghead' }, title, undoBtn, nextBtn),
       h('div', { class: 'tbody' }, wrap, brushes),
@@ -280,6 +311,10 @@ export function traceScreen(ctx: Ctx): Screen {
         c.drawImage(bg, 0, 0);
         c.setTransform(dpr, 0, 0, dpr, 0, 0);
         if (!done) for (let s = si; s < strokes.length; s++) guide(s, s === si ? pos : 0, now);
+        if (revealAt && fig.group === 'drawings') {
+          c.setTransform(dpr * k, 0, 0, dpr * k, dpr * ox, dpr * oy);
+          drawCharacter(c, charOf(fig.id.slice(2) as CharKey), 'fill', Math.min(1, (now - revealAt) / 900));
+        }
         c.setTransform(1, 0, 0, 1, 0, 0);
         c.drawImage(lit, 0, 0);
         if (done) {
@@ -326,6 +361,7 @@ export function traceScreen(ctx: Ctx): Screen {
           c.fill();
           c.restore();
         }
+        if (bonus) drawBonus(now);
         // sparkles
         c.globalCompositeOperation = 'lighter';
         for (let i = sparks.length - 1; i >= 0; i--) {
@@ -353,6 +389,37 @@ export function traceScreen(ctx: Ctx): Screen {
         c.globalCompositeOperation = 'source-over';
       }
       raf = requestAnimationFrame(frame);
+    }
+
+    function drawBonus(now: number): void {
+      if (!bonus) return;
+      const u = Math.max(k, 3);
+      bonus.pts.forEach((p, i) => {
+        const [x, y] = toPx(p);
+        const order = bonus!.hit.indexOf(i);
+        c.globalCompositeOperation = 'lighter';
+        if (order < 0) {
+          const pulse = 1 + 0.18 * Math.sin(now / 180 + i);
+          glow(c, x, y, u * 7 * pulse, '#FFE53D', 0.7);
+          c.globalCompositeOperation = 'source-over';
+          c.fillStyle = '#FFF6B0';
+          starPath(c, x, y, u * 3.2 * pulse);
+          c.fill();
+        } else {
+          const col = RAINBOW[order % RAINBOW.length];
+          glow(c, x, y, u * 7, col, 0.6);
+          c.globalCompositeOperation = 'source-over';
+          c.fillStyle = col;
+          starPath(c, x, y, u * 3.4);
+          c.fill();
+          c.fillStyle = '#0B1440';
+          c.font = `800 ${Math.round(u * 3)}px "Baloo 2", system-ui, sans-serif`;
+          c.textAlign = 'center';
+          c.textBaseline = 'middle';
+          c.fillText(String(order + 1), x, y + u * 0.2);
+        }
+      });
+      c.globalCompositeOperation = 'source-over';
     }
 
     const toUnits = (e: PointerEvent): Pt => {
@@ -397,29 +464,108 @@ export function traceScreen(ctx: Ctx): Screen {
     function complete(): void {
       done = true;
       doneAt = performance.now();
+      const stars = traceStars(segs.length, strokes.length);
       for (const s of strokes) for (let i = 0; i < s.length; i += 12) {
         const [x, y] = toPx(s[i]);
         emit(x, y, 2, 3);
       }
       [660, 880, 1100, 1320].forEach((f, i) => setTimeout(() => pop(f, 0.2), i * 120));
       status.textContent = `¡Lo lograste! ${fig.es} · ${fig.en}`;
-      nextBtn.classList.add('pulse');
-      ctx.sayPair(`¡Lo lograste! ${fig.es.replace(/^\d+ · /, '')}`, `You did it! ${fig.en}`);
+      const n = numberOf(fig);
+      const corners = TRACE_CORNERS[fig.id];
+      if (n) {
+        // count as many stars as the number says, around it
+        const b = figureBounds(fig.strokes);
+        const rx = b.w / 2 + 6, ry = b.h / 2 + 5, cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+        const pts = Array.from({ length: n }, (_, i) => {
+          const a = -Math.PI / 2 + (i * 2 * Math.PI) / n;
+          return [cx + rx * Math.cos(a), cy + ry * Math.sin(a)] as Pt;
+        });
+        bonus = { pts, hit: [], say: [`¡Son ${n}! ${n} estrellas`, `${n} stars!`] };
+        ctx.sayPair(`¡Lo lograste! Ahora toca ${n === 1 ? 'la estrella' : `las ${n} estrellas`} y cuéntalas.`, `Now count ${n === 1 ? 'the star' : `the ${n} stars`}.`);
+        status.textContent = `Toca ${n === 1 ? 'la estrella' : `las ${n} estrellas`} y cuéntalas`;
+      } else if (corners) {
+        bonus = { pts: corners.pts, hit: [], say: corners.say };
+        ctx.sayPair(`¡Lo lograste! Ahora toca cada ${corners.es[0]} y cuéntalas.`, `Now touch and count the ${corners.en}.`);
+        status.textContent = `Toca cada ${corners.es[0]} y cuéntalas`;
+      } else {
+        if (fig.group === 'drawings') revealAt = performance.now();
+        ctx.sayPair(`¡Lo lograste! ${speakName(fig)}`, `You did it! ${fig.en}`);
+        cardTimer = window.setTimeout(() => showCard(stars), fig.group === 'drawings' ? 1600 : 900);
+      }
+      finishStars = stars;
+    }
+    let finishStars = 3;
+
+    /** Touching a bonus star or corner. */
+    function tapBonus(q: Pt): void {
+      if (!bonus) return;
+      const r = Math.max(tol() * 1.3, 34 / k);
+      let best = -1, bd = Infinity;
+      bonus.pts.forEach((p, i) => {
+        const d = Math.hypot(p[0] - q[0], p[1] - q[1]);
+        if (d < r && d < bd && !bonus!.hit.includes(i)) (best = i), (bd = d);
+      });
+      if (best < 0) return;
+      bonus.hit.push(best);
+      const count = bonus.hit.length;
+      const [x, y] = toPx(bonus.pts[best]);
+      emit(x, y, 14, 3.5);
+      pop(500 + count * 90, 0.18);
+      if (count < bonus.pts.length) {
+        ctx.sayPair(COUNT_ES[count], COUNT_EN[count]);
+        status.textContent = `${count}…`;
+        return;
+      }
+      const [es, en] = bonus.say;
+      ctx.sayPair(`${COUNT_ES[count]}. ${es}`, `${COUNT_EN[count]}. ${en}`);
+      status.textContent = `¡Lo lograste! ${es}`;
+      [700, 900, 1200].forEach((f, i) => setTimeout(() => pop(f, 0.18), i * 110));
+      cardTimer = window.setTimeout(() => showCard(finishStars), 2600);
+    }
+
+    /** "¡Lo lograste!": stars, and the way forward (the next figure, or the next group when this one is complete). */
+    function showCard(stars: number): void {
+      bonus = null;
+      const firstTime = !done_(fig.id);
+      saveTraceStars(doneMap, fig.id, stars);
+      const step = nextFigure(figures, doneMap, fig.id, firstTime);
+      const words = GROUP_WORDS[fig.group];
+      const newGroup = step.fig.group !== fig.group;
+      const head = step.groupDone ? (step.allDone ? '¡Terminaste todos los trazos!' : `¡Terminaste ${words.all}!`) : '¡Lo lograste!';
+      const nextLabel = step.groupDone && newGroup ? `Seguir con ${GROUP_WORDS[step.fig.group].name} →` : `Siguiente: ${speakName(step.fig)} →`;
+      const nextBtn2 = h('button', { class: 'bigbtn tnext', onClick: () => (pop(660, 0.12), play(step.fig)) }, thumb(step.fig), h('span', null, nextLabel));
+      card.replaceChildren(
+        h('div', { class: 'tdone-card' },
+          h('div', { class: 'tdone-stars', 'aria-label': `${stars} de 3 estrellas` }, ...[0, 1, 2].map((i) => h('span', { class: i < stars ? 'on' : '' }, '★'))),
+          h('h3', null, head),
+          h('p', null, `${fig.es} · ${fig.en}`),
+          stars < 3 ? h('p', { class: 'tdone-tip' }, 'Para 3 estrellas, traza sin soltar el dedo.') : null,
+          nextBtn2,
+          h('div', { class: 'kbtnrow' },
+            h('button', { class: 'bigbtn alt small', onClick: () => play(fig) }, 'Otra vez'),
+            h('button', { class: 'bigbtn alt small', onClick: showPicker }, 'Elegir otra'))),
+      );
+      card.hidden = false;
+      nextBtn2.focus({ preventScroll: true });
+      if (step.groupDone && !step.allDone && newGroup) ctx.sayPair(`¡Terminaste ${words.all}! ¿Seguimos con ${GROUP_WORDS[step.fig.group].name}?`, `You finished ${words.en}! Shall we go on?`);
+      else if (step.allDone && step.groupDone) ctx.sayPair('¡Terminaste todos los trazos! Eres una estrella.', 'You traced them all!');
+      else ctx.sayPair(`Siguiente: ${speakName(step.fig)}`, `Next: ${step.fig.en}`);
     }
 
     function undo(): void {
+      if (done) return;
       const sg = segs.pop();
       if (!sg) return;
       si = sg.s;
       pos = sg.a;
       done = false;
-      nextBtn.classList.remove('pulse');
       status.textContent = 'Sigue la línea desde la luz.';
       renderLit();
     }
 
     cv.addEventListener('pointerdown', (e) => {
-      if (done) return;
+      if (done) return tapBonus(toUnits(e));
       const q = toUnits(e);
       const pts = strokes[si];
       if (advance(pts, pos, q, tol(), ahead) === pos && Math.hypot(q[0] - pts[pos][0], q[1] - pts[pos][1]) > tol()) {
@@ -466,11 +612,16 @@ export function traceScreen(ctx: Ctx): Screen {
     raf = requestAnimationFrame(frame);
     stop = () => {
       cancelAnimationFrame(raf);
+      clearTimeout(cardTimer);
       ro.disconnect();
     };
     ctx.sayPair(`Sigue la línea con tu dedo: ${fig.es.replace(/^\d+ · /, '')}`, `Trace the line: ${fig.en}`);
 
     if (location.search.includes('e2e')) {
+      (window as unknown as { __pymBonus?: () => Pt[] }).__pymBonus = () => {
+        const r = cv.getBoundingClientRect();
+        return (bonus?.pts ?? []).map((p) => [r.left + ox + p[0] * k, r.top + oy + p[1] * k] as Pt);
+      };
       (window as unknown as { __pymTrace?: () => Pt[][] }).__pymTrace = () => {
         const r = cv.getBoundingClientRect();
         return strokes.map((s) => s.filter((_, i) => i % 4 === 0 || i === s.length - 1).map((p) => [r.left + ox + p[0] * k, r.top + oy + p[1] * k] as Pt));

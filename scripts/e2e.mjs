@@ -298,19 +298,48 @@ for (const vp of VIEWPORTS) {
     await shot(`14-abc-${tag}`);
     console.log(vp.name, tag, 'letters', lt.slice(0, 14), 'abc', abc);
     // Trazos de luz: follow the heart with the pointer
+    await page.evaluate(() => localStorage.removeItem('pym-trace-done'));
     await openGame('Trazos de luz');
     await clickSel('.tpick-card[data-id="corazon"]');
     await sleep(300);
-    for (const s of await page.evaluate(() => window.__pymTrace())) {
-      await page.mouse.move(s[0][0], s[0][1]);
-      await page.mouse.down();
-      for (const p of s) await page.mouse.move(p[0] + 2, p[1] + 2, { steps: 2 });
-      await page.mouse.up();
-    }
+    const traceAll = async () => {
+      for (const s of await page.evaluate(() => window.__pymTrace())) {
+        await page.mouse.move(s[0][0], s[0][1]);
+        await page.mouse.down();
+        for (const p of s) await page.mouse.move(p[0] + 2, p[1] + 2, { steps: 2 });
+        await page.mouse.up();
+      }
+    };
+    await traceAll();
     await sleep(300);
     const tr = await page.evaluate(() => document.querySelector('.tstatus')?.textContent ?? '');
     if (!tr.includes('Lo lograste')) problems.push(`[${vp.name}] trace ${tag}: ${tr}`);
+    await sleep(900);
     await shot(`14-trace-${tag}`);
+    // the finish card offers the next shape not done yet; the star asks to touch and count its 5 points
+    const card1 = await page.evaluate(() => ({ on: !document.querySelector('.tdone').hidden, next: document.querySelector('.tnext')?.textContent ?? '', stars: document.querySelectorAll('.tdone-stars .on').length }));
+    if (!card1.on || !card1.next.includes('Estrella') || card1.stars !== 3) problems.push(`[${vp.name}] trace card ${tag}: ${JSON.stringify(card1)}`);
+    await clickSel('.tnext');
+    await sleep(400);
+    await traceAll();
+    await sleep(300);
+    const pts = await page.evaluate(() => window.__pymBonus());
+    if (pts.length !== 5) problems.push(`[${vp.name}] trace star bonus ${tag}: ${pts.length} points`);
+    await shot(`14-trace-bonus-${tag}`);
+    for (const q of pts) {
+      await tap(q[0], q[1]);
+      await sleep(150);
+    }
+    await sleep(2900);
+    const card2 = await page.evaluate(() => ({ on: !document.querySelector('.tdone').hidden, head: document.querySelector('.tdone h3')?.textContent ?? '', next: document.querySelector('.tnext')?.textContent ?? '' }));
+    if (!card2.on || !card2.next) problems.push(`[${vp.name}] trace card after counting ${tag}: ${JSON.stringify(card2)}`);
+    await shot(`14-trace-done-${tag}`);
+    // back to the list: two figures done, with their stars
+    await clickText('.tdone button', 'Elegir otra');
+    await sleep(300);
+    const prog = await page.evaluate(() => ({ count: document.querySelector('.tpick .tcount')?.textContent ?? '', stars: document.querySelectorAll('.tpick-card .tstars').length, cont: document.querySelector('.tcont')?.textContent ?? '' }));
+    if (!prog.count.startsWith('2 de') || prog.stars !== 2 || !prog.cont.startsWith('Continuar')) problems.push(`[${vp.name}] trace progress ${tag}: ${JSON.stringify(prog)}`);
+    await shot(`14-trace-list-${tag}`);
     // Destapa el dibujo: rub the paper until the drawing shows
     await openGame('Destapa');
     const rv = await page.evaluate(() => { const x = window.__pymReveal(); return [x.left, x.top, x.width, x.height]; });

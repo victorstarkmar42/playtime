@@ -1,5 +1,14 @@
 # Cambios
 
+## 0.14.0 — 2026-11-26
+
+**Trazos de luz** más interactivo, y al terminar ofrece avanzar:
+
+- **Después de cada trazo hay algo que hacer.** En los números aparecen tantas estrellas como dice el número: se tocan y la voz cuenta ("uno, dos, tres… ¡son 3!"). En el cuadrado, el triángulo, el rombo, la estrella y las montañas se tocan sus esquinas, puntas o picos ("La estrella tiene 5 puntas"). En los dibujos, al cerrar el contorno aparece el personaje coloreado dentro de la luz.
+- **Estrellas por trazo:** 3 si se traza sin soltar el dedo, 2 o 1 si se suelta varias veces. Se guarda la mejor.
+- **Tarjeta "¡Lo lograste!"** con "Siguiente: [figura] →" (la próxima que falta en la misma sección), "Otra vez" y "Elegir otra". Al completar una sección dice "¡Terminaste todas las figuras!" y ofrece "Seguir con los números →"; al completar todo, "¡Terminaste todos los trazos!".
+- La lista muestra las estrellas de cada figura, cuántas lleva cada sección (por ejemplo "3 de 9", o "✓" al completarla) y un botón **Continuar** con la siguiente pendiente. El avance se guarda en el dispositivo y entra en la copia de seguridad.
+
 ## 0.13.0 — 2026-11-26
 
 La app se usa más como una app de Android o iPhone (revisión de interfaz hecha con ayuda de Codex):

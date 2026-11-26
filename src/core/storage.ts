@@ -13,6 +13,7 @@ export const DATA_KEYS = {
   parentQuiz: 'pym-parentquiz',
   profile: 'pym-profile',
   tables: 'pym-tables',
+  traceDone: 'pym-trace-done',
 } as const;
 export type DataName = keyof typeof DATA_KEYS;
 
