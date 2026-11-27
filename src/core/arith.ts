@@ -1,4 +1,5 @@
 import { evaluate, type Op, type Rng } from './math';
+import type { Level } from './settings';
 import type { Age } from './types';
 
 /* ---------------- Cuentas: practice by operation ---------------- */
@@ -23,32 +24,38 @@ export interface MathQuestion {
 
 const int = (rng: Rng, a: number, b: number) => a + Math.floor(rng() * (b - a + 1));
 
-function opFor(kind: Exclude<MathKind, 'mix' | 'missing'>, age: Age, rng: Rng): Op {
-  const small = age !== '7-9';
+/** Number ranges per age and level (Fácil, Normal, Reto); Normal is what each age always had. */
+export const MATH_RANGE: Record<Age, Record<Level, { count: [number, number]; total: [number, number]; mul: [number, number]; div: [number, number] }>> = {
+  '3-4': { 1: { count: [1, 5], total: [2, 5], mul: [1, 5], div: [2, 5] }, 2: { count: [1, 10], total: [2, 10], mul: [1, 5], div: [2, 5] }, 3: { count: [5, 15], total: [2, 10], mul: [1, 5], div: [2, 5] } },
+  '5-6': { 1: { count: [1, 10], total: [2, 5], mul: [1, 5], div: [2, 5] }, 2: { count: [1, 20], total: [2, 10], mul: [1, 5], div: [2, 5] }, 3: { count: [10, 30], total: [6, 20], mul: [1, 5], div: [2, 5] } },
+  '7-9': { 1: { count: [1, 20], total: [11, 50], mul: [1, 5], div: [2, 5] }, 2: { count: [1, 20], total: [11, 100], mul: [1, 10], div: [2, 10] }, 3: { count: [1, 20], total: [50, 200], mul: [2, 12], div: [2, 12] } },
+};
+
+function opFor(kind: Exclude<MathKind, 'mix' | 'missing'>, age: Age, rng: Rng, level: Level): Op {
+  const R = MATH_RANGE[age][level];
   switch (kind) {
     case 'count':
-      return { kind: 'count', n: int(rng, 1, age === '3-4' ? 10 : 20) };
+      return { kind: 'count', n: int(rng, R.count[0], R.count[1]) };
     case 'sum': {
-      // 5–6: total up to 10; 7–9: up to 100
-      const total = small ? int(rng, 2, 10) : int(rng, 11, 100);
+      const total = int(rng, R.total[0], R.total[1]);
       const a = int(rng, 1, total - 1);
       return { kind: 'calc', a, sym: '+', b: total - a };
     }
     case 'sub': {
-      const a = small ? int(rng, 2, 10) : int(rng, 11, 100);
+      const a = int(rng, R.total[0], R.total[1]);
       return { kind: 'calc', a, sym: '−', b: int(rng, 1, a - 1) };
     }
     case 'mul':
-      return { kind: 'calc', a: int(rng, 1, 10), sym: '×', b: int(rng, 1, 10) };
+      return { kind: 'calc', a: int(rng, R.mul[0], R.mul[1]), sym: '×', b: int(rng, R.mul[0], R.mul[1]) };
     case 'div': {
-      const b = int(rng, 2, 10), q = int(rng, 1, 10);
+      const b = int(rng, R.div[0], R.div[1]), q = int(rng, 1, R.div[1]);
       return { kind: 'calc', a: b * q, sym: '÷', b };
     }
   }
 }
 
 /** One question; wrong choices sit close to the answer so the child has to work it out. */
-export function mathQuestion(kind: MathKind, age: Age, rng: Rng = Math.random): MathQuestion {
+export function mathQuestion(kind: MathKind, age: Age, rng: Rng = Math.random, level: Level = 2): MathQuestion {
   const pool = KINDS_FOR[age].filter((k) => k !== 'mix') as Exclude<MathKind, 'mix'>[];
   const k = kind === 'mix' ? pool[int(rng, 0, pool.length - 1)] : (kind as Exclude<MathKind, 'mix'>);
   let op: Op;
@@ -57,11 +64,11 @@ export function mathQuestion(kind: MathKind, age: Age, rng: Rng = Math.random): 
   if (k === 'missing') {
     // 4 + ? = 5, ? − 3 = 6 …: sums and subtractions (and, for 7–9, some multiplications)
     const base = age === '7-9' && rng() < 0.25 ? 'mul' : rng() < 0.5 ? 'sum' : 'sub';
-    op = opFor(base, age, rng);
+    op = opFor(base, age, rng, level);
     hide = rng() < 0.5 ? 'a' : 'b';
     answer = op.kind === 'calc' ? op[hide] : 0;
   } else {
-    op = opFor(k, age, rng);
+    op = opFor(k, age, rng, level);
     answer = evaluate(op);
   }
   const n = age === '3-4' ? 3 : 4;

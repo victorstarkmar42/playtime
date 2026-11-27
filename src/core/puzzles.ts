@@ -1,3 +1,4 @@
+import type { Level } from './settings';
 import type { Rng } from './math';
 import type { Age } from './types';
 
@@ -27,7 +28,13 @@ export const DIRS = [
   { bit: W, dx: -1, dy: 0, back: E },
 ] as const;
 
-export const mazeSize = (age: Age): [number, number] => (age === '3-4' ? [4, 3] : age === '5-6' ? [7, 5] : [11, 8]);
+/** Columns × rows per age and level (Fácil, Normal, Reto). Normal grew a little in 0.17. */
+export const MAZE_SIZES: Record<Age, Record<Level, [number, number]>> = {
+  '3-4': { 1: [4, 3], 2: [5, 4], 3: [6, 5] },
+  '5-6': { 1: [6, 4], 2: [8, 6], 3: [10, 7] },
+  '7-9': { 1: [9, 7], 2: [12, 9], 3: [15, 11] },
+};
+export const mazeSize = (age: Age, level: Level = 2): [number, number] => MAZE_SIZES[age][level];
 
 /** Perfect maze (exactly one path between any two cells), carved by a depth-first walk. */
 export function makeMaze(w: number, h: number, rng: Rng = Math.random): Maze {

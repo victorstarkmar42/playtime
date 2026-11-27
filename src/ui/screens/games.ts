@@ -43,7 +43,7 @@ const AGE_TEXT = {
   guess: { 'pick-image': 'Escucha la palabra y toca su dibujo.', 'pick-word': 'Mira el dibujo y toca su palabra.' },
   math: { '3-4': 'Cuenta estrellas.', '5-6': 'Contar, sumas y restas hasta 10, con dibujos, y ¿qué número falta? (4 + ? = 5).', '7-9': 'Sumas y restas hasta 100, multiplicaciones, divisiones y ¿qué número falta?' },
   abacus: { '3-4': 'Una fila de 10 cuentas: cuenta en voz alta.', '5-6': 'Dos filas: números hasta el 20.', '7-9': 'Centenas, decenas y unidades: hasta 999.' },
-  maze: { '3-4': 'Laberintos pequeños (4 × 3).', '5-6': 'Laberintos medianos (7 × 5).', '7-9': 'Laberintos grandes (11 × 8).' },
+  maze: { '3-4': 'Laberintos pequeños (de 4 × 3 a 6 × 5 según el nivel).', '5-6': 'Laberintos medianos (de 6 × 4 a 10 × 7 según el nivel).', '7-9': 'Laberintos grandes (de 9 × 7 a 15 × 11 según el nivel).' },
   sudoku: { '3-4': '4 × 4 con dibujos, pocos espacios.', '5-6': '4 × 4 con números.', '7-9': '6 × 6 con números.' },
   crossword: { '3-4': '2 palabras cortas con casi todas las letras.', '5-6': '3 palabras con algunas letras.', '7-9': '5 palabras desde cero.' },
 } as const;

@@ -4,7 +4,7 @@ import { keyDots } from '../content/extra';
 import { WORD_SECTIONS } from '../content/wordbank';
 import { ABC, makeRounds as letterRounds, plain, usableWords } from './letters';
 import { createGame, connectNext, hitTest } from './dotgame';
-import { abacusFor, abacusValue, KINDS_FOR, mathQuestion, missingWords, questionText, touchBead } from './arith';
+import { abacusFor, abacusValue, KINDS_FOR, MATH_RANGE, mathQuestion, missingWords, questionText, touchBead } from './arith';
 import { floodRegion } from './flood';
 import { canStep, countSolutions, makeCrossword, makeMaze, makeSudoku, mazeSize, solveMaze, sudokuAllows, sudokuFor } from './puzzles';
 import { GUESS_POOL, makeRounds, spellable, spellTiles, wordOf, type GuessKind } from './guess';
@@ -27,7 +27,7 @@ import { CONTINENTS } from '../content/world';
 import { checkBackup, DATA_KEYS, exportData, importData } from './storage';
 import { SYL_WORDS, sylPool, sylRounds } from './syllables';
 import { factKey, factsOf, grade, INTERVALS, learnedIn, pickRound, ROUND, TABLES_FOR, tableOptions, type TableState } from './tables';
-import { kindsFor, makeProblem } from './problems';
+import { kindsFor, makeProblem, makeRound, PROBLEM_MAX } from './problems';
 import { STORIES, storiesFor } from '../content/stories';
 
 /** Deterministic pseudo-random generator so failures are reproducible. */
@@ -815,6 +815,46 @@ describe('para la escuela', () => {
       expect(pr.es).not.toContain(` 1 ${pr.item.es[1]}`); // "1 manzanas"
       expect(pr.en).not.toMatch(/undefined|NaN/);
       expect(pr.es).not.toMatch(/undefined|NaN/);
+    }
+  });
+
+  it('word problems by level: in range, valid at every level, and no repeats inside a round', () => {
+    const levels = [1, 2, 3] as const;
+    for (const age of AGES) for (const level of levels) for (let seed = 1; seed < 80; seed++) {
+      const round = makeRound(age, 5, level, seeded(seed));
+      expect(round.length).toBe(5);
+      const keys = round.map((p) => `${p.kind}:${p.es.match(/\d+/g)?.join(',')}`);
+      expect(new Set(keys).size, `${age} ${level}`).toBe(5);
+      for (const p of round) {
+        expect(kindsFor(age, level)).toContain(p.kind);
+        expect(p.options).toContain(p.answer);
+        expect(p.answer).toBeGreaterThan(0);
+        if (p.kind === 'join' || p.kind === 'take' || p.kind === 'compare')
+          for (const n of p.es.match(/\d+/g)!.map(Number)) expect(n).toBeLessThanOrEqual(PROBLEM_MAX[age][level]);
+        expect(p.es).not.toMatch(/undefined|NaN/);
+      }
+    }
+    expect(PROBLEM_MAX['3-4'][1]).toBeLessThan(PROBLEM_MAX['3-4'][3]);
+  });
+
+  it('math and mazes get harder with the level', () => {
+    for (const age of AGES) {
+      const [w1, h1] = mazeSize(age, 1), [w2, h2] = mazeSize(age, 2), [w3, h3] = mazeSize(age, 3);
+      expect(w1 * h1).toBeLessThan(w2 * h2);
+      expect(w2 * h2).toBeLessThan(w3 * h3);
+      for (const level of [1, 2, 3] as const) for (let seed = 1; seed < 40; seed++) {
+        const m = makeMaze(...mazeSize(age, level), seeded(seed));
+        expect(solveMaze(m).at(-1)).toBe(m.w * m.h - 1);
+      }
+    }
+    for (const level of [1, 2, 3] as const) for (let seed = 1; seed < 100; seed++) {
+      const q = mathQuestion('sum', '7-9', seeded(seed), level);
+      const R = MATH_RANGE['7-9'][level];
+      expect(q.answer).toBeGreaterThanOrEqual(R.total[0]);
+      expect(q.answer).toBeLessThanOrEqual(R.total[1]);
+      expect(q.options).toContain(q.answer);
+      const c = mathQuestion('count', '3-4', seeded(seed), level);
+      expect(c.answer).toBeLessThanOrEqual(MATH_RANGE['3-4'][level].count[1]);
     }
   });
 

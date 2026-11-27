@@ -2,6 +2,11 @@ import { DATA_KEYS, readJSON, writeJSON } from './storage';
 import { LIMIT_MIN, REST_PRESETS, sanitizePlan, type RestPlan } from './rest';
 import type { Age, LangMode, Mode } from './types';
 
+/** Difficulty inside an age: 1 Fácil, 2 Normal, 3 Reto. */
+export type Level = 1 | 2 | 3;
+export type LevelGame = 'problems' | 'math' | 'maze';
+export const LEVEL_GAMES: LevelGame[] = ['problems', 'math', 'maze'];
+
 export interface Settings {
   onboarded: boolean;
   age: Age;
@@ -28,6 +33,8 @@ export interface Settings {
   /** Voice names chosen by the adult ("" = the best one automatically). */
   voiceEs: string;
   voiceEn: string;
+  /** Difficulty chosen in each game (the age still sets the range). */
+  levels: Record<LevelGame, Level>;
 }
 
 const KEY = DATA_KEYS.settings;
@@ -58,6 +65,7 @@ export function defaultSettings(): Settings {
     fullscreen: true,
     voiceEs: '',
     voiceEn: '',
+    levels: { problems: 2, math: 2, maze: 2 },
   };
 }
 
@@ -87,6 +95,11 @@ export function sanitizeSettings(raw: unknown): Settings {
   // before 0.10 there was a single limit: keep what the adult chose for the child playing alone
   if (r.solo === undefined && typeof r.timeLimitMin === 'number' && LIMIT_MIN.includes(r.timeLimitMin)) out.solo.limitMin = r.timeLimitMin;
   for (const k of ['voiceEs', 'voiceEn'] as const) if (typeof r[k] === 'string' && (r[k] as string).length < 200) out[k] = r[k] as string;
+  if (r.levels && typeof r.levels === 'object')
+    for (const g of LEVEL_GAMES) {
+      const v = (r.levels as Record<string, unknown>)[g];
+      if (v === 1 || v === 2 || v === 3) out.levels[g] = v;
+    }
   return out;
 }
 

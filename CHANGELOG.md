@@ -1,5 +1,14 @@
 # Cambios
 
+## 0.17.0 — 2026-11-26
+
+- **Niveles de dificultad que se eligen** dentro de cada edad en **Problemas**, **Cuentas** y **Laberinto**: ★ Fácil, ★★ Normal y ★★★ Reto, en la parte de arriba del juego (en Cuentas, en el menú de operaciones). Se guarda el nivel de cada juego. Si la ronda sale perfecta, aparece "Subir a Normal" o "Subir a Reto".
+  - Problemas: números más chicos o más grandes según el nivel; en Reto, 3–4 años también compara, 5–6 años agrega grupos (×) y 7–9 años usa números mayores y más problemas de dos pasos.
+  - Cuentas: rangos por nivel (por ejemplo, 7–9 años: sumas hasta 50, 100 o 200; tablas hasta 5, 10 o 12).
+  - Laberinto: tres tamaños por edad; el normal creció un poco (3–4: 5 × 4, 5–6: 8 × 6, 7–9: 12 × 9) y el Reto llega a 15 × 11.
+- **Sin preguntas repetidas** en una misma ronda de Problemas y Cuentas, y sin el mismo tipo de problema dos veces seguidas.
+- Con 3 respuestas, en celular se ven las 3 en una fila.
+
 ## 0.16.0 — 2026-11-26
 
 Nueva vista principal (Inicio):

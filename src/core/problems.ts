@@ -1,4 +1,5 @@
 import type { Rng, Sym } from './math';
+import type { Level } from './settings';
 import type { Age } from './types';
 
 /**
@@ -47,12 +48,23 @@ export interface Problem {
   options: number[];
 }
 
-const KINDS: Record<Age, ProblemKind[]> = {
-  '3-4': ['join', 'take'],
-  '5-6': ['join', 'take', 'compare'],
-  '7-9': ['join', 'take', 'compare', 'groups', 'share', 'two'],
+/** Kinds of problem for each age and level (Fácil, Normal, Reto). Normal is what each age always had. */
+const KINDS: Record<Age, Record<Level, ProblemKind[]>> = {
+  '3-4': { 1: ['join', 'take'], 2: ['join', 'take'], 3: ['join', 'take', 'compare'] },
+  '5-6': { 1: ['join', 'take'], 2: ['join', 'take', 'compare'], 3: ['join', 'take', 'compare', 'groups'] },
+  '7-9': {
+    1: ['join', 'take', 'compare', 'groups'],
+    2: ['join', 'take', 'compare', 'groups', 'share', 'two'],
+    3: ['join', 'take', 'groups', 'share', 'two', 'two'],
+  },
 };
-export const kindsFor = (age: Age): ProblemKind[] => KINDS[age];
+export const kindsFor = (age: Age, level: Level = 2): ProblemKind[] => [...new Set(KINDS[age][level])];
+/** Largest number in join, take and compare problems. */
+export const PROBLEM_MAX: Record<Age, Record<Level, number>> = {
+  '3-4': { 1: 3, 2: 5, 3: 8 },
+  '5-6': { 1: 5, 2: 10, 3: 20 },
+  '7-9': { 1: 50, 2: 100, 3: 100 },
+};
 /** Only the oldest choose the operation first. */
 export const choosesOperation = (age: Age): boolean => age === '7-9';
 export const SYM_OF: Record<ProblemKind, Sym | null> = { join: '+', take: '−', compare: '−', groups: '×', share: '÷', two: null };
@@ -65,14 +77,16 @@ export const countEs = (n: number, i: Item): string => `${n} ${n === 1 ? i.es[0]
 export const countEn = (n: number, i: Item): string => `${n} ${n === 1 ? i.en[0] : i.en[1]}`;
 const cuantos = (i: Item) => (i.fem ? 'Cuántas' : 'Cuántos');
 
-export function makeProblem(age: Age, rng: Rng = Math.random, kind?: ProblemKind): Problem {
-  const k = kind ?? pick(rng, KINDS[age]);
+export function makeProblem(age: Age, rng: Rng = Math.random, kind?: ProblemKind, level: Level = 2): Problem {
+  const k = kind ?? pick(rng, KINDS[age][level]);
   const item = pick(rng, ITEMS);
   const n1 = pick(rng, NAMES);
   let n2 = pick(rng, NAMES);
   while (n2 === n1) n2 = pick(rng, NAMES);
-  const max = age === '3-4' ? 5 : age === '5-6' ? 10 : 100;
+  const max = PROBLEM_MAX[age][level];
   const big = age === '7-9';
+  /** Smallest starting number for the oldest (bigger numbers at Reto). */
+  const low = level === 1 ? 10 : level === 2 ? 12 : 30;
   let es = '', en = '', answer = 0;
   let groups: number[] = [];
   const P = (n: number) => countEs(n, item);
@@ -81,7 +95,7 @@ export function makeProblem(age: Age, rng: Rng = Math.random, kind?: ProblemKind
 
   switch (k) {
     case 'join': {
-      const total = big ? int(rng, 12, max) : int(rng, 2, max);
+      const total = big ? int(rng, low, max) : int(rng, 2, max);
       const a = int(rng, 1, total - 1), b = total - a;
       es = `${n1} tiene ${P(a)}. Le regalan ${b} más. ¿${cuantos(item)} ${pl} tiene ahora?`;
       en = `${n1} has ${E(a)}. Someone gives ${n1} ${b} more. How many ${plEn} does ${n1} have now?`;
@@ -90,7 +104,7 @@ export function makeProblem(age: Age, rng: Rng = Math.random, kind?: ProblemKind
       break;
     }
     case 'take': {
-      const a = big ? int(rng, 12, max) : int(rng, 2, max);
+      const a = big ? int(rng, low, max) : int(rng, 2, max);
       const b = int(rng, 1, a - 1);
       es = `${n1} tiene ${P(a)} y le da ${b} a ${n2}. ¿${cuantos(item)} ${pl} le quedan a ${n1}?`;
       en = `${n1} has ${E(a)} and gives ${b} to ${n2}. How many ${plEn} does ${n1} have left?`;
@@ -99,7 +113,7 @@ export function makeProblem(age: Age, rng: Rng = Math.random, kind?: ProblemKind
       break;
     }
     case 'compare': {
-      const a = big ? int(rng, 12, max) : int(rng, 3, max);
+      const a = big ? int(rng, low, max) : int(rng, 3, max);
       const b = int(rng, 1, a - 1);
       es = `${n1} tiene ${P(a)} y ${n2} tiene ${P(b)}. ¿${cuantos(item)} ${pl} más tiene ${n1} que ${n2}?`;
       en = `${n1} has ${E(a)} and ${n2} has ${E(b)}. How many more ${plEn} does ${n1} have than ${n2}?`;
@@ -108,7 +122,8 @@ export function makeProblem(age: Age, rng: Rng = Math.random, kind?: ProblemKind
       break;
     }
     case 'groups': {
-      const a = int(rng, 2, 9), b = int(rng, 2, 9);
+      const [g0, g1] = age !== '7-9' ? [2, 4] : level === 1 ? [2, 5] : level === 2 ? [2, 9] : [3, 12];
+      const a = int(rng, g0, age !== '7-9' ? 4 : g1), b = int(rng, age !== '7-9' ? 2 : g0, age !== '7-9' ? 5 : g1);
       es = `Hay ${a} cajas y en cada caja hay ${P(b)}. ¿${cuantos(item)} ${pl} hay en total?`;
       en = `There are ${a} boxes with ${E(b)} in each box. How many ${plEn} are there in all?`;
       answer = a * b;
@@ -116,7 +131,8 @@ export function makeProblem(age: Age, rng: Rng = Math.random, kind?: ProblemKind
       break;
     }
     case 'share': {
-      const b = int(rng, 2, 6), q = int(rng, 2, 9);
+      const b = level === 1 ? int(rng, 2, 4) : level === 2 ? int(rng, 2, 6) : int(rng, 3, 9);
+      const q = level === 1 ? int(rng, 2, 5) : level === 2 ? int(rng, 2, 9) : int(rng, 3, 12);
       es = `${n1} reparte ${P(b * q)} entre ${b} amigos, en partes iguales. ¿${cuantos(item)} ${pl} le tocan a cada amigo?`;
       en = `${n1} shares ${E(b * q)} equally among ${b} friends. How many ${plEn} does each friend get?`;
       answer = q;
@@ -124,7 +140,7 @@ export function makeProblem(age: Age, rng: Rng = Math.random, kind?: ProblemKind
       break;
     }
     case 'two': {
-      const a = int(rng, 10, 40), b = int(rng, 5, 30);
+      const a = level === 3 ? int(rng, 20, 60) : int(rng, 10, 40), b = level === 3 ? int(rng, 10, 40) : int(rng, 5, 30);
       const c = int(rng, 2, a + b - 1);
       es = `${n1} tiene ${P(a)}. Compra ${b} más y después le da ${c} a ${n2}. ¿${cuantos(item)} ${pl} tiene ${n1} al final?`;
       en = `${n1} has ${E(a)}. ${n1} buys ${b} more and then gives ${c} to ${n2}. How many ${plEn} does ${n1} have at the end?`;
@@ -147,4 +163,32 @@ export function makeProblem(age: Age, rng: Rng = Math.random, kind?: ProblemKind
     [options[i], options[j]] = [options[j], options[i]];
   }
   return { kind: k, es, en, item, answer, sym: SYM_OF[k], groups, options };
+}
+
+/** What makes two problems "the same" for a child: the kind and the numbers (names and things change anyway). */
+const sameKey = (p: Problem): string => `${p.kind}:${p.groups.join(',')}:${p.answer}:${p.es.match(/d+/g)?.join(',') ?? ''}`;
+
+/**
+ * A round of problems with no repeats: different numbers each time, and not the same kind or
+ * thing twice in a row when there is a choice.
+ */
+export function makeRound(age: Age, n: number, level: Level = 2, rng: Rng = Math.random): Problem[] {
+  const out: Problem[] = [];
+  const seen = new Set<string>();
+  const kinds = kindsFor(age, level);
+  for (let i = 0; i < n; i++) {
+    let best: Problem | null = null;
+    for (let tries = 0; tries < 40; tries++) {
+      const prev = out[out.length - 1];
+      const k = kinds.length > 1 && prev ? pick(rng, kinds.filter((x) => x !== prev.kind)) : undefined;
+      const p = makeProblem(age, rng, tries < 30 ? k : undefined, level);
+      if (seen.has(sameKey(p))) continue;
+      best = p;
+      if (!prev || p.item !== prev.item) break;
+    }
+    best ??= makeProblem(age, rng, undefined, level);
+    seen.add(sameKey(best));
+    out.push(best);
+  }
+  return out;
 }

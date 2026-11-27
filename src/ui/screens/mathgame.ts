@@ -5,7 +5,7 @@ import { recordStep } from '../../core/progress';
 import { settings } from '../../core/settings';
 import type { Ctx, Screen } from '../context';
 import { h } from '../dom';
-import { progressDots, shake } from './gamekit';
+import { levelPicker, levelUpButton, progressDots, shake } from './gamekit';
 
 const ROUNDS = 5;
 const KIND_LABEL: Record<MathKind, { es: string; en: string; sym: string }> = {
@@ -30,11 +30,13 @@ export function mathScreen(ctx: Ctx): Screen {
   const wrap = h('div', { class: 'mathg' });
   const el = h('div', { class: 'view' }, wrap);
 
+  const seen = new Set<string>();
+
   function menu(): void {
     clearTimeout(timer);
     if (kinds.length === 1) return start(kinds[0]);
     wrap.replaceChildren(
-      h('div', { class: 'ghead' }, h('h2', null, 'Cuentas', h('small', null, 'Math · ¿Qué quieres practicar?'))),
+      h('div', { class: 'ghead' }, h('h2', null, 'Cuentas', h('small', null, 'Math · ¿Qué quieres practicar?')), h('span', { class: 'lvl-label' }, 'Nivel'), levelPicker(ctx, 'math', menu)),
       h('div', { class: 'mkinds' }, ...kinds.map((k) =>
         h('button', { class: `mkind k-${k}`, onClick: () => (ctx.sayPair(KIND_LABEL[k].es, KIND_LABEL[k].en), start(k)) },
           h('span', { class: 'msym' }, KIND_LABEL[k].sym), KIND_LABEL[k].es, h('small', null, KIND_LABEL[k].en)))),
@@ -45,6 +47,7 @@ export function mathScreen(ctx: Ctx): Screen {
     kind = k;
     idx = 0;
     score = 0;
+    seen.clear();
     next();
   }
 
@@ -66,13 +69,18 @@ export function mathScreen(ctx: Ctx): Screen {
 
   function next(): void {
     firstTry = true;
-    q = mathQuestion(kind, settings.age);
+    // no repeated question inside a round
+    for (let t = 0; t < 30; t++) {
+      q = mathQuestion(kind, settings.age, Math.random, settings.levels.math);
+      if (!seen.has(`${questionText(q)}|${q.answer}`)) break;
+    }
+    seen.add(`${questionText(q)}|${q.answer}`);
     const text = q.op.kind === 'count' ? '¿Cuántas estrellas hay?' : questionText(q);
     wrap.replaceChildren(
       h('div', { class: 'ghead' },
         h('h2', null, KIND_LABEL[kind].es, h('small', null, KIND_LABEL[kind].en)),
         progressDots(ROUNDS, idx),
-        kinds.length > 1 ? h('button', { class: 'bigbtn alt small', onClick: menu }, 'Cambiar') : null),
+        kinds.length > 1 ? h('button', { class: 'bigbtn alt small', onClick: menu }, 'Cambiar') : levelPicker(ctx, 'math', () => start(kind))),
       h('div', { class: 'mq kcard' }, h('div', { class: `mtext${q.op.kind === 'count' ? ' small' : ''}` }, text), visual()),
       h('div', { class: 'mopts' }, ...q.options.map((n) => {
         const b: HTMLButtonElement = h('button', { class: 'mopt', onClick: () => answer(n, b) }, String(n));
@@ -122,6 +130,7 @@ export function mathScreen(ctx: Ctx): Screen {
         h('h2', null, msg, h('small', null, `${score} de ${ROUNDS} al primer intento · ${score} of ${ROUNDS}`)),
         progressDots(ROUNDS, score, false),
         h('div', { class: 'kbtnrow' },
+          levelUpButton(ctx, 'math', score, ROUNDS, () => start(kind)),
           h('button', { class: 'bigbtn', onClick: () => start(kind) }, 'Otra vez · Again'),
           kinds.length > 1 ? h('button', { class: 'bigbtn alt', onClick: menu }, 'Otra cuenta') : null)),
     );

@@ -1111,3 +1111,16 @@ h2 small, .pick h2 small, .album h2 small { display: block; font-family: var(--f
   .tile.halbum { min-height: 50px; font-size: 1.1rem; }
   .tile.halbum .tile-ico { width: 36px; }
 }
+
+/* ---- difficulty inside an age: ★ Fácil, ★★ Normal, ★★★ Reto ---- */
+.lvl { flex: none; display: flex; gap: 4px; padding: 4px; border-radius: 16px; background: #fff; box-shadow: 0 3px 0 var(--soft); }
+.lvl button { min-width: 48px; height: 44px; padding: 0 8px; border: 0; border-radius: 12px; background: transparent; color: #B9C6DA; font-size: 1rem; letter-spacing: -1px; cursor: pointer; }
+.lvl button[aria-checked="true"] { background: #FFF1B8; color: #D99A00; box-shadow: inset 0 0 0 2px var(--sun); }
+.ghead .lvl { margin-left: auto; }
+.ghead .gstars + .lvl { margin-left: 8px; }
+.mopts:has(> :nth-child(3):last-child) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@container app (max-width: 440px) {
+  .lvl button { min-width: 44px; padding: 0 5px; font-size: .9rem; }
+}
+.lvl-label { margin-left: auto; font-family: var(--f-body); font-size: .85rem; color: var(--muted); }
+.lvl-label + .lvl { margin-left: 0; }
