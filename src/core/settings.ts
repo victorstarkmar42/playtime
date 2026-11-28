@@ -3,9 +3,9 @@ import { LIMIT_MIN, REST_PRESETS, sanitizePlan, type RestPlan } from './rest';
 import type { Age, LangMode, Mode } from './types';
 
 /** Difficulty inside an age: 1 Fácil, 2 Normal, 3 Reto. */
-export type Level = 1 | 2 | 3;
-export type LevelGame = 'problems' | 'math' | 'maze';
-export const LEVEL_GAMES: LevelGame[] = ['problems', 'math', 'maze'];
+export type Level = 1 | 2 | 3 | 4;
+export type LevelGame = 'problems' | 'math' | 'maze' | 'sudoku' | 'letters' | 'syllables' | 'crossword';
+export const LEVEL_GAMES: LevelGame[] = ['problems', 'math', 'maze', 'sudoku', 'letters', 'syllables', 'crossword'];
 
 export interface Settings {
   onboarded: boolean;
@@ -65,7 +65,7 @@ export function defaultSettings(): Settings {
     fullscreen: true,
     voiceEs: '',
     voiceEn: '',
-    levels: { problems: 2, math: 2, maze: 2 },
+    levels: { problems: 2, math: 2, maze: 2, sudoku: 2, letters: 2, syllables: 2, crossword: 2 },
   };
 }
 
@@ -98,7 +98,7 @@ export function sanitizeSettings(raw: unknown): Settings {
   if (r.levels && typeof r.levels === 'object')
     for (const g of LEVEL_GAMES) {
       const v = (r.levels as Record<string, unknown>)[g];
-      if (v === 1 || v === 2 || v === 3) out.levels[g] = v;
+      if (v === 1 || v === 2 || v === 3 || v === 4) out.levels[g] = v;
     }
   return out;
 }

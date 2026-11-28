@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { CHARACTER_ORDER, CHARACTERS } from '../content/characters';
 import { keyDots } from '../content/extra';
 import { WORD_SECTIONS } from '../content/wordbank';
-import { ABC, makeRounds as letterRounds, plain, usableWords } from './letters';
+import { ABC, LETTER_OPTIONS, makeRounds as letterRounds, plain, usableWords } from './letters';
 import { createGame, connectNext, hitTest } from './dotgame';
 import { abacusFor, abacusValue, KINDS_FOR, MATH_RANGE, mathQuestion, missingWords, questionText, touchBead } from './arith';
 import { floodRegion } from './flood';
-import { canStep, countSolutions, makeCrossword, makeMaze, makeSudoku, mazeSize, solveMaze, sudokuAllows, sudokuFor } from './puzzles';
+import { canStep, countSolutions, makeCrossword, makeMaze, makeSudoku, mazeSize, solveMaze, sudokuAllows, sudokuFor, SUDOKU_BLANKS, crosswordFor } from './puzzles';
 import { GUESS_POOL, makeRounds, spellable, spellTiles, wordOf, type GuessKind } from './guess';
 import { dist, outwardNormals, perimeter, sampleByLength, type Pt } from './geometry';
 import { pickText, practiceLang, speakOrder } from './lang';
@@ -363,8 +363,8 @@ describe('puzzles', () => {
     }
   });
   it('sudokus are valid and have exactly one answer', () => {
-    for (const age of AGES) for (let seed = 1; seed <= 30; seed++) {
-      const spec = sudokuFor(age);
+    for (const age of AGES) for (const level of [1, 2, 3, 4] as const) for (let seed = 1; seed <= 15; seed++) {
+      const spec = sudokuFor(age, level);
       const s = makeSudoku(spec, seeded(seed));
       s.solution.forEach((v, i) => expect(sudokuAllows(s.solution, spec, i, v)).toBe(true));
       s.given.forEach((v, i) => v && expect(v).toBe(s.solution[i]));
@@ -418,9 +418,9 @@ describe('letters game', () => {
   });
   it('builds 5 consistent rounds for every age and language', () => {
     for (const lang of ['es', 'en'] as const) {
-      for (const age of AGES) {
-        for (let seed = 0; seed < 30; seed++) {
-          const rounds = letterRounds(age, lang, pool(lang));
+      for (const age of AGES) for (const level of [1, 2, 3, 4] as const) {
+        for (let seed = 0; seed < 12; seed++) {
+          const rounds = letterRounds(age, lang, pool(lang), 5, Math.random, level);
           expect(rounds).toHaveLength(5);
           expect(new Set(rounds.map((r) => r.word)).size).toBe(5);
           for (const r of rounds) {
@@ -432,7 +432,7 @@ describe('letters game', () => {
             } else {
               expect(r.options).toContain(r.letter);
               expect(new Set(r.options).size).toBe(r.options.length);
-              expect(r.options.length).toBe(age === '3-4' ? 3 : 4);
+              expect(r.options.length).toBe(LETTER_OPTIONS[age][level]);
               expect(r.word[r.slots[0]]).toBe(r.letter); // never a hidden accented letter
             }
             if (age === '3-4') expect(r.kind).toBe('first');
@@ -748,6 +748,24 @@ describe('para la escuela', () => {
     expect(new Set(es).size).toBe(es.length);
   });
 
+  it('syllables, letters, sudoku and crossword have enough material at every level', () => {
+    for (const age of AGES) for (const level of [1, 2, 3, 4] as const) {
+      for (const lang of ['es', 'en'] as const) {
+        const rounds = sylRounds(age, lang, 5, seeded(level), level);
+        expect(rounds, `${age} ${level} ${lang}`).toHaveLength(5);
+        expect(new Set(rounds.map((r) => r.parts.join('-'))).size).toBe(5);
+        for (const r of rounds) {
+          expect(r.tiles.length).toBeGreaterThanOrEqual(r.parts.length);
+          if (age === '3-4') expect(r.claps).toContain(r.parts.length);
+        }
+      }
+      expect(SUDOKU_BLANKS[age][1]).toBeLessThan(SUDOKU_BLANKS[age][3]);
+      expect(SUDOKU_BLANKS[age][3]).toBeLessThan(SUDOKU_BLANKS[age][4]);
+      expect(crosswordFor(age, 1).reveal).toBeGreaterThanOrEqual(crosswordFor(age, 3).reveal);
+      expect(LETTER_OPTIONS[age][1]).toBeLessThanOrEqual(LETTER_OPTIONS[age][3]);
+    }
+  });
+
   it('syllable rounds fit the age and tiles hold every syllable', () => {
     for (const age of AGES) for (const lang of ['es', 'en'] as const) {
       expect(sylPool(age, lang).length).toBeGreaterThanOrEqual(8);
@@ -819,7 +837,7 @@ describe('para la escuela', () => {
   });
 
   it('word problems by level: in range, valid at every level, and no repeats inside a round', () => {
-    const levels = [1, 2, 3] as const;
+    const levels = [1, 2, 3, 4] as const;
     for (const age of AGES) for (const level of levels) for (let seed = 1; seed < 80; seed++) {
       const round = makeRound(age, 5, level, seeded(seed));
       expect(round.length).toBe(5);
@@ -839,15 +857,16 @@ describe('para la escuela', () => {
 
   it('math and mazes get harder with the level', () => {
     for (const age of AGES) {
-      const [w1, h1] = mazeSize(age, 1), [w2, h2] = mazeSize(age, 2), [w3, h3] = mazeSize(age, 3);
+      const [w1, h1] = mazeSize(age, 1), [w2, h2] = mazeSize(age, 2), [w3, h3] = mazeSize(age, 3), [w4, h4] = mazeSize(age, 4);
       expect(w1 * h1).toBeLessThan(w2 * h2);
       expect(w2 * h2).toBeLessThan(w3 * h3);
-      for (const level of [1, 2, 3] as const) for (let seed = 1; seed < 40; seed++) {
+      expect(w3 * h3).toBeLessThan(w4 * h4);
+      for (const level of [1, 2, 3, 4] as const) for (let seed = 1; seed < 40; seed++) {
         const m = makeMaze(...mazeSize(age, level), seeded(seed));
         expect(solveMaze(m).at(-1)).toBe(m.w * m.h - 1);
       }
     }
-    for (const level of [1, 2, 3] as const) for (let seed = 1; seed < 100; seed++) {
+    for (const level of [1, 2, 3, 4] as const) for (let seed = 1; seed < 100; seed++) {
       const q = mathQuestion('sum', '7-9', seeded(seed), level);
       const R = MATH_RANGE['7-9'][level];
       expect(q.answer).toBeGreaterThanOrEqual(R.total[0]);

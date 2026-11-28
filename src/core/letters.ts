@@ -1,3 +1,4 @@
+import type { Level } from './settings';
 import type { Age, Lang } from './types';
 
 /** One letter of the alphabet with several picture words that have it (at the start whenever possible). */
@@ -92,8 +93,15 @@ export type LetterKind = 'first' | 'missing' | 'find';
  * 5–6: fill in the missing letter of the word (4 letters).
  * 7–9: missing letter with look-alike letters (b/d/p…), alternating with "tap every letter X".
  */
-export const kindsFor = (age: Age, round: number): LetterKind =>
-  age === '3-4' ? 'first' : age === '5-6' ? 'missing' : round % 2 === 0 ? 'missing' : 'find';
+export const kindsFor = (age: Age, round: number, level: Level = 2): LetterKind =>
+  age === '3-4' ? 'first' : age === '5-6' || level === 1 ? 'missing' : round % 2 === 0 ? 'missing' : 'find';
+
+/** How many letters to choose from, per age and level (Fácil, Normal, Reto, Experto). */
+export const LETTER_OPTIONS: Record<Age, Record<Level, number>> = {
+  '3-4': { 1: 2, 2: 3, 3: 4, 4: 5 },
+  '5-6': { 1: 3, 2: 4, 3: 5, 4: 6 },
+  '7-9': { 1: 4, 2: 4, 3: 6, 4: 8 },
+};
 
 /** Letters without accents or other marks (ñ stays ñ). */
 export const plain = (ch: string): string => (ch === 'ñ' ? 'ñ' : ch.normalize('NFD').replace(/[̀-ͯ]/g, ''));
@@ -152,22 +160,24 @@ function options(letter: string, n: number, alphabet: string[], kind: LetterKind
 }
 
 /** Builds one round, or null if this word does not suit the kind. */
-export function makeRound(kind: LetterKind, w: PicWord, age: Age, lang: Lang, rnd: () => number = Math.random): LetterRound | null {
+export function makeRound(kind: LetterKind, w: PicWord, age: Age, lang: Lang, rnd: () => number = Math.random, level: Level = 2): LetterRound | null {
+  const nOpt = LETTER_OPTIONS[age][level];
   const letters = [...w.word];
   const alphabet = ABC[lang].map((x) => x.letter);
   const plainAt = (i: number) => plain(letters[i]);
   const clean = (i: number) => letters[i] === plainAt(i) && alphabet.includes(letters[i]);
   if (kind === 'first') {
     if (!clean(0)) return null;
-    return { kind, word: w.word, pic: w.pic, letter: letters[0], slots: [0], options: options(letters[0], 3, alphabet, kind, rnd) };
+    return { kind, word: w.word, pic: w.pic, letter: letters[0], slots: [0], options: options(letters[0], nOpt, alphabet, kind, rnd) };
   }
   if (kind === 'missing') {
     // 5–6 mostly the first letter or a middle consonant; 7–9 anywhere but the first
-    const from = age === '5-6' ? 0 : 1;
+    const easyStart = age === '5-6' && level < 3;
+    const from = easyStart ? 0 : 1;
     const cand = letters.map((_, i) => i).filter((i) => i >= from && clean(i));
     if (!cand.length) return null;
-    const i = age === '5-6' && rnd() < 0.5 && clean(0) ? 0 : cand[Math.floor(rnd() * cand.length)];
-    return { kind, word: w.word, pic: w.pic, letter: letters[i], slots: [i], options: options(letters[i], 4, alphabet, kind, rnd) };
+    const i = easyStart && rnd() < (level === 1 ? 0.8 : 0.5) && clean(0) ? 0 : cand[Math.floor(rnd() * cand.length)];
+    return { kind, word: w.word, pic: w.pic, letter: letters[i], slots: [i], options: options(letters[i], nOpt, alphabet, kind, rnd) };
   }
   // find: a letter that appears in the word; prefer one that repeats
   const counts = new Map<string, number[]>();
@@ -183,12 +193,15 @@ export function makeRound(kind: LetterKind, w: PicWord, age: Age, lang: Lang, rn
 }
 
 /** Five rounds with different words. */
-export function makeRounds(age: Age, lang: Lang, words: PicWord[], n = 5, rnd: () => number = Math.random): LetterRound[] {
-  const pool = shuffle(usableWords(words, age), rnd);
+export function makeRounds(age: Age, lang: Lang, words: PicWord[], n = 5, rnd: () => number = Math.random, level: Level = 2): LetterRound[] {
+  // Fácil prefers short words, Reto long ones, Experto the longest
+  const usable = usableWords(words, age);
+  const sized = level === 1 ? usable.filter((w) => w.word.length <= 5) : level === 3 ? usable.filter((w) => w.word.length >= 5) : level === 4 ? usable.filter((w) => w.word.length >= 6) : usable;
+  const pool = shuffle(sized.length >= n * 2 ? sized : usable, rnd);
   const out: LetterRound[] = [];
   for (const w of pool) {
     if (out.length >= n) break;
-    const r = makeRound(kindsFor(age, out.length), w, age, lang, rnd);
+    const r = makeRound(kindsFor(age, out.length, level), w, age, lang, rnd, level);
     if (r) out.push(r);
   }
   return out;

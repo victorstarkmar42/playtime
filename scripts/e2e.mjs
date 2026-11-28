@@ -15,13 +15,18 @@ const VIEWPORTS = [
 ];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-const browser = await puppeteer.launch({ executablePath: CHROME, headless: true, args: ['--autoplay-policy=no-user-gesture-required'] });
+const browser = await puppeteer.launch({ executablePath: CHROME, headless: true, args: ['--autoplay-policy=no-user-gesture-required', '--mute-audio'] });
 const problems = [];
 for (const vp of VIEWPORTS) {
   const page = await browser.newPage();
   page.on('console', (m) => m.type() === 'error' && problems.push(`[${vp.name}] console: ${m.text()}`));
   page.on('pageerror', (e) => problems.push(`[${vp.name}] pageerror: ${e.message}`));
   await page.setViewport(vp);
+  // Silent run: the voice still runs (and fires its events) but at volume 0
+  await page.evaluateOnNewDocument(() => {
+    const speak = speechSynthesis.speak.bind(speechSynthesis);
+    speechSynthesis.speak = (u) => { u.volume = 0; speak(u); };
+  });
   await page.goto(URL, { waitUntil: 'networkidle0' });
   await page.evaluate(() => { localStorage.clear(); indexedDB.deleteDatabase('punto-y-magia'); });
   await page.reload({ waitUntil: 'networkidle0' });

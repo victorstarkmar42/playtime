@@ -48,22 +48,23 @@ export interface Problem {
   options: number[];
 }
 
-/** Kinds of problem for each age and level (Fácil, Normal, Reto). Normal is what each age always had. */
+/** Kinds of problem for each age and level (Fácil, Normal, Reto, Experto). Normal is what each age always had. */
 const KINDS: Record<Age, Record<Level, ProblemKind[]>> = {
-  '3-4': { 1: ['join', 'take'], 2: ['join', 'take'], 3: ['join', 'take', 'compare'] },
-  '5-6': { 1: ['join', 'take'], 2: ['join', 'take', 'compare'], 3: ['join', 'take', 'compare', 'groups'] },
+  '3-4': { 1: ['join', 'take'], 2: ['join', 'take'], 3: ['join', 'take', 'compare'], 4: ['join', 'take', 'compare'] },
+  '5-6': { 1: ['join', 'take'], 2: ['join', 'take', 'compare'], 3: ['join', 'take', 'compare', 'groups'], 4: ['take', 'compare', 'groups', 'groups'] },
   '7-9': {
     1: ['join', 'take', 'compare', 'groups'],
     2: ['join', 'take', 'compare', 'groups', 'share', 'two'],
     3: ['join', 'take', 'groups', 'share', 'two', 'two'],
+    4: ['take', 'groups', 'share', 'share', 'two', 'two'],
   },
 };
 export const kindsFor = (age: Age, level: Level = 2): ProblemKind[] => [...new Set(KINDS[age][level])];
 /** Largest number in join, take and compare problems. */
 export const PROBLEM_MAX: Record<Age, Record<Level, number>> = {
-  '3-4': { 1: 3, 2: 5, 3: 8 },
-  '5-6': { 1: 5, 2: 10, 3: 20 },
-  '7-9': { 1: 50, 2: 100, 3: 100 },
+  '3-4': { 1: 3, 2: 5, 3: 8, 4: 10 },
+  '5-6': { 1: 5, 2: 10, 3: 20, 4: 30 },
+  '7-9': { 1: 50, 2: 100, 3: 100, 4: 500 },
 };
 /** Only the oldest choose the operation first. */
 export const choosesOperation = (age: Age): boolean => age === '7-9';
@@ -86,7 +87,7 @@ export function makeProblem(age: Age, rng: Rng = Math.random, kind?: ProblemKind
   const max = PROBLEM_MAX[age][level];
   const big = age === '7-9';
   /** Smallest starting number for the oldest (bigger numbers at Reto). */
-  const low = level === 1 ? 10 : level === 2 ? 12 : 30;
+  const low = [0, 10, 12, 30, 100][level];
   let es = '', en = '', answer = 0;
   let groups: number[] = [];
   const P = (n: number) => countEs(n, item);
@@ -122,7 +123,7 @@ export function makeProblem(age: Age, rng: Rng = Math.random, kind?: ProblemKind
       break;
     }
     case 'groups': {
-      const [g0, g1] = age !== '7-9' ? [2, 4] : level === 1 ? [2, 5] : level === 2 ? [2, 9] : [3, 12];
+      const [g0, g1] = age !== '7-9' ? [2, 4] : level === 1 ? [2, 5] : level === 2 ? [2, 9] : level === 3 ? [3, 12] : [6, 15];
       const a = int(rng, g0, age !== '7-9' ? 4 : g1), b = int(rng, age !== '7-9' ? 2 : g0, age !== '7-9' ? 5 : g1);
       es = `Hay ${a} cajas y en cada caja hay ${P(b)}. ¿${cuantos(item)} ${pl} hay en total?`;
       en = `There are ${a} boxes with ${E(b)} in each box. How many ${plEn} are there in all?`;
@@ -131,8 +132,8 @@ export function makeProblem(age: Age, rng: Rng = Math.random, kind?: ProblemKind
       break;
     }
     case 'share': {
-      const b = level === 1 ? int(rng, 2, 4) : level === 2 ? int(rng, 2, 6) : int(rng, 3, 9);
-      const q = level === 1 ? int(rng, 2, 5) : level === 2 ? int(rng, 2, 9) : int(rng, 3, 12);
+      const b = level === 1 ? int(rng, 2, 4) : level === 2 ? int(rng, 2, 6) : level === 3 ? int(rng, 3, 9) : int(rng, 4, 12);
+      const q = level === 1 ? int(rng, 2, 5) : level === 2 ? int(rng, 2, 9) : level === 3 ? int(rng, 3, 12) : int(rng, 6, 15);
       es = `${n1} reparte ${P(b * q)} entre ${b} amigos, en partes iguales. ¿${cuantos(item)} ${pl} le tocan a cada amigo?`;
       en = `${n1} shares ${E(b * q)} equally among ${b} friends. How many ${plEn} does each friend get?`;
       answer = q;
@@ -140,7 +141,7 @@ export function makeProblem(age: Age, rng: Rng = Math.random, kind?: ProblemKind
       break;
     }
     case 'two': {
-      const a = level === 3 ? int(rng, 20, 60) : int(rng, 10, 40), b = level === 3 ? int(rng, 10, 40) : int(rng, 5, 30);
+      const a = level === 4 ? int(rng, 60, 200) : level === 3 ? int(rng, 20, 60) : int(rng, 10, 40), b = level === 4 ? int(rng, 30, 120) : level === 3 ? int(rng, 10, 40) : int(rng, 5, 30);
       const c = int(rng, 2, a + b - 1);
       es = `${n1} tiene ${P(a)}. Compra ${b} más y después le da ${c} a ${n2}. ¿${cuantos(item)} ${pl} tiene ${n1} al final?`;
       en = `${n1} has ${E(a)}. ${n1} buys ${b} more and then gives ${c} to ${n2}. How many ${plEn} does ${n1} have at the end?`;

@@ -6,7 +6,7 @@ import { settings } from '../../core/settings';
 import type { Lang } from '../../core/types';
 import type { Ctx, Screen } from '../context';
 import { h } from '../dom';
-import { progressDots, shake } from './gamekit';
+import { levelPicker, progressDots, shake } from './gamekit';
 
 const ROUNDS = 5;
 /** Last word shown for each letter in the alphabet (kept while the app is open). */
@@ -66,7 +66,7 @@ export function lettersScreen(ctx: Ctx): Screen {
   function menu(): void {
     clearTimeout(timer);
     wrap.replaceChildren(
-      head('Letras', lang === 'en' ? 'Letters · Alphabet in English' : 'Letters · El abecedario en las palabras'),
+      head('Letras', lang === 'en' ? 'Letters · Alphabet in English' : 'Letters · El abecedario en las palabras', h('span', { class: 'lvl-label' }, 'Nivel'), levelPicker(ctx, 'letters', menu)),
       h('div', { class: 'gmodes' },
         h('button', { class: 'gmode', onClick: () => (say(lang === 'en' ? 'Play' : 'A jugar'), start()) },
           h('span', { class: 'lbig' }, letterPair('a')), 'Jugar', h('small', null, PLAY_HELP[settings.age])),
@@ -76,7 +76,7 @@ export function lettersScreen(ctx: Ctx): Screen {
   }
 
   function start(): void {
-    rounds = makeRounds(settings.age, lang, wordsPool, ROUNDS);
+    rounds = makeRounds(settings.age, lang, wordsPool, ROUNDS, Math.random, settings.levels.letters);
     idx = 0;
     score = 0;
     next();

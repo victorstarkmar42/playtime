@@ -1,5 +1,20 @@
 # Cambios
 
+## 0.18.0 — 2026-11-27
+
+- **Niveles ★ Fácil, ★★ Normal y ★★★ Reto** también en **Sudoku**, **Letras**, **Sílabas** y **Crucigrama** (en Letras, en el menú; en los demás, arriba del juego). Normal es como estaban.
+  - Sudoku: menos o más espacios vacíos (por ejemplo, 7–9 años: 12, 18 o 22).
+  - Letras: menos o más letras para elegir (3–4 años: 2, 3 o 4), palabras cortas en Fácil y largas en Reto; en Reto, 5–6 años busca la letra en cualquier parte de la palabra.
+  - Sílabas: palabras más cortas o más largas y, en Reto, sílabas de más que no van (también para 5–6 años).
+  - Crucigrama: más o menos palabras y letras ya escritas (7–9 años en Reto: 6 palabras de hasta 10 letras).
+- **Nuevo nivel ★★★★ Experto**, un grado más difícil que Reto, en los 7 juegos con niveles (Problemas, Cuentas, Laberinto, Sudoku, Letras, Sílabas y Crucigrama). Tras una ronda perfecta en Reto se ofrece subir a Experto.
+  - Problemas: números más grandes (7–9 años: hasta 500, repartos y problemas de dos pasos con números mayores).
+  - Cuentas: sumas y restas de hasta 999 y tablas hasta el 15 (7–9 años); hasta 50 para 5–6 años.
+  - Laberinto: el más grande (7–9 años: 18 × 13).
+  - Sudoku: casi sin pistas. Letras: hasta 8 letras para elegir y palabras de 6 letras o más.
+  - Sílabas: palabras más largas y más sílabas de más. Crucigrama: hasta 7 palabras sin letras escritas.
+  - En celular, cuando hay 5 letras o más para elegir, se acomodan en 3 o 4 columnas.
+
 ## 0.17.0 — 2026-11-26
 
 - **Niveles de dificultad que se eligen** dentro de cada edad en **Problemas**, **Cuentas** y **Laberinto**: ★ Fácil, ★★ Normal y ★★★ Reto, en la parte de arriba del juego (en Cuentas, en el menú de operaciones). Se guarda el nivel de cada juego. Si la ronda sale perfecta, aparece "Subir a Normal" o "Subir a Reto".

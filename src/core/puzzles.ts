@@ -28,11 +28,11 @@ export const DIRS = [
   { bit: W, dx: -1, dy: 0, back: E },
 ] as const;
 
-/** Columns × rows per age and level (Fácil, Normal, Reto). Normal grew a little in 0.17. */
+/** Columns × rows per age and level (Fácil, Normal, Reto, Experto). Normal grew a little in 0.17. */
 export const MAZE_SIZES: Record<Age, Record<Level, [number, number]>> = {
-  '3-4': { 1: [4, 3], 2: [5, 4], 3: [6, 5] },
-  '5-6': { 1: [6, 4], 2: [8, 6], 3: [10, 7] },
-  '7-9': { 1: [9, 7], 2: [12, 9], 3: [15, 11] },
+  '3-4': { 1: [4, 3], 2: [5, 4], 3: [6, 5], 4: [7, 6] },
+  '5-6': { 1: [6, 4], 2: [8, 6], 3: [10, 7], 4: [12, 9] },
+  '7-9': { 1: [9, 7], 2: [12, 9], 3: [15, 11], 4: [18, 13] },
 };
 export const mazeSize = (age: Age, level: Level = 2): [number, number] => MAZE_SIZES[age][level];
 
@@ -103,12 +103,18 @@ export interface SudokuSpec {
   blanks: number;
   pictures: boolean;
 }
-export const sudokuFor = (age: Age): SudokuSpec =>
+/** Empty cells per age and level (Fácil, Normal, Reto, Experto); Normal is what each age always had. */
+export const SUDOKU_BLANKS: Record<Age, Record<Level, number>> = {
+  '3-4': { 1: 3, 2: 4, 3: 6, 4: 8 },
+  '5-6': { 1: 6, 2: 8, 3: 10, 4: 11 },
+  '7-9': { 1: 12, 2: 18, 3: 22, 4: 25 },
+};
+export const sudokuFor = (age: Age, level: Level = 2): SudokuSpec =>
   age === '3-4'
-    ? { n: 4, boxW: 2, boxH: 2, blanks: 4, pictures: true }
+    ? { n: 4, boxW: 2, boxH: 2, blanks: SUDOKU_BLANKS[age][level], pictures: true }
     : age === '5-6'
-      ? { n: 4, boxW: 2, boxH: 2, blanks: 8, pictures: false }
-      : { n: 6, boxW: 3, boxH: 2, blanks: 18, pictures: false };
+      ? { n: 4, boxW: 2, boxH: 2, blanks: SUDOKU_BLANKS[age][level], pictures: false }
+      : { n: 6, boxW: 3, boxH: 2, blanks: SUDOKU_BLANKS[age][level], pictures: false };
 
 export interface Sudoku {
   spec: SudokuSpec;
@@ -185,12 +191,12 @@ export interface Crossword {
 }
 
 /** How many words and how long, and how many letters come already written. */
-export const crosswordFor = (age: Age) =>
-  age === '3-4'
-    ? { words: 2, maxLen: 5, reveal: 0.6 }
-    : age === '5-6'
-      ? { words: 3, maxLen: 6, reveal: 0.3 }
-      : { words: 5, maxLen: 9, reveal: 0 };
+export const CROSSWORD_CFG: Record<Age, Record<Level, { words: number; maxLen: number; reveal: number }>> = {
+  '3-4': { 1: { words: 2, maxLen: 4, reveal: 0.75 }, 2: { words: 2, maxLen: 5, reveal: 0.6 }, 3: { words: 3, maxLen: 5, reveal: 0.4 }, 4: { words: 3, maxLen: 6, reveal: 0.25 } },
+  '5-6': { 1: { words: 3, maxLen: 5, reveal: 0.5 }, 2: { words: 3, maxLen: 6, reveal: 0.3 }, 3: { words: 4, maxLen: 7, reveal: 0.15 }, 4: { words: 5, maxLen: 8, reveal: 0 } },
+  '7-9': { 1: { words: 4, maxLen: 7, reveal: 0.2 }, 2: { words: 5, maxLen: 9, reveal: 0 }, 3: { words: 6, maxLen: 10, reveal: 0 }, 4: { words: 7, maxLen: 11, reveal: 0 } },
+};
+export const crosswordFor = (age: Age, level: Level = 2) => CROSSWORD_CFG[age][level];
 
 /**
  * Greedy crossword: the first word goes across, every next word must cross a letter already on the

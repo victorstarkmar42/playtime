@@ -8,7 +8,7 @@ import { settings } from '../../core/settings';
 import { drawThumb } from '../../render/character';
 import type { Ctx, Screen } from '../context';
 import { canvas, h } from '../dom';
-import { shake } from './gamekit';
+import { levelPicker, shake } from './gamekit';
 
 /** A clue is a picture, a colour swatch or a number: no reading needed to know the word. */
 type Clue = { word: string; es: string; en: string; draw: () => HTMLElement };
@@ -27,7 +27,7 @@ function clues(lang: 'es' | 'en', maxLen: number): Clue[] {
 
 /** Crucigrama con dibujos: 2 short words with most letters written (3–4) up to 5 words from scratch (7–9). */
 export function crosswordScreen(ctx: Ctx): Screen {
-  const cfg = crosswordFor(settings.age);
+  const cfg = crosswordFor(settings.age, settings.levels.crossword);
   const lang = spellLang(settings.lang);
   const pool = clues(lang, cfg.maxLen);
   let cw: Crossword;
@@ -128,7 +128,7 @@ export function crosswordScreen(ctx: Ctx): Screen {
   }
 
   wrap.append(
-    h('div', { class: 'ghead' }, h('h2', null, 'Crucigrama', h('small', null, `Crossword · Toca un dibujo y escribe su nombre${lang === 'en' ? ' en inglés' : ''}`))),
+    h('div', { class: 'ghead' }, h('h2', null, 'Crucigrama', h('small', null, `Crossword · Toca un dibujo y escribe su nombre${lang === 'en' ? ' en inglés' : ''}`)), levelPicker(ctx, 'crossword', () => ctx.show('crossword', 'none'))),
     status,
     h('div', { class: 'cbox' }, h('div', { class: 'cleft' }, gridEl, keys), clueEl),
     h('div', { class: 'kbtnrow gbtns' }, h('button', { class: 'bigbtn alt small', onClick: start }, 'Otro crucigrama · New')),

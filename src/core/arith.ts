@@ -24,11 +24,11 @@ export interface MathQuestion {
 
 const int = (rng: Rng, a: number, b: number) => a + Math.floor(rng() * (b - a + 1));
 
-/** Number ranges per age and level (Fácil, Normal, Reto); Normal is what each age always had. */
+/** Number ranges per age and level (Fácil, Normal, Reto, Experto); Normal is what each age always had. */
 export const MATH_RANGE: Record<Age, Record<Level, { count: [number, number]; total: [number, number]; mul: [number, number]; div: [number, number] }>> = {
-  '3-4': { 1: { count: [1, 5], total: [2, 5], mul: [1, 5], div: [2, 5] }, 2: { count: [1, 10], total: [2, 10], mul: [1, 5], div: [2, 5] }, 3: { count: [5, 15], total: [2, 10], mul: [1, 5], div: [2, 5] } },
-  '5-6': { 1: { count: [1, 10], total: [2, 5], mul: [1, 5], div: [2, 5] }, 2: { count: [1, 20], total: [2, 10], mul: [1, 5], div: [2, 5] }, 3: { count: [10, 30], total: [6, 20], mul: [1, 5], div: [2, 5] } },
-  '7-9': { 1: { count: [1, 20], total: [11, 50], mul: [1, 5], div: [2, 5] }, 2: { count: [1, 20], total: [11, 100], mul: [1, 10], div: [2, 10] }, 3: { count: [1, 20], total: [50, 200], mul: [2, 12], div: [2, 12] } },
+  '3-4': { 1: { count: [1, 5], total: [2, 5], mul: [1, 5], div: [2, 5] }, 2: { count: [1, 10], total: [2, 10], mul: [1, 5], div: [2, 5] }, 3: { count: [5, 15], total: [2, 10], mul: [1, 5], div: [2, 5] }, 4: { count: [10, 20], total: [5, 15], mul: [1, 5], div: [2, 5] } },
+  '5-6': { 1: { count: [1, 10], total: [2, 5], mul: [1, 5], div: [2, 5] }, 2: { count: [1, 20], total: [2, 10], mul: [1, 5], div: [2, 5] }, 3: { count: [10, 30], total: [6, 20], mul: [1, 5], div: [2, 5] }, 4: { count: [20, 40], total: [10, 50], mul: [2, 5], div: [2, 5] } },
+  '7-9': { 1: { count: [1, 20], total: [11, 50], mul: [1, 5], div: [2, 5] }, 2: { count: [1, 20], total: [11, 100], mul: [1, 10], div: [2, 10] }, 3: { count: [1, 20], total: [50, 200], mul: [2, 12], div: [2, 12] }, 4: { count: [1, 20], total: [200, 999], mul: [6, 15], div: [3, 15] } },
 };
 
 function opFor(kind: Exclude<MathKind, 'mix' | 'missing'>, age: Age, rng: Rng, level: Level): Op {

@@ -1,3 +1,4 @@
+import type { Level } from './settings';
 import type { Rng } from './math';
 import type { Age, Lang } from './types';
 
@@ -38,8 +39,13 @@ export type SylKind = 'clap' | 'build';
 export const sylKindFor = (age: Age): SylKind => (age === '3-4' ? 'clap' : 'build');
 
 /** How many syllables a word may have at each age. */
-const RANGE: Record<Age, [number, number]> = { '3-4': [1, 3], '5-6': [2, 3], '7-9': [3, 5] };
-/** Extra syllables mixed in with the right ones. */
+export const SYL_RANGE: Record<Age, Record<Level, [number, number]>> = {
+  '3-4': { 1: [1, 2], 2: [1, 3], 3: [2, 4], 4: [3, 4] },
+  '5-6': { 1: [2, 2], 2: [2, 3], 3: [2, 4], 4: [3, 4] },
+  '7-9': { 1: [2, 3], 2: [3, 5], 3: [3, 5], 4: [4, 6] },
+};
+/** Extra syllables mixed in with the right ones, per age and level. */
+export const SYL_DISTRACTORS: Record<Age, Record<Level, number>> = { '3-4': { 1: 0, 2: 0, 3: 0, 4: 0 }, '5-6': { 1: 0, 2: 0, 3: 1, 4: 2 }, '7-9': { 1: 1, 2: 2, 3: 3, 4: 4 } };
 export const DISTRACTORS: Record<Age, number> = { '3-4': 0, '5-6': 0, '7-9': 2 };
 
 export const partsOf = (w: SylWord, lang: Lang): string[] | undefined => (lang === 'es' ? w.es : w.en);
@@ -63,9 +69,9 @@ function shuffle<T>(a: T[], rng: Rng): T[] {
 }
 
 /** Words usable for an age and language. English goes one syllable lower (fewer long words). */
-export function sylPool(age: Age, lang: Lang): SylWord[] {
-  const [lo, hi] = RANGE[age];
-  const min = lang === 'en' && age === '7-9' ? 2 : lo;
+export function sylPool(age: Age, lang: Lang, level: Level = 2): SylWord[] {
+  const [lo, hi] = SYL_RANGE[age][level];
+  const min = lang === 'en' && age === '7-9' ? Math.min(2, lo) : lo;
   return SYL_WORDS.filter((w) => {
     const p = partsOf(w, lang);
     return p && p.length >= min && p.length <= hi;
@@ -73,19 +79,20 @@ export function sylPool(age: Age, lang: Lang): SylWord[] {
 }
 
 /** `n` different rounds. Tiles never read the word in order. */
-export function sylRounds(age: Age, lang: Lang, n: number, rng: Rng = Math.random): SylRound[] {
-  const pool = shuffle(sylPool(age, lang).slice(), rng).slice(0, n);
+export function sylRounds(age: Age, lang: Lang, n: number, rng: Rng = Math.random, level: Level = 2): SylRound[] {
+  const fit = sylPool(age, lang, level);
+  const pool = shuffle((fit.length >= n ? fit : sylPool(age, lang)).slice(), rng).slice(0, n);
   const all = SYL_WORDS.flatMap((w) => partsOf(w, lang) ?? []);
   return pool.map((word) => {
     const parts = partsOf(word, lang)!;
     const extra: string[] = [];
-    for (let guard = 0; extra.length < DISTRACTORS[age] && guard < 200; guard++) {
+    for (let guard = 0; extra.length < SYL_DISTRACTORS[age][level] && guard < 200; guard++) {
       const x = all[Math.floor(rng() * all.length)];
       if (!parts.includes(x) && !extra.includes(x)) extra.push(x);
     }
     let tiles = shuffle([...parts, ...extra], rng);
     for (let guard = 0; tiles.length > 1 && tiles.slice(0, parts.length).join('-') === parts.join('-') && guard < 20; guard++) tiles = shuffle(tiles, rng);
-    const claps = age === '3-4' ? [1, 2, 3] : [1, 2, 3, 4];
+    const claps = age === '3-4' && level < 3 ? [1, 2, 3] : level === 4 ? [1, 2, 3, 4, 5] : [1, 2, 3, 4];
     return { word, parts, tiles, claps };
   });
 }

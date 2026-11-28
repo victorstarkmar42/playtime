@@ -474,6 +474,9 @@ h2 small, .pick h2 small, .album h2 small { display: block; font-family: var(--f
   .probg .mopt { min-height: clamp(96px, 15cqh, 150px); font-size: clamp(2.6rem, 8cqh, 4.6rem); }
   .lopt { min-height: 84px; }
   .lopts { grid-template-columns: repeat(2, 1fr); }
+  .lopts:has(> :nth-child(5)) { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .lopts:has(> :nth-child(7)) { grid-template-columns: repeat(4, 1fr); }
+  .lopts:has(> :nth-child(5)) .lopt { min-height: 72px; font-size: 2.2rem; }
   .agrid2 { grid-template-columns: repeat(3, 1fr); }
   .gsplit { grid-template-columns: 1fr; }
   .gpic { max-width: 320px; justify-self: center; width: 100%; }

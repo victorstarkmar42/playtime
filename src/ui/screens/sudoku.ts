@@ -3,7 +3,7 @@ import { makeSudoku, sudokuFor, type Sudoku } from '../../core/puzzles';
 import { settings } from '../../core/settings';
 import type { Ctx, Screen } from '../context';
 import { h } from '../dom';
-import { shake } from './gamekit';
+import { levelPicker, shake } from './gamekit';
 import { HEART_SVG, STAR_SVG } from './gato';
 
 const PICS = [
@@ -21,7 +21,7 @@ const PIC_NAME = [
 
 /** Sudoku: 4×4 with pictures (3–4), 4×4 with numbers (5–6), 6×6 (7–9). A wrong symbol is not placed. */
 export function sudokuScreen(ctx: Ctx): Screen {
-  const spec = sudokuFor(settings.age);
+  const spec = sudokuFor(settings.age, settings.levels.sudoku);
   let s: Sudoku;
   let grid: number[] = [];
   let sel = -1;
@@ -82,7 +82,7 @@ export function sudokuScreen(ctx: Ctx): Screen {
   }
 
   wrap.append(
-    h('div', { class: 'ghead' }, h('h2', null, 'Sudoku', h('small', null, spec.pictures ? 'Con dibujos · Toca un espacio y luego un dibujo' : 'Toca un espacio y luego un número'))),
+    h('div', { class: 'ghead' }, h('h2', null, 'Sudoku', h('small', null, spec.pictures ? 'Con dibujos · Toca un espacio y luego un dibujo' : 'Toca un espacio y luego un número')), levelPicker(ctx, 'sudoku', () => ctx.show('sudoku', 'none'))),
     status,
     h('div', { class: 'sbox' }, board, palette),
     h('div', { class: 'kbtnrow gbtns' }, h('button', { class: 'bigbtn alt small', onClick: start }, 'Otro sudoku · New')),

@@ -5,7 +5,7 @@ import { settings } from '../../core/settings';
 import { sylKindFor, sylRounds, wordText, type SylRound } from '../../core/syllables';
 import type { Ctx, Screen } from '../context';
 import { h, ICONS } from '../dom';
-import { progressDots, shake } from './gamekit';
+import { levelPicker, progressDots, shake } from './gamekit';
 
 const ROUNDS = 5;
 
@@ -33,7 +33,7 @@ export function syllablesScreen(ctx: Ctx): Screen {
   const spell = () => ctx.sayItems([{ t: wordText(r().parts), lang }, { t: r().parts.join('... '), lang }]);
 
   function begin(): void {
-    rounds = sylRounds(age, lang, ROUNDS);
+    rounds = sylRounds(age, lang, ROUNDS, Math.random, settings.levels.syllables);
     idx = 0;
     score = 0;
     show();
@@ -42,7 +42,8 @@ export function syllablesScreen(ctx: Ctx): Screen {
   function head(): HTMLElement {
     return h('div', { class: 'ghead' },
       h('h2', null, 'Sílabas', h('small', null, kind === 'clap' ? 'Syllables · ¿Cuántos aplausos?' : 'Syllables · Arma la palabra')),
-      progressDots(ROUNDS, idx));
+      progressDots(ROUNDS, idx),
+      levelPicker(ctx, 'syllables', begin));
   }
 
   function show(): void {
