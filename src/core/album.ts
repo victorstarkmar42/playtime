@@ -2,7 +2,9 @@ import type { CharKey } from './types';
 
 export interface AlbumItem {
   id: string;
-  key: CharKey;
+  /** 'pic': a picture from "Mis dibujos" (its name is in `label`). */
+  key: CharKey | 'pic';
+  label?: string;
   kind: 'reveal' | 'colored';
   /** JPEG data URL. */
   img: string;
@@ -44,7 +46,7 @@ export async function listAlbum(): Promise<AlbumItem[]> {
   }
 }
 
-export async function addToAlbum(key: CharKey, kind: AlbumItem['kind'], source: HTMLCanvasElement): Promise<void> {
+export async function addToAlbum(key: CharKey | 'pic', kind: AlbumItem['kind'], source: HTMLCanvasElement, label?: string): Promise<void> {
   const t = document.createElement('canvas');
   t.width = 480;
   t.height = 360;
@@ -53,7 +55,7 @@ export async function addToAlbum(key: CharKey, kind: AlbumItem['kind'], source: 
   c.fillStyle = '#fff';
   c.fillRect(0, 0, t.width, t.height);
   c.drawImage(source, 0, 0, t.width, t.height);
-  const item: AlbumItem = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, key, kind, img: t.toDataURL('image/jpeg', 0.82), createdAt: Date.now() };
+  const item: AlbumItem = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, key, kind, img: t.toDataURL('image/jpeg', 0.82), createdAt: Date.now(), ...(label ? { label } : {}) };
   try {
     await tx('readwrite', (s) => s.put(item));
     const all = await listAlbum();

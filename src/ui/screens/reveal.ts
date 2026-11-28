@@ -112,7 +112,7 @@ export function revealScreen(ctx: Ctx): Screen {
     const title = h('h2', null, '¿Qué hay debajo?', h('small', null, "What's under the paper?"));
     const status = h('p', { class: 'gstatus', role: 'status' }, 'Toca y frota el papel para romperlo.');
     const actions = h('div', { class: 'rv-actions', hidden: true },
-      h('button', { class: 'bigbtn', onClick: () => ((ctx.state.colorKey = key), (ctx.state.freshColor = true), (ctx.state.pickFor = 'color'), ctx.show('color')) }, '¡A colorear!'),
+      h('button', { class: 'bigbtn', onClick: () => ((ctx.state.colorKey = key), (ctx.state.colorPic = null), (ctx.state.freshColor = true), (ctx.state.pickFor = 'color'), ctx.show('color')) }, '¡A colorear!'),
       h('button', { class: 'bigbtn alt', onClick: round }, 'Otro regalo'));
     const stage = h('div', { class: 'rv-stage' }, under, cover, fx);
     el.replaceChildren(h('div', { class: 'revealg' },

@@ -3,8 +3,9 @@ import type { PlayTimer } from '../core/playtimer';
 import type { CharKey, Lang } from '../core/types';
 import type { Speaker } from '../core/voice';
 import type { GameSession } from '../game/session';
+import type { PicArt } from './mypic';
 
-export type ScreenName = 'onboarding' | 'home' | 'pick' | 'dots' | 'color' | 'album' | 'words' | 'games' | 'gato' | 'guess' | 'math' | 'abacus' | 'maze' | 'sudoku' | 'crossword' | 'letters' | 'trace' | 'reveal' | 'paintnum' | 'basta' | 'build' | 'globe' | 'stories' | 'syllables' | 'tables' | 'problems' | 'parents' | 'parentquiz';
+export type ScreenName = 'onboarding' | 'home' | 'pick' | 'dots' | 'color' | 'album' | 'words' | 'games' | 'gato' | 'guess' | 'math' | 'abacus' | 'maze' | 'sudoku' | 'crossword' | 'letters' | 'trace' | 'reveal' | 'paintnum' | 'basta' | 'build' | 'globe' | 'stories' | 'syllables' | 'tables' | 'problems' | 'parents' | 'parentquiz' | 'mypic';
 
 export type NavDir = 'fwd' | 'back' | 'none';
 
@@ -29,6 +30,10 @@ export interface AppState {
   freshColor: boolean;
   /** What the gallery is choosing a drawing for. */
   pickFor: 'dots' | 'color';
+  /** A picture from "Mis dibujos" to colour instead of `colorKey` (null: colour `colorKey`). */
+  colorPic: PicArt | null;
+  /** The photo or image a grown-up just chose in Padres, for the "Nuevo dibujo" screen. */
+  newPic: File | null;
 }
 
 export interface Ctx {

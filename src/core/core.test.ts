@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { cleanPicName, fitRect, LINE_LEVELS, photoInk } from './photo';
 import { CHARACTER_ORDER, CHARACTERS } from '../content/characters';
 import { keyDots } from '../content/extra';
 import { WORD_SECTIONS } from '../content/wordbank';
@@ -943,5 +944,51 @@ describe('trazos de luz: después de trazar', () => {
     done.n2 = 3;
     expect(nextFigure(order, done, 'n2', true)).toMatchObject({ fig: { id: 'a' }, groupDone: true, allDone: true });
     expect(nextFigure(order, done, 'a', false)).toMatchObject({ fig: { id: 'b' }, groupDone: false, allDone: true });
+  });
+});
+
+describe('colorea tu dibujo: foto a líneas', () => {
+  /** A "photo": paper that goes from light to grey (a shadow), with a dark square outline drawn on it. */
+  const photo = (w: number, h: number) => {
+    const d = new Uint8ClampedArray(w * h * 4);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const paper = 235 - (x / w) * 110; // shadow on the right: 235 → 125
+      const onLine = (x >= 20 && x <= 22 || x >= 77 && x <= 79) && y >= 20 && y <= 79 || (y >= 20 && y <= 22 || y >= 77 && y <= 79) && x >= 20 && x <= 79;
+      const v = onLine ? paper * 0.35 : paper;
+      const o = (y * w + x) * 4;
+      d[o] = d[o + 1] = d[o + 2] = v;
+      d[o + 3] = 255;
+    }
+    return d;
+  };
+  it('finds the lines and ignores the shadow on the paper', () => {
+    const w = 100, h = 100;
+    const ink = photoInk(photo(w, h), w, h);
+    expect(ink[21 * w + 50]).toBeGreaterThan(200); // top line
+    expect(ink[50 * w + 78]).toBeGreaterThan(200); // right line, inside the shadow
+    expect(ink[50 * w + 50]).toBe(0); // middle of the paper
+    expect(ink[50 * w + 95]).toBe(0); // darkest paper, no line
+  });
+  it('more lines never finds fewer ink pixels', () => {
+    const w = 100, h = 100;
+    const count = (l: number) => photoInk(photo(w, h), w, h, l).filter((v) => v > 0).length;
+    for (let l = 1; l < LINE_LEVELS.length; l++) expect(count(l)).toBeGreaterThanOrEqual(count(l - 1));
+  });
+  it('drops lonely specks', () => {
+    const w = 40, h = 40;
+    const d = new Uint8ClampedArray(w * h * 4).fill(255);
+    const o = (20 * w + 20) * 4;
+    d[o] = d[o + 1] = d[o + 2] = 0;
+    expect(photoInk(d, w, h, LINE_LEVELS.length - 1).some((v) => v > 0)).toBe(false);
+  });
+  it('fits any picture whole and centred, and cleans names', () => {
+    const r = fitRect(4000, 3000, 900, 900);
+    expect(r.w).toBeLessThanOrEqual(900);
+    expect(Math.abs(r.x + r.w / 2 - 450)).toBeLessThanOrEqual(1);
+    expect(Math.abs(r.y + r.h / 2 - 450)).toBeLessThanOrEqual(1);
+    expect(fitRect(300, 1200, 900, 900).h).toBeLessThanOrEqual(900);
+    expect(cleanPicName('IMG_2045-casa.jpg')).toBe('IMG 2045 casa');
+    expect(cleanPicName('   ')).toBe('Mi dibujo');
+    expect(cleanPicName('x'.repeat(40)).length).toBe(24);
   });
 });

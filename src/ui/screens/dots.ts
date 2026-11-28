@@ -73,7 +73,7 @@ export function dotsScreen(ctx: Ctx): Screen {
   const doneActions = h(
     'div',
     { class: 'kbtnrow', hidden: true },
-    h('button', { class: 'bigbtn', onClick: () => ((ctx.state.colorKey = sess.key), (ctx.state.freshColor = true), ctx.show('color')) }, '¡A colorear!'),
+    h('button', { class: 'bigbtn', onClick: () => ((ctx.state.colorKey = sess.key), (ctx.state.colorPic = null), (ctx.state.freshColor = true), ctx.show('color')) }, '¡A colorear!'),
     h('button', { class: 'bigbtn alt', onClick: () => ((ctx.state.pickFor = 'dots'), ctx.show('pick')) }, 'Otro dibujo'),
   );
   const el = h(

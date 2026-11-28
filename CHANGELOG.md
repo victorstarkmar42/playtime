@@ -1,5 +1,10 @@
 # Cambios
 
+## 0.19.0 — 2026-11-28
+
+- **Colorea tu dibujo.** Nueva sección **Mis dibujos para colorear** en Padres: **Tomar foto**, **Subir imagen** o **Pegar imagen** (y Ctrl+V en computadora). La foto se convierte en líneas aunque el papel tenga sombras; se ajusta con **Menos líneas / Más líneas**, se le pone nombre y se guarda sólo en este dispositivo. En Colorear aparece primero la sección **Mis dibujos**, con bote, crayón y todo lo demás; al terminar se guarda en el álbum con su nombre.
+- **Zoom con dos dedos al colorear** (hasta 4×), o con la rueda del ratón. Muestra cuánto zoom hay, un botón **Ver todo** y un mapa pequeño de la parte que se ve. La flecha Atrás primero quita el zoom.
+
 ## 0.18.0 — 2026-11-27
 
 - **Niveles ★ Fácil, ★★ Normal y ★★★ Reto** también en **Sudoku**, **Letras**, **Sílabas** y **Crucigrama** (en Letras, en el menú; en los demás, arriba del juego). Normal es como estaban.

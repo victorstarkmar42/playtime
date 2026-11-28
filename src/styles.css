@@ -1127,3 +1127,38 @@ h2 small, .pick h2 small, .album h2 small { display: block; font-family: var(--f
 }
 .lvl-label { margin-left: auto; font-family: var(--f-body); font-size: .85rem; color: var(--muted); }
 .lvl-label + .lvl { margin-left: 0; }
+
+/* ---- Colorear: zoom con dos dedos ---- */
+.zoomer { position: absolute; inset: 0; transform-origin: 0 0; touch-action: none; }
+.zoombar { position: absolute; top: 12px; left: 12px; z-index: 3; display: flex; gap: 8px; align-items: center; }
+.zoomchip { height: 44px; padding: 0 14px; border-radius: 14px; background: var(--ink, #22304F); color: #fff; font-family: var(--f-head, inherit); font-weight: 800; font-size: 1.15rem; display: flex; align-items: center; }
+.zoomfit { min-height: 48px; padding: 0 16px; border: 0; border-radius: 16px; background: #fff; box-shadow: 0 4px 0 var(--soft); font-weight: 800; font-size: 1.05rem; cursor: pointer; }
+.stage canvas.minimap { position: absolute; left: auto; top: auto; right: 12px; bottom: 12px; width: 108px; height: 108px; z-index: 3; border: 2px solid var(--soft); border-radius: 12px; background: #fff; pointer-events: none; }
+.zoomhint { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 3; padding: 10px 16px; border-radius: 999px; background: #22304FE0; color: #fff; font-size: .95rem; white-space: nowrap; pointer-events: none; }
+@container app (max-width: 440px) { .stage canvas.minimap { width: 80px; height: 80px; } }
+
+/* ---- Mis dibujos ---- */
+.pick-card img { width: 100%; aspect-ratio: 4 / 3; height: auto; object-fit: contain; background: #fff; border-radius: 14px; }
+.pick-mine h3 { color: #B7461A; }
+.pick-card.mine { box-shadow: inset 0 0 0 3px #F2672E, 0 5px 0 #F6C3A9; }
+.mpics { display: grid; gap: 4px; }
+.mpic-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid var(--soft); }
+.mpic-row img { width: 84px; aspect-ratio: 4 / 3; object-fit: contain; background: #fff; border: 2px solid var(--soft); border-radius: 12px; flex: none; }
+.mpic-row span { flex: 1; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mypics-card h4 { margin: 10px 0 2px; }
+.mypic { width: min(720px, 100%); margin: 0 auto; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box; }
+.mp-steps { margin: 0; padding: 0; list-style: none; display: flex; gap: 6px; font-size: .85rem; font-weight: 600; }
+.mp-steps li { flex: 1; text-align: center; padding: 7px 0; border-radius: 999px; background: #EAF2FB; color: var(--muted); }
+.mp-steps li.on { background: #22304F; color: #fff; }
+.mp-steps li.done { background: #DFF3E6; color: #1F6B42; }
+.mp-body { display: flex; flex-direction: column; gap: 12px; }
+.mp-body[hidden] { display: none; }
+.mp-row { display: flex; gap: 12px; align-items: center; }
+.mp-row p { margin: 0; }
+.mp-orig canvas { width: 120px; height: auto; border-radius: 12px; border: 2px solid var(--soft); display: block; }
+.mp-preview { background: #fff; border-radius: 24px; box-shadow: 0 5px 0 var(--soft); padding: 10px; min-height: 180px; display: grid; place-items: center; }
+.mp-preview canvas { width: 100%; height: auto; display: block; }
+.mp-levels .bigbtn { flex: 1; }
+.mp-small canvas { width: 200px; height: auto; border-radius: 14px; border: 2px solid var(--soft); display: block; margin: 0 auto; }
+.mp-label { display: flex; flex-direction: column; gap: 8px; font-weight: 700; }
+.mp-name { min-height: 56px; padding: 0 16px; border: 2px solid var(--soft); border-radius: 16px; font: inherit; font-size: 1.15rem; }

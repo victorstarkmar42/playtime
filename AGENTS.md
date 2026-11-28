@@ -12,9 +12,10 @@ npm test           # Vitest, lógica en src/core/core.test.ts
 npm run build      # tipos + dist/ con service worker
 npm run preview    # http://localhost:4390
 npm run e2e        # con preview corriendo; Chrome en 4 tamaños de pantalla, capturas en e2e-shots/
+npm run e2e:mypic  # con preview corriendo; Colorea tu dibujo: foto, líneas, guardar, bote, zoom y pegar
 ```
 
-Antes de dar un cambio por terminado: `npm run typecheck`, `npm test` y `npm run build` deben pasar. Si tocaste pantallas, corre también `npm run e2e`; debe terminar con "No console errors or problems".
+Antes de dar un cambio por terminado: `npm run typecheck`, `npm test` y `npm run build` deben pasar. Si tocaste pantallas, corre también `npm run e2e` (y `npm run e2e:mypic` si tocaste Colorear, Padres o Mis dibujos); debe terminar con "No console errors or problems".
 
 ## Dónde está cada cosa
 
@@ -29,6 +30,7 @@ Antes de dar un cambio por terminado: `npm run typecheck`, `npm test` y `npm run
 - `src/content/world.ts` (continentes y países) + `src/core/geo.ts` + `src/ui/screens/globe.ts`: Países del mundo.
 - Para la escuela: `src/content/stories.ts` + `src/ui/screens/stories.ts` (Cuentos), `src/core/syllables.ts` (Sílabas), `src/core/tables.ts` (Tablas, repaso espaciado guardado en `pym-tables`), `src/core/problems.ts` (Problemas). Cuentos y Sílabas usan el idioma principal de la voz (`primaryLang`), porque son lectura.
 - `src/core/flood.ts`: bote de pintura y la máscara de "colorear dentro" (todo lo cerrado por líneas).
+- Colorea tu dibujo: `src/core/photo.ts` (foto a líneas comparando cada punto con el papel que lo rodea; `LINE_LEVELS`), `src/core/mypics.ts` (`picStore`, guardado en IndexedDB `playhour-pics`; las pantallas usan sólo `picStore` para poder cambiarlo por una nube con cuentas), `src/ui/mypic.ts` (tablero 1200×900 y tinta), `src/ui/screens/mypic.ts` (pantalla "Nuevo dibujo", se abre desde Padres). En `color.ts`, `ctx.state.colorPic` colorea una imagen en vez de `colorKey`; cualquier entrada a Colorear con un dibujo de la app debe poner `colorPic = null`. El zoom de dos dedos vive en `color.ts` (`.zoomer`).
 - Navegación (`src/ui/app.ts`): la barra superior tiene la flecha **Atrás** siempre en el mismo lugar, el título de la pantalla, Ayuda, Voz y el menú **Más** (Inicio, Dibujos, idioma y Padres con pulsación larga). La flecha y el botón atrás del celular usan la misma función: primero `screen.back()` (un paso dentro del juego; devuelve `false` si ya no hay pasos) y luego `backTarget`. No pongas botones "Salir" dentro de las pantallas.
 - El título de la barra se toma del `h2` de `.ghead` (texto principal y `small`); ese `h2` no se muestra en la pantalla. Si una pantalla no tiene `.ghead`, agrega su título en `TITLES` de `app.ts`.
 - `src/ui/screens/gamekit.ts`: `progressDots`, `shake`, `levelPicker` y `levelUpButton` (niveles Fácil/Normal/Reto/Experto guardados en `settings.levels`; los rangos viven en `PROBLEM_MAX`, `MATH_RANGE`, `MAZE_SIZES`, `SUDOKU_BLANKS`, `CROSSWORD_CFG`, `LETTER_OPTIONS`, `SYL_RANGE` y `SYL_DISTRACTORS`).

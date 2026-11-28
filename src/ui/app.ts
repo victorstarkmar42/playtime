@@ -38,6 +38,7 @@ import { onboardingScreen } from './screens/onboarding';
 import { parentsScreen } from './screens/parents';
 import { pickScreen } from './screens/pick';
 import { wordsScreen } from './screens/words';
+import { mypicScreen } from './screens/mypic';
 
 const TITLES: Partial<Record<ScreenName, [string, string]>> = {
   home: ['PlayHour', ''],
@@ -81,6 +82,7 @@ const SCREENS: Record<ScreenName, (ctx: Ctx) => Screen> = {
   problems: problemsScreen,
   parentquiz: parentQuizScreen,
   parents: parentsScreen,
+  mypic: mypicScreen,
 };
 
 export function createApp(root: HTMLElement): void {
@@ -145,7 +147,7 @@ export function createApp(root: HTMLElement): void {
     () => !current?.screen.busy?.(),
   );
 
-  const state: AppState = { game: restoreSession(), colorKey: 'briz', freshColor: false, pickFor: 'dots' };
+  const state: AppState = { game: restoreSession(), colorKey: 'briz', freshColor: false, pickFor: 'dots', colorPic: null, newPic: null };
 
   let lastSay = -1e9;
   const say = (items: SpeakItem[]) => {
@@ -298,10 +300,10 @@ export function createApp(root: HTMLElement): void {
     if (name === 'globe' && openedFrom.globe === 'home') return 'home';
     if (name === 'parents') {
       const from = openedFrom.parents;
-      return from && !['parents', 'parentquiz', 'onboarding'].includes(from) ? from : 'home';
+      return from && !['parents', 'parentquiz', 'onboarding', 'mypic'].includes(from) ? from : 'home';
     }
     if (['gato', 'guess', 'math', 'abacus', 'maze', 'sudoku', 'crossword', 'letters', 'trace', 'reveal', 'paintnum', 'basta', 'build', 'globe', 'stories', 'syllables', 'tables', 'problems'].includes(name)) return 'games';
-    if (name === 'parentquiz') return 'parents';
+    if (name === 'parentquiz' || name === 'mypic') return 'parents';
     if (name === 'dots') return 'pick';
     if (name === 'color') return 'pick';
     return 'home';

@@ -18,6 +18,16 @@ export function albumScreen(ctx: Ctx): Screen {
       return;
     }
     for (const it of items) {
+      if (it.key === 'pic') {
+        const name = it.label ?? 'Mi dibujo';
+        grid.append(
+          h('figure', { onClick: () => ctx.sayPair(name, name) },
+            h('img', { src: it.img, alt: `Dibujo: ${name}` }),
+            h('figcaption', null, name),
+          ),
+        );
+        continue;
+      }
       const v = charOf(it.key).vocab;
       grid.append(
         h('figure', { onClick: () => ctx.sayPair(v.es, v.en) },

@@ -1,6 +1,7 @@
 import { CHARACTER_ORDER, charOf } from '../../content/characters';
 import { lastQuizResult } from './parentquiz';
 import { clearAlbum } from '../../core/album';
+import { picStore } from '../../core/mypics';
 import { LANG_HINT, LANG_NAME } from '../../core/lang';
 import type { Skill } from '../../core/math';
 import { accuracy, dayKey, progress, resetProgress } from '../../core/progress';
@@ -98,6 +99,71 @@ function confirmButton(label: string, confirmLabel: string, action: () => void):
     armed = window.setTimeout(() => ((armed = 0), (b.textContent = label)), 4000);
   };
   return b;
+}
+
+/** "Mis dibujos para colorear": a grown-up adds photos or images; kids only colour them. */
+function myPicsCard(ctx: Ctx): HTMLElement {
+  const open = (f: Blob, name = 'Mi dibujo') => {
+    ctx.state.newPic = f instanceof File ? f : new File([f], name, { type: f.type });
+    ctx.show('mypic');
+  };
+  const pick = (camera: boolean) => {
+    const input = h('input', { type: 'file', accept: 'image/*', hidden: true, ...(camera ? { capture: 'environment' } : {}) }) as HTMLInputElement;
+    input.onchange = () => {
+      const f = input.files?.[0];
+      input.remove();
+      if (f) open(f);
+    };
+    document.body.append(input);
+    input.click();
+  };
+  /** "Pegar imagen": an image copied from another app or a web page. */
+  const pasteFromClipboard = async () => {
+    try {
+      for (const item of await navigator.clipboard.read()) {
+        const type = item.types.find((t) => t.startsWith('image/'));
+        if (type) return open(await item.getType(type), 'Imagen pegada');
+      }
+      ctx.toast('No hay una imagen copiada. Copia una imagen y vuelve a intentar.');
+    } catch {
+      ctx.toast('No se pudo leer el portapapeles. Prueba con Subir imagen.');
+    }
+  };
+  const canPaste = typeof navigator.clipboard?.read === 'function';
+  // Ctrl+V / Cmd+V on a laptop, while this card is on screen
+  const onPaste = (e: ClipboardEvent) => {
+    if (!card.isConnected) return document.removeEventListener('paste', onPaste);
+    const f = [...(e.clipboardData?.files ?? [])].find((x) => x.type.startsWith('image/'));
+    if (!f) return;
+    e.preventDefault();
+    open(f, 'Imagen pegada');
+  };
+  document.addEventListener('paste', onPaste);
+  const list = h('div', { class: 'mpics' });
+  const title = h('h4', null, 'Guardados');
+  const paint = () => void picStore.list().then((all) => {
+    title.textContent = `Guardados (${all.length})`;
+    title.hidden = !all.length;
+    if (!all.length) return list.replaceChildren(h('p', { class: 'muted' }, 'Aún no hay dibujos guardados.'));
+    list.replaceChildren(...all.map((p) =>
+      h('div', { class: 'mpic-row' },
+        h('img', { src: p.thumb, alt: '' }),
+        h('span', null, p.name),
+        confirmButton('Borrar', 'Toca otra vez', () => void picStore.remove(p.id).then(paint)),
+      )));
+  });
+  paint();
+  const card = h('section', { class: 'pcard mypics-card' },
+    h('h3', null, 'Mis dibujos para colorear'),
+    h('p', { class: 'muted' }, 'Toma una foto de un dibujo en papel, sube una imagen o pega una copiada (en computadora también con Ctrl+V). La convertimos en líneas para colorear y aparece primero en Colorear.'),
+    h('div', { class: 'kbtnrow' },
+      h('button', { class: 'bigbtn', onClick: () => pick(true) }, 'Tomar foto'),
+      h('button', { class: 'bigbtn alt', onClick: () => pick(false) }, 'Subir imagen'),
+      canPaste && h('button', { class: 'bigbtn alt', onClick: () => void pasteFromClipboard() }, 'Pegar imagen')),
+    h('p', { class: 'muted' }, 'Se guardan sólo en este dispositivo y no se suben a internet. Usa imágenes propias o de uso personal.'),
+    title, list,
+  );
+  return card;
 }
 
 export function parentsScreen(ctx: Ctx): Screen {
@@ -280,6 +346,7 @@ export function parentsScreen(ctx: Ctx): Screen {
           h('small', null, 'Durante el descanso la app dice qué hacer: mirar lejos, parpadear, cerrar los ojos o estirarse. Al terminar el tiempo de juego anochece en la app; un adulto mantiene presionado para seguir.')),
       ),
       h('section', { class: 'pcard' }, h('h3', null, 'Para platicar juntos'), h('p', { class: 'muted' }, `Sobre ${charOf(talkKey).label}:`), talk),
+      myPicsCard(ctx),
       h('section', { class: 'pcard' },
         h('h3', null, 'Datos'),
         h('p', { class: 'muted' }, 'Todo se guarda sólo en este dispositivo: sin cuentas, anuncios ni envío de datos.'),
@@ -287,7 +354,7 @@ export function parentsScreen(ctx: Ctx): Screen {
           h('div', { class: 'kbtnrow' },
             h('button', { class: 'bigbtn alt small', onClick: downloadBackup }, 'Guardar copia'),
             h('button', { class: 'bigbtn alt small', onClick: () => fileIn.click() }, 'Restaurar copia')),
-          h('small', null, `Un archivo con ajustes y progreso para pasarlo a otro celular o tableta (el álbum se queda en este). Perfil local: ${getProfile().id.slice(0, 8)}.`)),
+          h('small', null, `Un archivo con ajustes y progreso para pasarlo a otro celular o tableta (el álbum y Mis dibujos se quedan en este). Perfil local: ${getProfile().id.slice(0, 8)}.`)),
         fileIn,
         h('div', { class: 'kbtnrow' },
           confirmButton('Borrar álbum', 'Toca otra vez para borrar', () => void clearAlbum()),

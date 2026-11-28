@@ -58,6 +58,8 @@ npm run e2e        # con preview corriendo: prueba en Chrome a tamaño celular, 
   - Con lápiz, el grosor cambia con la presión y el crayón sombrea más ancho al inclinarlo.
   - Rechazo de palma automático, más una opción de "solo lápiz".
   - Opción para colorear solo dentro del dibujo.
+  - **Zoom con dos dedos** (hasta 4×) para los detalles; en computadora, con la rueda del ratón. Arriba se ve cuánto zoom hay y el botón **Ver todo**; abajo, un mapa pequeño con la parte que se ve. Si el primer dedo ya pintó, ese trazo se deshace al poner el segundo.
+- **Colorea tu dibujo (Mis dibujos).** En Padres, un adulto toma una foto de un dibujo en papel, sube una imagen o pega una copiada (Ctrl+V en computadora). La app quita el papel y las sombras y deja sólo las líneas; se ajusta con **Menos líneas / Más líneas**, se le pone nombre y aparece primero en Colorear. Se guardan sólo en este dispositivo (IndexedDB), hasta 30, y no se suben a internet. Los niños no pueden agregar imágenes por su cuenta.
 - **Bilingüe.**
   - Números, colores, sellos y palabras del dibujo se dicen en español e inglés.
   - El adulto elige el orden: solo español, español → inglés, inglés → español o solo inglés.
