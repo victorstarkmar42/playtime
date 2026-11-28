@@ -13,6 +13,7 @@ import { AGES, LANG_MODES, type Age, type Mode } from '../../core/types';
 import { enterFullscreen, fullscreenSupported } from '../fullscreen';
 import type { Ctx, Screen } from '../context';
 import { h } from '../dom';
+import { newPicButtons, openNewPic } from '../mypic';
 import { GAME_CATS, gamesForAge } from './games';
 
 const SKILL_LABEL: Record<Skill, string> = {
@@ -103,40 +104,13 @@ function confirmButton(label: string, confirmLabel: string, action: () => void):
 
 /** "Mis dibujos para colorear": a grown-up adds photos or images; kids only colour them. */
 function myPicsCard(ctx: Ctx): HTMLElement {
-  const open = (f: Blob, name = 'Mi dibujo') => {
-    ctx.state.newPic = f instanceof File ? f : new File([f], name, { type: f.type });
-    ctx.show('mypic');
-  };
-  const pick = (camera: boolean) => {
-    const input = h('input', { type: 'file', accept: 'image/*', hidden: true, ...(camera ? { capture: 'environment' } : {}) }) as HTMLInputElement;
-    input.onchange = () => {
-      const f = input.files?.[0];
-      input.remove();
-      if (f) open(f);
-    };
-    document.body.append(input);
-    input.click();
-  };
-  /** "Pegar imagen": an image copied from another app or a web page. */
-  const pasteFromClipboard = async () => {
-    try {
-      for (const item of await navigator.clipboard.read()) {
-        const type = item.types.find((t) => t.startsWith('image/'));
-        if (type) return open(await item.getType(type), 'Imagen pegada');
-      }
-      ctx.toast('No hay una imagen copiada. Copia una imagen y vuelve a intentar.');
-    } catch {
-      ctx.toast('No se pudo leer el portapapeles. Prueba con Subir imagen.');
-    }
-  };
-  const canPaste = typeof navigator.clipboard?.read === 'function';
   // Ctrl+V / Cmd+V on a laptop, while this card is on screen
   const onPaste = (e: ClipboardEvent) => {
     if (!card.isConnected) return document.removeEventListener('paste', onPaste);
     const f = [...(e.clipboardData?.files ?? [])].find((x) => x.type.startsWith('image/'));
     if (!f) return;
     e.preventDefault();
-    open(f, 'Imagen pegada');
+    openNewPic(ctx, f, 'parents', 'Imagen pegada');
   };
   document.addEventListener('paste', onPaste);
   const list = h('div', { class: 'mpics' });
@@ -156,10 +130,7 @@ function myPicsCard(ctx: Ctx): HTMLElement {
   const card = h('section', { class: 'pcard mypics-card' },
     h('h3', null, 'Mis dibujos para colorear'),
     h('p', { class: 'muted' }, 'Toma una foto de un dibujo en papel, sube una imagen o pega una copiada (en computadora también con Ctrl+V). La convertimos en líneas para colorear y aparece primero en Colorear.'),
-    h('div', { class: 'kbtnrow' },
-      h('button', { class: 'bigbtn', onClick: () => pick(true) }, 'Tomar foto'),
-      h('button', { class: 'bigbtn alt', onClick: () => pick(false) }, 'Subir imagen'),
-      canPaste && h('button', { class: 'bigbtn alt', onClick: () => void pasteFromClipboard() }, 'Pegar imagen')),
+    h('div', { class: 'kbtnrow' }, ...newPicButtons(ctx, 'parents')),
     h('p', { class: 'muted' }, 'Se guardan sólo en este dispositivo y no se suben a internet. Usa imágenes propias o de uso personal.'),
     title, list,
   );

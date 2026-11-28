@@ -83,7 +83,7 @@ export function mypicScreen(ctx: Ctx): Screen {
     pop(760, 0.3);
     ctx.toast('Guardado en Mis dibujos');
     ctx.state.newPic = null;
-    ctx.show('parents', 'back');
+    ctx.show(ctx.state.newPicFrom, 'back');
   }
 
   const el = h('div', { class: 'view' },
@@ -95,7 +95,7 @@ export function mypicScreen(ctx: Ctx): Screen {
   paintSteps();
 
   if (!file) {
-    big.replaceChildren(h('p', { class: 'muted' }, 'Elige una foto desde Padres.'));
+    big.replaceChildren(h('p', { class: 'muted' }, 'Elige una foto con Agregar mi dibujo.'));
   } else {
     boardFromImage(file).then((b) => {
       board = b;

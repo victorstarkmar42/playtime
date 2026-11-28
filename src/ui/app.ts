@@ -147,7 +147,7 @@ export function createApp(root: HTMLElement): void {
     () => !current?.screen.busy?.(),
   );
 
-  const state: AppState = { game: restoreSession(), colorKey: 'briz', freshColor: false, pickFor: 'dots', colorPic: null, newPic: null };
+  const state: AppState = { game: restoreSession(), colorKey: 'briz', freshColor: false, pickFor: 'dots', colorPic: null, newPic: null, newPicFrom: 'parents' };
 
   let lastSay = -1e9;
   const say = (items: SpeakItem[]) => {
@@ -303,7 +303,8 @@ export function createApp(root: HTMLElement): void {
       return from && !['parents', 'parentquiz', 'onboarding', 'mypic'].includes(from) ? from : 'home';
     }
     if (['gato', 'guess', 'math', 'abacus', 'maze', 'sudoku', 'crossword', 'letters', 'trace', 'reveal', 'paintnum', 'basta', 'build', 'globe', 'stories', 'syllables', 'tables', 'problems'].includes(name)) return 'games';
-    if (name === 'parentquiz' || name === 'mypic') return 'parents';
+    if (name === 'mypic') return state.newPicFrom;
+    if (name === 'parentquiz') return 'parents';
     if (name === 'dots') return 'pick';
     if (name === 'color') return 'pick';
     return 'home';

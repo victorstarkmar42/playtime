@@ -2,7 +2,8 @@ import { photoInk, fitRect } from '../core/photo';
 import type { MyPic } from '../core/mypics';
 import { W, H } from '../render/character';
 import { INK } from '../render/primitives';
-import { canvas } from './dom';
+import type { Ctx } from './context';
+import { canvas, h } from './dom';
 
 /** A picture ready to colour: its lines in ink colour on a transparent 1200×900 board. */
 export interface PicArt {
@@ -59,4 +60,42 @@ export function previewOf(ink: HTMLCanvasElement, w = W, h = H): HTMLCanvasEleme
 export async function picArt(p: MyPic): Promise<PicArt> {
   const board = await boardFromImage(p.src);
   return { id: p.id, name: p.name, ink: inkFromBoard(board, p.level) };
+}
+
+/** Opens "Nuevo dibujo" with a photo or image; after saving it returns to `from`. */
+export function openNewPic(ctx: Ctx, f: Blob, from: 'parents' | 'pick', name = 'Mi dibujo'): void {
+  ctx.state.newPic = f instanceof File ? f : new File([f], name, { type: f.type });
+  ctx.state.newPicFrom = from;
+  ctx.show('mypic');
+}
+
+/** "Tomar foto", "Subir imagen" and (where the browser can) "Pegar imagen". */
+export function newPicButtons(ctx: Ctx, from: 'parents' | 'pick'): HTMLElement[] {
+  const pick = (camera: boolean) => {
+    const input = h('input', { type: 'file', accept: 'image/*', hidden: true, ...(camera ? { capture: 'environment' } : {}) }) as HTMLInputElement;
+    input.onchange = () => {
+      const f = input.files?.[0];
+      input.remove();
+      if (f) openNewPic(ctx, f, from);
+    };
+    document.body.append(input);
+    input.click();
+  };
+  const paste = async () => {
+    try {
+      for (const item of await navigator.clipboard.read()) {
+        const type = item.types.find((t) => t.startsWith('image/'));
+        if (type) return openNewPic(ctx, await item.getType(type), from, 'Imagen pegada');
+      }
+      ctx.toast('No hay una imagen copiada. Copia una imagen y vuelve a intentar.');
+    } catch {
+      ctx.toast('No se pudo leer el portapapeles. Prueba con Subir imagen.');
+    }
+  };
+  const btns = [
+    h('button', { class: 'bigbtn', onClick: () => pick(true) }, 'Tomar foto'),
+    h('button', { class: 'bigbtn alt', onClick: () => pick(false) }, 'Subir imagen'),
+  ];
+  if (typeof navigator.clipboard?.read === 'function') btns.push(h('button', { class: 'bigbtn alt', onClick: () => void paste() }, 'Pegar imagen'));
+  return btns;
 }

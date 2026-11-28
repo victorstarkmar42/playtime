@@ -84,9 +84,9 @@ for (const vp of VIEWPORTS) {
   await page.evaluate(() => window.__pymShow('home'));
   await sleep(400);
   await clickText('.tile', 'Colorear');
-  await page.waitForSelector('.pick-mine:not([hidden]) .pick-card', { timeout: 5000 }).catch(() => problems.push(`[${vp.name}] Mis dibujos not in gallery`));
+  await page.waitForSelector('.pick-mine:not([hidden]) .pick-card.mine', { timeout: 5000 }).catch(() => problems.push(`[${vp.name}] Mis dibujos not in gallery`));
   await shot('5-gallery');
-  await page.evaluate(() => document.querySelector('.pick-mine .pick-card')?.click());
+  await page.evaluate(() => document.querySelector('.pick-card.mine')?.click());
   await page.waitForFunction(() => document.querySelector('.apptitle')?.textContent.includes('Colorear'), { timeout: 8000 }).catch(() => problems.push(`[${vp.name}] colour screen did not open`));
   await sleep(500);
   await clickText('.tools button', 'Bote');
@@ -134,6 +134,34 @@ for (const vp of VIEWPORTS) {
   await clickText('button', 'Ver todo');
   const reset = await page.evaluate(() => document.querySelector('.zoombar')?.hidden);
   if (!reset) problems.push(`[${vp.name}] Ver todo did not reset`);
+
+  // "+ Agregar mi dibujo" in the gallery: a short tap does nothing, holding it shows the buttons,
+  // and after saving it comes back to the gallery with the new drawing.
+  await page.evaluate(() => window.__pymShow('pick'));
+  await page.waitForSelector('.pick-add', { timeout: 5000 }).catch(() => problems.push(`[${vp.name}] no add card`));
+  await page.evaluate(() => document.querySelector('.pick-add')?.scrollIntoView({ block: 'center' }));
+  const ab = await page.evaluate(() => { const r = document.querySelector('.pick-add').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+  await page.mouse.click(ab.x, ab.y);
+  await sleep(300);
+  if (!(await page.evaluate(() => document.querySelector('.pick-addpanel')?.hidden))) problems.push(`[${vp.name}] add panel opened with a short tap`);
+  await page.mouse.move(ab.x, ab.y);
+  await page.mouse.down();
+  await sleep(1800);
+  await page.mouse.up();
+  await sleep(300);
+  if (await page.evaluate(() => document.querySelector('.pick-addpanel')?.hidden)) problems.push(`[${vp.name}] add panel did not open after holding`);
+  await shot('8-add');
+  const [chooser2] = await Promise.all([
+    page.waitForFileChooser({ timeout: 5000 }),
+    clickText('.pick-addpanel button', 'Subir imagen'),
+  ]);
+  await chooser2.accept([fixture]);
+  await page.waitForSelector('.mp-preview canvas', { timeout: 8000 }).catch(() => problems.push(`[${vp.name}] no line preview from gallery`));
+  await clickText('button', 'Se ve bien');
+  await clickText('button', 'Guardar en Mis dibujos');
+  await page.waitForFunction(() => document.querySelectorAll('.pick-card.mine').length === 2, { timeout: 5000 })
+    .catch(() => problems.push(`[${vp.name}] did not return to the gallery with 2 drawings`));
+  await shot('9-gallery-after');
 
   // Ctrl+V in Padres opens "Nuevo dibujo" with the pasted image
   await page.evaluate(() => window.__pymShow('parents'));

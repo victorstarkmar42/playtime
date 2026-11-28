@@ -34,6 +34,8 @@ export interface AppState {
   colorPic: PicArt | null;
   /** The photo or image a grown-up just chose in Padres, for the "Nuevo dibujo" screen. */
   newPic: File | null;
+  /** Where "Nuevo dibujo" goes back to: Padres or the colouring gallery. */
+  newPicFrom: 'parents' | 'pick';
 }
 
 export interface Ctx {

@@ -1,5 +1,9 @@
 # Cambios
 
+## 0.19.1 — 2026-11-28
+
+- **Agregar mi dibujo desde Colorear.** La galería de Colorear tiene al inicio de **Mis dibujos** una tarjeta **+ Agregar mi dibujo**. Una persona adulta la mantiene presionada y elige **Tomar foto**, **Subir imagen** o **Pegar imagen**; al guardar, vuelve a la galería con el dibujo nuevo. Con un toque corto, la app pide ayuda a un adulto. Sigue también en Padres.
+
 ## 0.19.0 — 2026-11-28
 
 - **Colorea tu dibujo.** Nueva sección **Mis dibujos para colorear** en Padres: **Tomar foto**, **Subir imagen** o **Pegar imagen** (y Ctrl+V en computadora). La foto se convierte en líneas aunque el papel tenga sombras; se ajusta con **Menos líneas / Más líneas**, se le pone nombre y se guarda sólo en este dispositivo. En Colorear aparece primero la sección **Mis dibujos**, con bote, crayón y todo lo demás; al terminar se guarda en el álbum con su nombre.

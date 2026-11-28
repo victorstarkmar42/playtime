@@ -1162,3 +1162,12 @@ h2 small, .pick h2 small, .album h2 small { display: block; font-family: var(--f
 .mp-small canvas { width: 200px; height: auto; border-radius: 14px; border: 2px solid var(--soft); display: block; margin: 0 auto; }
 .mp-label { display: flex; flex-direction: column; gap: 8px; font-weight: 700; }
 .mp-name { min-height: 56px; padding: 0 16px; border: 2px solid var(--soft); border-radius: 16px; font: inherit; font-size: 1.15rem; }
+
+/* "+ Agregar mi dibujo" in the colouring gallery (grown-up holds it) */
+.pick-card.pick-add { box-shadow: inset 0 0 0 3px #F6C3A9, 0 5px 0 #F6C3A9; background: #FFF6F0; color: #B7461A; overflow: hidden; }
+.pick-add .ring { --dot: #F2672E; -webkit-mask: linear-gradient(#000 0 0) bottom / 100% 8px no-repeat; mask: linear-gradient(#000 0 0) bottom / 100% 8px no-repeat;
+  background: linear-gradient(90deg, var(--dot) calc(var(--p, 0) * 100%), transparent 0); }
+.pick-addicon { width: 100%; aspect-ratio: 4 / 3; display: grid; place-items: center; border: 4px dashed #F2A47F; border-radius: 14px; font-size: 4.5rem; font-weight: 900; line-height: 1; }
+.pick-add small { font-size: .85rem; font-weight: 700; color: #9A5A3C; }
+.pick-addpanel { background: #FFF6F0; border: 3px solid #F6C3A9; border-radius: 22px; padding: 14px 16px; margin-bottom: 14px; display: grid; gap: 10px; }
+.pick-addpanel p { margin: 0; font-weight: 800; font-size: 1.15rem; color: #B7461A; }
