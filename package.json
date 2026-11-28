@@ -1,7 +1,7 @@
 {
   "name": "playhour",
   "private": true,
-  "version": "0.19.1",
+  "version": "0.20.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host",
@@ -10,7 +10,8 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "e2e": "node scripts/e2e.mjs",
-    "e2e:mypic": "node scripts/mypic-check.mjs"
+    "e2e:mypic": "node scripts/mypic-check.mjs",
+    "e2e:syl": "node scripts/syllables-check.mjs"
   },
   "devDependencies": {
     "puppeteer-core": "^25.18.1",

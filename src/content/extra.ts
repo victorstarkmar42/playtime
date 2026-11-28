@@ -125,6 +125,43 @@ const autobusOutline = joinPath(
 );
 const autobusKeys: Pt[] = [[14, 26], [86, 26], [91, 32], [91, 74], [74, 64], [64, 74], [36, 74], [26, 64], [10, 74], [10, 30]];
 
+/* ---------------- Tren (locomotora mirando a la derecha) ---------------- */
+const trenOutline = joinPath(
+  [[12, 26], [40, 26], [40, 44], [64, 44], [64, 30], [72, 30], [72, 44], [86, 44], [88, 47], [88, 64], [94, 74], [84, 74]],
+  wheelArc(74, 74),
+  [[40, 74]],
+  wheelArc(30, 74),
+  [[12, 74]],
+);
+const trenKeys: Pt[] = [[12, 26], [40, 26], [40, 44], [64, 44], [64, 30], [72, 30], [72, 44], [86, 44], [88, 64], [94, 74], [84, 74], [74, 64], [64, 74], [40, 74], [30, 64], [20, 74], [12, 74]];
+
+/* ---------------- Castillo (dos torres con techo y almenas en medio) ---------------- */
+const castilloKeys: Pt[] = [
+  [10, 30], [20, 8], [30, 30], [30, 36], [42, 36], [42, 46], [58, 46], [58, 36], [70, 36],
+  [70, 30], [80, 8], [90, 30], [90, 90], [10, 90],
+];
+
+/* ---------------- Flor con tallo y dos hojas ---------------- */
+// Head: five petals around (50, 30); the stem leaves from the bottom valley.
+const florHead = (phi: number): Pt => {
+  const r = 15 + 8 * Math.abs(Math.cos((5 * phi * Math.PI) / 360));
+  return [50 + r * Math.sin((phi * Math.PI) / 180), 30 - r * Math.cos((phi * Math.PI) / 180)];
+};
+const florSide = (Math.asin(3 / 15) * 180) / Math.PI;
+const florHeadPts: Pt[] = [];
+for (let a = 180 + florSide; a < 540 - florSide; a += 3) florHeadPts.push(florHead(a));
+florHeadPts.push(florHead(540 - florSide));
+const florOutline: Pt[] = [
+  ...florHeadPts,
+  [53, 64], [61, 58], [73, 56], [67, 67], [53, 72],
+  [53, 92], [47, 92],
+  [47, 86], [36, 84], [27, 76], [39, 74], [47, 79],
+];
+const florKeys: Pt[] = [
+  florHead(180 + florSide), ...[216, 252, 288, 324, 360, 396, 432, 468, 504].map(florHead), florHead(540 - florSide),
+  [53, 64], [73, 56], [53, 72], [53, 92], [47, 92], [47, 86], [27, 76], [47, 79],
+];
+
 /* ---------------- Estrella (5 puntas, centro 50,54) ---------------- */
 const estrellaKeys: Pt[] = Array.from({ length: 10 }, (_, i) => {
   const a = ((-90 + 36 * i) * Math.PI) / 180, r = i % 2 ? 19 : 44;
@@ -425,6 +462,141 @@ export const EXTRA_CHARACTERS = {
         c.stroke();
       }
       wheels(c, [26, 74], 74, lineOnly);
+    },
+  },
+  tren: {
+    key: 'tren',
+    label: 'Tren',
+    group: 'Vehículos',
+    color: '#E8505B',
+    ...keyChar(trenOutline, trenKeys, [50, 52]),
+    counts: { '3-4': 10, '5-6': 18, '7-9': 28 },
+    vocab: {
+      es: 'tren', en: 'train',
+      titleEs: '¡Es un tren!', titleEn: "It's a train!",
+      sentenceEs: 'El tren corre por las vías y hace chu chu.', sentenceEn: 'The train runs on the tracks and goes choo choo.',
+      extra: [['vías', 'tracks'], ['humo', 'smoke'], ['estación', 'station']],
+      talk: [
+        { q: '¿Qué sonido hace el tren?', word: 'choo choo' },
+        { q: '¿A dónde te gustaría ir en tren?', word: 'trip' },
+        { q: 'Cuenten las ruedas del tren.', word: 'wheels' },
+      ],
+    },
+    details(c, lineOnly) {
+      fillIf(c, lineOnly, '#3A3F55', () => c.rect(64, 30, 8, 14));
+      rect(c, 17, 32, 35, 44, lineOnly ? null : '#CDEBFF');
+      line(c, [[12, 30], [40, 30]], 0.5);
+      line(c, [[12, 62], [88, 62]], 0.6);
+      for (const x of [52, 60, 78]) line(c, [[x, 44], [x, 62]], 0.5);
+      circ(c, 85, 52, 2.4, lineOnly ? null : '#FFE38A', INK, 0.5);
+      for (const [x, y, r] of [[70, 23, 2.6], [76, 16, 3.2], [84, 10, 3.6]]) circ(c, x, y, r, lineOnly ? null : '#E6ECF5', INK, 0.5);
+      circ(c, 52, 69, 4.5, lineOnly ? null : '#3A3F55', INK, 0.6);
+      wheels(c, [30, 74], 74, lineOnly);
+      line(c, [[30, 74], [74, 74]], 0.7);
+      line(c, [[4, 86], [96, 86]], 0.6);
+      for (let x = 8; x < 96; x += 10) line(c, [[x, 86], [x + 4, 92]], 0.45);
+    },
+  },
+  castillo: {
+    key: 'castillo',
+    label: 'Castillo',
+    group: 'Casas',
+    color: '#C9D1E3',
+    ...keyChar(castilloKeys, castilloKeys, [50, 62]),
+    counts: { '3-4': 8, '5-6': 16, '7-9': 26 },
+    vocab: {
+      es: 'castillo', en: 'castle',
+      titleEs: '¡Es un castillo!', titleEn: "It's a castle!",
+      sentenceEs: 'El castillo tiene dos torres y una puerta grande.', sentenceEn: 'The castle has two towers and a big door.',
+      extra: [['torre', 'tower'], ['bandera', 'flag'], ['puerta', 'door']],
+      talk: [
+        { q: '¿Quién vive en este castillo?', word: 'king, queen' },
+        { q: 'Cuenten las ventanas del castillo.', word: 'windows' },
+        { q: 'Inventen el nombre del castillo.', word: 'name' },
+      ],
+    },
+    details(c, lineOnly) {
+      fillIf(c, lineOnly, '#6E56CF', () => {
+        c.moveTo(10, 30);
+        c.lineTo(20, 8);
+        c.lineTo(30, 30);
+        c.closePath();
+        c.moveTo(70, 30);
+        c.lineTo(80, 8);
+        c.lineTo(90, 30);
+        c.closePath();
+      });
+      line(c, [[10, 30], [30, 30]], 0.5);
+      line(c, [[70, 30], [90, 30]], 0.5);
+      for (const x of [20, 80]) {
+        line(c, [[x, 8], [x, 1]], 0.5);
+        poly(c, [[x, 1], [x + 7, 3], [x, 5]], lineOnly ? null : '#FF5C8F', 0.45);
+        rect(c, x - 4, 44, x + 4, 56, lineOnly ? null : '#CDEBFF', 0.5);
+      }
+      line(c, [[30, 46], [30, 90]], 0.6);
+      line(c, [[70, 46], [70, 90]], 0.6);
+      circ(c, 50, 58, 4, lineOnly ? null : '#CDEBFF', INK, 0.5);
+      c.beginPath();
+      c.moveTo(42, 90);
+      c.lineTo(42, 76);
+      c.arc(50, 76, 8, Math.PI, 0);
+      c.lineTo(58, 90);
+      if (!lineOnly) {
+        c.fillStyle = '#B5654A';
+        c.fill();
+      }
+      c.lineWidth = 0.6;
+      c.strokeStyle = INK;
+      c.stroke();
+      line(c, [[50, 68], [50, 90]], 0.45);
+      for (const [x, y] of [[14, 66], [22, 74], [78, 66], [84, 76], [36, 60], [62, 62]]) rect(c, x, y, x + 5, y + 3, null, 0.4);
+    },
+  },
+  flor: {
+    key: 'flor',
+    label: 'Flor',
+    group: 'Naturaleza',
+    color: '#FF8AB8',
+    ...keyChar(florOutline, florKeys, [50, 40]),
+    counts: { '3-4': 10, '5-6': 18, '7-9': 28 },
+    vocab: {
+      es: 'flor', en: 'flower',
+      titleEs: '¡Es una flor!', titleEn: "It's a flower!",
+      sentenceEs: 'La flor crece con agua y sol.', sentenceEn: 'The flower grows with water and sun.',
+      extra: [['pétalo', 'petal'], ['tallo', 'stem'], ['hoja', 'leaf']],
+      talk: [
+        { q: '¿Cuántos pétalos tiene la flor?', word: 'five' },
+        { q: '¿Qué necesita una flor para crecer?', word: 'water, sun' },
+        { q: 'Huelan una flor imaginaria.', word: 'smell' },
+      ],
+    },
+    details(c, lineOnly) {
+      fillIf(c, lineOnly, '#7BC67E', () => {
+        c.moveTo(53, 64);
+        c.lineTo(61, 58);
+        c.lineTo(73, 56);
+        c.lineTo(67, 67);
+        c.lineTo(53, 72);
+        c.closePath();
+        c.moveTo(47, 86);
+        c.lineTo(36, 84);
+        c.lineTo(27, 76);
+        c.lineTo(39, 74);
+        c.lineTo(47, 79);
+        c.closePath();
+        c.rect(47, 44, 6, 48);
+      });
+      // a line from the middle to each valley between petals
+      for (const a of [252, 324, 396, 468]) {
+        const [x, y] = florHead(a);
+        const t = 7 / Math.hypot(x - 50, y - 30);
+        line(c, [[50 + (x - 50) * t, 30 + (y - 30) * t], [x, y]], 0.45);
+      }
+      circ(c, 50, 30, 7, lineOnly ? null : '#FFD54A', INK, 0.6);
+      for (const [x, y] of [[48, 28], [52, 31], [49, 33]]) circ(c, x, y, 0.7, INK);
+      line(c, [[53, 68], [68, 60]], 0.4);
+      line(c, [[47, 82.5], [32, 77]], 0.4);
+      line(c, [[30, 92], [70, 92]], 0.6);
     },
   },
   mandalaFlor: mandala('mandalaFlor', 'Mandala flor', florShape, '#FF8AB8', { '3-4': 12, '5-6': 24, '7-9': 36 }, {

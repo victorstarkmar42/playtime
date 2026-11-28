@@ -672,6 +672,6 @@ function leoOutline(): Pt[] {
   return CHARACTERS.leo.outline;
 }
 
-export const CHARACTER_ORDER: CharKey[] = ['briz', 'momu', 'nara', 'mina', 'kira', 'leo', 'minaPop', 'naraPop', 'kiraPop', 'micro', 'lentes', 'estrella', 'casa', 'granero', 'auto', 'carreras', 'camioneta', 'autobus', 'cohete', 'barco', 'avion', 'robi', 'chispa', 'rana', 'pinguino', 'pez', 'perro', 'tortuga', 'mariposa', 'buho', 'arbol', 'hongo', 'helado', 'pastel', 'mandalaFlor', 'mandalaCopo', 'mandalaSol'];
+export const CHARACTER_ORDER: CharKey[] = ['briz', 'momu', 'nara', 'mina', 'kira', 'leo', 'minaPop', 'naraPop', 'kiraPop', 'micro', 'lentes', 'estrella', 'casa', 'granero', 'castillo', 'auto', 'carreras', 'camioneta', 'autobus', 'tren', 'cohete', 'barco', 'avion', 'robi', 'chispa', 'rana', 'pinguino', 'pez', 'perro', 'tortuga', 'mariposa', 'buho', 'arbol', 'flor', 'hongo', 'helado', 'pastel', 'mandalaFlor', 'mandalaCopo', 'mandalaSol'];
 
 export const charOf = (k: CharKey): Character => CHARACTERS[k];

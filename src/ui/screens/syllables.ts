@@ -6,6 +6,7 @@ import { sylKindFor, sylRounds, wordText, type SylRound } from '../../core/sylla
 import type { Ctx, Screen } from '../context';
 import { h, ICONS } from '../dom';
 import { levelPicker, progressDots, shake } from './gamekit';
+import { familyView, type FamilyView } from './sylfamily';
 
 const ROUNDS = 5;
 
@@ -26,6 +27,23 @@ export function syllablesScreen(ctx: Ctx): Screen {
   let placed: string[] = [];
   let timer = 0;
   const wrap = h('div', { class: 'sylg' });
+  // "Arma palabras" (or claps for 3–4) and "Familias" (ta te ti to tu…)
+  let fview: FamilyView | null = null;
+  let families = false;
+  const tabs = (): HTMLElement => h('div', { class: 'syl-modes', role: 'tablist', 'aria-label': 'Modo' },
+    h('button', { role: 'tab', 'aria-selected': String(!families), onClick: () => families && toWords() }, kind === 'clap' ? 'Aplausos' : 'Arma palabras'),
+    h('button', { role: 'tab', 'aria-selected': String(families), onClick: () => !families && toFamilies() }, 'Familias'));
+  function toFamilies(): void {
+    clearTimeout(timer);
+    families = true;
+    fview = familyView(ctx, wrap, tabs);
+  }
+  function toWords(): void {
+    fview?.destroy();
+    fview = null;
+    families = false;
+    begin();
+  }
   const el = h('div', { class: 'view' }, wrap);
   const r = () => rounds[idx];
   const say = (t: string) => ctx.sayOne(t, lang);
@@ -42,6 +60,7 @@ export function syllablesScreen(ctx: Ctx): Screen {
   function head(): HTMLElement {
     return h('div', { class: 'ghead' },
       h('h2', null, 'Sílabas', h('small', null, kind === 'clap' ? 'Syllables · ¿Cuántos aplausos?' : 'Syllables · Arma la palabra')),
+      tabs(),
       progressDots(ROUNDS, idx),
       levelPicker(ctx, 'syllables', begin));
   }
@@ -147,5 +166,19 @@ export function syllablesScreen(ctx: Ctx): Screen {
   }
 
   begin();
-  return { el, destroy: () => clearTimeout(timer), onHelp: () => rounds.length && idx < ROUNDS && spell() };
+  return {
+    el,
+    destroy: () => {
+      clearTimeout(timer);
+      fview?.destroy();
+    },
+    onHelp: () => (fview ? fview.help() : rounds.length && idx < ROUNDS && spell()),
+    busy: () => !!fview?.busy(),
+    back: () => {
+      if (!fview) return false;
+      if (fview.back()) return true;
+      toWords();
+      return true;
+    },
+  };
 }

@@ -15,7 +15,7 @@ const svg = <K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string,
 };
 
 /** Colour of a piece before the child paints it, by shape (helps match shapes by sight too). */
-const KIND_TINT: Record<ShapeKind, string> = { rect: '#FFE082', square: '#FFD54A', tri: '#FFAB91', triDown: '#FFAB91', circle: '#81D4FA', semi: '#CE93D8', trap: '#A5D6A7' };
+const KIND_TINT: Record<ShapeKind, string> = { rect: '#FFE082', square: '#FFD54A', tri: '#FFAB91', triDown: '#FFAB91', triLeft: '#FFAB91', triRight: '#FFAB91', circle: '#81D4FA', semi: '#CE93D8', trap: '#A5D6A7' };
 const INK = '#22304F';
 
 const shuffle = <T,>(a: T[]): T[] => {
@@ -275,6 +275,7 @@ export function buildScreen(ctx: Ctx): Screen {
         h('h2', null, '¡Felicidades, terminaste!'),
         h('p', null, `Tu ${f.es} quedó ${preciosoEs(f)}.`),
         h('button', { class: 'bigbtn', onClick: () => play(next) }, `Siguiente: ${next.es} →`),
+        f.dots ? h('button', { class: 'bigbtn violet', onClick: () => { ctx.state.pickFor = 'dots'; ctx.startGame(f.dots!); } }, 'Ahora únelo con puntos') : null,
         h('button', { class: 'bigbtn alt small', onClick: picker }, 'Elegir otra')));
       pop(660, 0.12);
       setTimeout(() => pop(880, 0.12), 140);

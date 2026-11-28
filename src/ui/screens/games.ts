@@ -32,7 +32,7 @@ const ICON = {
 
 const AGE_TEXT = {
   stories: { '3-4': 'Escucha un cuento corto y contesta tocando los dibujos.', '5-6': 'Lee (o escucha) un cuento y contesta quién, qué pasó y por qué.', '7-9': 'Cuentos más largos con preguntas para pensar: por qué pasó y qué enseña.' },
-  syllables: { '3-4': 'Oye la palabra y di cuántos aplausos tiene: ma-ri-po-sa.', '5-6': 'Arma la palabra tocando sus sílabas en orden: ca-sa.', '7-9': 'Palabras largas y sílabas de más que no van.' },
+  syllables: { '3-4': 'Oye la palabra y di cuántos aplausos tiene: ma-ri-po-sa.', '5-6': 'Arma la palabra tocando sus sílabas en orden: ca-sa. En Familias: ta te ti to tu, las difíciles y contra Robi.', '7-9': 'Palabras largas y sílabas de más que no van. En Familias: las letras que se confunden (b/d, r/rr, b/v…), solo o contra Robi.' },
   tables: { '3-4': '', '5-6': 'Tablas del 2, del 5 y del 10, con puntitos.', '7-9': 'Todas las tablas con repaso: las que fallas vuelven pronto.' },
   problems: { '3-4': 'Problemas cortos con dibujos y voz: juntar y quitar hasta 5.', '5-6': 'Juntar, quitar y comparar hasta 10, con dibujos.', '7-9': 'Primero elige la operación y luego el resultado: hasta 100, grupos y repartos.' },
   basta: { '3-4': 'Rueda de letras con dibujos de ayuda: di una palabra y toca su letra (20 segundos).', '5-6': 'Di una palabra de la tarjeta y toca su primera letra antes de 15 segundos.', '7-9': 'Rueda de 22 letras y 10 segundos por turno. Contra Robi o entre dos.' },

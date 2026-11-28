@@ -13,9 +13,10 @@ npm run build      # tipos + dist/ con service worker
 npm run preview    # http://localhost:4390
 npm run e2e        # con preview corriendo; Chrome en 4 tamaños de pantalla, capturas en e2e-shots/
 npm run e2e:mypic  # con preview corriendo; Colorea tu dibujo: foto, líneas, guardar, bote, zoom y pegar
+npm run e2e:syl    # con preview corriendo; Sílabas → Familias: leer, contra Robi y completar la palabra
 ```
 
-Antes de dar un cambio por terminado: `npm run typecheck`, `npm test` y `npm run build` deben pasar. Si tocaste pantallas, corre también `npm run e2e` (y `npm run e2e:mypic` si tocaste Colorear, Padres o Mis dibujos); debe terminar con "No console errors or problems".
+Antes de dar un cambio por terminado: `npm run typecheck`, `npm test` y `npm run build` deben pasar. Si tocaste pantallas, corre también `npm run e2e` (y `npm run e2e:mypic` si tocaste Colorear, Padres o Mis dibujos; `npm run e2e:syl` si tocaste Sílabas); debe terminar con "No console errors or problems".
 
 ## Dónde está cada cosa
 
@@ -26,9 +27,9 @@ Antes de dar un cambio por terminado: `npm run typecheck`, `npm test` y `npm run
 - `src/ui/pwa.ts`: tarjeta para instalar la app (Inicio) y barra "Hay una versión nueva" (el service worker usa `registerType: 'prompt'`).
 - `src/core/rest.ts` y `src/ui/restbreak.ts`: descansos para los ojos y límite de juego, con planes "sin supervisión" y "con supervisión". Una pantalla con ronda cronometrada debe devolver `busy()` mientras corre, para que el descanso espere.
 - `src/ui/fullscreen.ts`: pantalla completa.
-- `src/core/shapes.ts` + `src/ui/screens/build.ts`: Construye con figuras.
+- `src/core/shapes.ts` + `src/ui/screens/build.ts`: Construye con figuras. Cada figura puede llevar `dots` (su dibujo en Unir puntos) para el botón "Ahora únelo con puntos".
 - `src/content/world.ts` (continentes y países) + `src/core/geo.ts` + `src/ui/screens/globe.ts`: Países del mundo.
-- Para la escuela: `src/content/stories.ts` + `src/ui/screens/stories.ts` (Cuentos), `src/core/syllables.ts` (Sílabas), `src/core/tables.ts` (Tablas, repaso espaciado guardado en `pym-tables`), `src/core/problems.ts` (Problemas). Cuentos y Sílabas usan el idioma principal de la voz (`primaryLang`), porque son lectura.
+- Para la escuela: `src/content/stories.ts` + `src/ui/screens/stories.ts` (Cuentos), `src/core/syllables.ts` (Sílabas), `src/core/sylfamily.ts` + `src/ui/screens/sylfamily.ts` (modo Familias de Sílabas: familias, "Las difíciles", palabras con dibujo `PRACTICE_WORDS` y el ritmo de Robi `robiPace`; lo practicado se guarda en `pym-syl-families`), `src/core/tables.ts` (Tablas, repaso espaciado guardado en `pym-tables`), `src/core/problems.ts` (Problemas). Cuentos y Sílabas usan el idioma principal de la voz (`primaryLang`), porque son lectura.
 - `src/core/flood.ts`: bote de pintura y la máscara de "colorear dentro" (todo lo cerrado por líneas).
 - Colorea tu dibujo: `src/core/photo.ts` (foto a líneas comparando cada punto con el papel que lo rodea; `LINE_LEVELS`), `src/core/mypics.ts` (`picStore`, guardado en IndexedDB `playhour-pics`; las pantallas usan sólo `picStore` para poder cambiarlo por una nube con cuentas), `src/ui/mypic.ts` (tablero 1200×900, tinta y los botones `newPicButtons`, que usan Padres y la tarjeta **+ Agregar mi dibujo** de la galería), `src/ui/screens/mypic.ts` (pantalla "Nuevo dibujo", se abre desde Padres o la galería y regresa a `ctx.state.newPicFrom`). En `color.ts`, `ctx.state.colorPic` colorea una imagen en vez de `colorKey`; cualquier entrada a Colorear con un dibujo de la app debe poner `colorPic = null`. El zoom de dos dedos vive en `color.ts` (`.zoomer`).
 - Navegación (`src/ui/app.ts`): la barra superior tiene la flecha **Atrás** siempre en el mismo lugar, el título de la pantalla, Ayuda, Voz y el menú **Más** (Inicio, Dibujos, idioma y Padres con pulsación larga). La flecha y el botón atrás del celular usan la misma función: primero `screen.back()` (un paso dentro del juego; devuelve `false` si ya no hay pasos) y luego `backTarget`. No pongas botones "Salir" dentro de las pantallas.

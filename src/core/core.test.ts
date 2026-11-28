@@ -1,3 +1,4 @@
+import { FAMILIES, HARD_GROUPS, PRACTICE_WORDS, familyRounds, modesFor, optionCount, robiPace, wordsFor } from './sylfamily';
 import { describe, expect, it } from 'vitest';
 import { cleanPicName, fitRect, LINE_LEVELS, photoInk } from './photo';
 import { CHARACTER_ORDER, CHARACTERS } from '../content/characters';
@@ -990,5 +991,66 @@ describe('colorea tu dibujo: foto a líneas', () => {
     expect(cleanPicName('IMG_2045-casa.jpg')).toBe('IMG 2045 casa');
     expect(cleanPicName('   ')).toBe('Mi dibujo');
     expect(cleanPicName('x'.repeat(40)).length).toBe(24);
+  });
+});
+
+describe('familias de sílabas', () => {
+  const rng = (seed: number) => () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  it('words are well formed and each picture means one word', () => {
+    const byPic = new Map<string, string>();
+    for (const w of PRACTICE_WORDS) {
+      for (const p of w.parts) expect(p).toMatch(/^[a-záéíóúüñ]+$/);
+      const word = w.parts.join('');
+      expect(byPic.get(w.pic) ?? word, w.pic).toBe(word);
+      byPic.set(w.pic, word);
+    }
+  });
+  it('every family and hard group can be practised', () => {
+    for (const f of [...FAMILIES, ...HARD_GROUPS]) {
+      const modes = modesFor(f);
+      expect(modes.length, f.id).toBeGreaterThan(0);
+      if (f.sameSound) {
+        expect(modes, f.id).not.toContain('listen');
+        expect(modes, f.id).toContain('complete');
+      }
+    }
+    // the common ones have words to complete
+    for (const id of ['m', 'p', 's', 'l', 't', 'n', 'd', 'r', 'rr', 'c', 'b', 'v', 'g', 'j', 'z', 'll', 'ch']) {
+      expect(wordsFor(FAMILIES.find((f) => f.id === id)!).length, id).toBeGreaterThanOrEqual(3);
+    }
+  });
+  it('rounds have the answer once, no repeats, and harder levels add the confusing ones', () => {
+    const t = FAMILIES.find((f) => f.id === 't')!;
+    for (const level of [1, 2, 3, 4] as const) {
+      const rounds = familyRounds(t, 'listen', '7-9', level, 5, rng(7));
+      expect(new Set(rounds.map((r) => r.answer)).size).toBe(5);
+      for (const r of rounds) {
+        expect(r.choices.filter((c) => c === r.answer)).toHaveLength(1);
+        expect(new Set(r.choices).size).toBe(r.choices.length);
+        expect(r.choices.length).toBe(Math.min(optionCount('7-9', level), 5 + (level >= 3 ? 5 : 0)));
+        if (level >= 3) expect(r.choices.some((c) => c.startsWith('d'))).toBe(true);
+        else expect(r.choices.every((c) => c.startsWith('t'))).toBe(true);
+      }
+    }
+    const hardBv = HARD_GROUPS.find((f) => f.id === 'b-v')!;
+    for (const r of familyRounds(hardBv, 'complete', '7-9', 2, 8, rng(3))) {
+      expect(r.word!.parts[r.at!]).toBe(r.answer);
+      expect(r.choices).toContain(r.answer);
+    }
+  });
+  it('3–4-year-olds get few choices and a slower Robi', () => {
+    expect(optionCount('3-4', 4)).toBeLessThanOrEqual(4);
+    expect(robiPace('3-4', 2).ms).toBeGreaterThan(robiPace('7-9', 2).ms);
+    expect(robiPace('7-9', 4).ms).toBeLessThan(robiPace('7-9', 1).ms);
+  });
+});
+
+describe('las difíciles', () => {
+  it('always offer the look-alike with the same vowel', () => {
+    const bv = HARD_GROUPS.find((f) => f.id === 'b-v')!;
+    for (const r of familyRounds(bv, 'complete', '5-6', 1, 10)) {
+      const v = r.answer.slice(-1);
+      expect(r.choices.filter((c) => c.endsWith(v)).length, r.choices.join()).toBeGreaterThanOrEqual(2);
+    }
   });
 });

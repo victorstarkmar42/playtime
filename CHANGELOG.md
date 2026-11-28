@@ -1,5 +1,16 @@
 # Cambios
 
+## 0.20.0 — 2026-11-28
+
+- **Sílabas → Familias.** Arriba de Sílabas hay dos modos: **Arma palabras** (o Aplausos para 3–4 años) y **Familias**. Se elige una familia (ma me mi mo mu, ta te ti to tu, la le li lo lu, ra re ri ro ru, rra…, ca que qui co cu, ga gue gui go gu, za ce ci zo zu, ch, ll, y, ñ, h y las trabadas bla, bra, pla, tra…) o una de **Las difíciles**: b/d, p/q, m/n, l/r, r/rr, b/v, ca-co-cu/que-qui, ga-go-gu/gue-gui, ce-ci/se-si, ll/y y bra/bla.
+  - **Lee la familia:** tocar cada sílaba en orden y oírla (con un dibujo de una palabra que empieza con ella), y luego revueltas.
+  - **Escucha y elige:** la voz dice una sílaba y se toca entre las de la familia. En Reto y Experto se mezclan las que se confunden (ta con da, la con ra…).
+  - **Completa la palabra:** un dibujo y la palabra con un hueco (_so → va / ba). Las que suenan igual (b/v, ce/se, ll/y, r/rr) sólo se practican así.
+  - **Solo o contra Robi:** Robi llena su barra y contesta; a veces se equivoca. Gana el que encuentre la sílaba primero. Más tiempo para los más pequeños y menos en Reto y Experto.
+  - Las familias practicadas muestran ✓, y ⭐ cuando salió casi perfecta.
+- **Construye con figuras: 8 figuras nuevas:** avión, autobús, pez, tortuga, helado, pastel, hongo y mariposa (16 en total). Al terminar una figura, el botón **Ahora únelo con puntos** abre el mismo dibujo en Unir puntos.
+- **Unir puntos y Colorear: tren, castillo y flor nuevos**, así todas las figuras de Construye también se pueden unir con puntos. Tren y castillo también salen en Adivina la palabra.
+
 ## 0.19.1 — 2026-11-28
 
 - **Agregar mi dibujo desde Colorear.** La galería de Colorear tiene al inicio de **Mis dibujos** una tarjeta **+ Agregar mi dibujo**. Una persona adulta la mantiene presionada y elige **Tomar foto**, **Subir imagen** o **Pegar imagen**; al guardar, vuelve a la galería con el dibujo nuevo. Con un toque corto, la app pide ayuda a un adulto. Sigue también en Padres.

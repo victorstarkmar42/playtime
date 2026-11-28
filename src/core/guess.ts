@@ -7,7 +7,7 @@ import type { Age, CharKey, Lang, LangMode } from './types';
  * (the concert singers and the head-only characters are left out: their words are not the picture).
  */
 export const GUESS_POOL: readonly CharKey[] = [
-  'briz', 'momu', 'leo', 'micro', 'lentes', 'estrella', 'casa', 'granero',
+  'briz', 'momu', 'leo', 'micro', 'lentes', 'estrella', 'casa', 'granero', 'castillo', 'tren',
   'auto', 'carreras', 'camioneta', 'autobus', 'mandalaFlor', 'mandalaCopo', 'mandalaSol',
 ];
 

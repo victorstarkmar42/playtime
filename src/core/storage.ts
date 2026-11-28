@@ -15,6 +15,7 @@ export const DATA_KEYS = {
   tables: 'pym-tables',
   traceDone: 'pym-trace-done',
   lastGame: 'pym-last-game',
+  sylFamilies: 'pym-syl-families',
 } as const;
 export type DataName = keyof typeof DATA_KEYS;
 
